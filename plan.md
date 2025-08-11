@@ -12,7 +12,6 @@ Python yfinance 라이브러리를 Swift로 TDD 방식으로 포팅
 ## Phase 1: 기본 구조 설정
 - [x] Swift Package 초기화
 - [x] 기본 테스트 환경 설정
-- [ ] CI/CD 설정 (GitHub Actions)
 
 ## Phase 2: Core Data Model
 ### YFTicker 기본 구조
@@ -21,19 +20,19 @@ Python yfinance 라이브러리를 Swift로 TDD 방식으로 포팅
 - [x] testTickerDescription - Ticker 설명 문자열
 
 ### YFPrice 모델
-- [ ] testPriceInitWithValues - 가격 데이터 초기화
-- [ ] testPriceComparison - 가격 비교 연산
-- [ ] testPriceCodable - JSON 인코딩/디코딩
+- [x] testPriceInitWithValues - 가격 데이터 초기화
+- [x] testPriceComparison - 가격 비교 연산
+- [x] testPriceCodable - JSON 인코딩/디코딩
 
 ### YFHistoricalData 모델  
-- [ ] testHistoricalDataInit - 히스토리 데이터 초기화
-- [ ] testHistoricalDataDateRange - 날짜 범위 검증
-- [ ] testHistoricalDataEmpty - 빈 데이터 처리
+- [x] testHistoricalDataInit - 히스토리 데이터 초기화
+- [x] testHistoricalDataDateRange - 날짜 범위 검증
+- [x] testHistoricalDataEmpty - 빈 데이터 처리
 
 ## Phase 3: Network Layer
 ### YFSession
-- [ ] testSessionInit - 세션 초기화
-- [ ] testSessionDefaultHeaders - 기본 헤더 설정
+- [x] testSessionInit - 세션 초기화
+- [x] testSessionDefaultHeaders - 기본 헤더 설정
 - [ ] testSessionProxy - 프록시 설정
 
 ### YFRequest Builder
@@ -138,9 +137,9 @@ Python yfinance 라이브러리를 Swift로 TDD 방식으로 포팅
 - [ ] testCachePerformance - 캐시 성능
 
 ## 진행 상태
-- 전체 테스트: 5/88
-- 완료된 Phase: 0/10
-- 현재 작업 중: Phase 2 - Core Data Model
+- 전체 테스트: 13/88
+- 완료된 Phase: 1/10
+- 현재 작업 중: Phase 3 - Network Layer
 
 ## 다음 작업
-1. testPriceInitWithValues - 가격 데이터 초기화
+1. testSessionProxy - 프록시 설정
