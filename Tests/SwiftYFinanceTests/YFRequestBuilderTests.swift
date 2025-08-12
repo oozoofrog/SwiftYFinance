@@ -49,11 +49,13 @@ struct YFRequestBuilderTests {
         #expect(request2.url?.absoluteString.contains("fields=regularMarketPrice") == true)
     }
     
+    /// 실제 User-Agent 헤더 설정 테스트
     @Test
     func testRequestBuilderHeaders() throws {
         let session = YFSession()
         let builder = YFRequestBuilder(session: session)
         
+        // Yahoo Finance 호환 User-Agent 헤더 테스트
         let request1 = try builder
             .path("/v8/finance/chart/AAPL")
             .header("Custom-Header", "CustomValue")
@@ -62,15 +64,59 @@ struct YFRequestBuilderTests {
         
         #expect(request1.value(forHTTPHeaderField: "Custom-Header") == "CustomValue")
         #expect(request1.value(forHTTPHeaderField: "Another-Header") == "AnotherValue")
-        #expect(request1.value(forHTTPHeaderField: "User-Agent")?.contains("SwiftYFinance") == true)
         
+        // 실제 Yahoo Finance 호환 User-Agent 확인
+        let userAgent = request1.value(forHTTPHeaderField: "User-Agent")
+        #expect(userAgent != nil)
+        #expect(userAgent?.contains("Mozilla") == true)
+        #expect(userAgent?.contains("AppleWebKit") == true || userAgent?.contains("Gecko") == true)
+        
+        // 다양한 헤더 설정 테스트
         let request2 = try builder
-            .path("/api/test")
-            .headers(["X-API-Key": "secret", "X-Request-ID": "12345"])
+            .path("/v8/finance/chart/MSFT")
+            .headers([
+                "Accept": "application/json",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Accept-Encoding": "gzip, deflate, br",
+                "DNT": "1",
+                "Connection": "keep-alive",
+                "Upgrade-Insecure-Requests": "1"
+            ])
             .build()
         
-        #expect(request2.value(forHTTPHeaderField: "X-API-Key") == "secret")
-        #expect(request2.value(forHTTPHeaderField: "X-Request-ID") == "12345")
+        #expect(request2.value(forHTTPHeaderField: "Accept") == "application/json")
+        #expect(request2.value(forHTTPHeaderField: "Accept-Language") == "en-US,en;q=0.9")
+        #expect(request2.value(forHTTPHeaderField: "Accept-Encoding") == "gzip, deflate, br")
+        #expect(request2.value(forHTTPHeaderField: "DNT") == "1")
+        #expect(request2.value(forHTTPHeaderField: "Connection") == "keep-alive")
+        #expect(request2.value(forHTTPHeaderField: "Upgrade-Insecure-Requests") == "1")
+        
+        // User-Agent가 yfinance-reference의 USER_AGENTS와 유사한 형태인지 확인
+        let userAgent2 = request2.value(forHTTPHeaderField: "User-Agent")
+        #expect(userAgent2 != nil)
+        
+        // Chrome, Firefox, Safari, Edge 중 하나와 일치하는지 확인
+        let validUserAgentPatterns = [
+            "Chrome", "Firefox", "Safari", "Edge"
+        ]
+        let hasValidPattern = validUserAgentPatterns.contains { pattern in
+            userAgent2?.contains(pattern) == true
+        }
+        #expect(hasValidPattern == true)
+        
+        // 기본 헤더들이 포함되어 있는지 확인
+        #expect(request2.value(forHTTPHeaderField: "User-Agent") != nil)
+        
+        // 특정 Yahoo Finance 호환 User-Agent 설정 테스트
+        let request3 = try builder
+            .path("/v8/finance/chart/GOOGL")
+            .header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36")
+            .build()
+        
+        let customUserAgent = request3.value(forHTTPHeaderField: "User-Agent")
+        #expect(customUserAgent == "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36")
+        #expect(customUserAgent?.contains("Chrome/133.0.0.0") == true)
+        #expect(customUserAgent?.contains("Safari/537.36") == true)
     }
     
     /// Yahoo Finance chart API URL 생성 테스트

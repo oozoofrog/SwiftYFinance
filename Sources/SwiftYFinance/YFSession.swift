@@ -9,7 +9,7 @@ public class YFSession {
     
     public var defaultHeaders: [String: String] {
         var headers = [
-            "User-Agent": "SwiftYFinance/1.0",
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
             "Accept": "application/json",
             "Content-Type": "application/json"
         ]

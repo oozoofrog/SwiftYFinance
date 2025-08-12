@@ -25,7 +25,7 @@ struct YFSessionTests {
         
         let headers = session.defaultHeaders
         
-        #expect(headers["User-Agent"]?.contains("SwiftYFinance") == true)
+        #expect(headers["User-Agent"]?.contains("Mozilla") == true)
         #expect(headers["Accept"] == "application/json")
         #expect(headers["Content-Type"] == "application/json")
         
@@ -34,7 +34,7 @@ struct YFSessionTests {
         
         let combinedHeaders = sessionWithHeaders.defaultHeaders
         #expect(combinedHeaders["Custom-Header"] == "CustomValue")
-        #expect(combinedHeaders["User-Agent"]?.contains("SwiftYFinance") == true)
+        #expect(combinedHeaders["User-Agent"]?.contains("Mozilla") == true)
     }
     
     @Test
