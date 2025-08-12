@@ -301,9 +301,9 @@ Phase 4 확장 완료 후 Phase 5 Advanced Features 진행
 - [x] testRequestBuilderChartURL - Yahoo Finance chart API URL 생성 ✅ 완료
   - 📚 참조: yfinance-reference/yfinance/const.py:_BASE_URL_
   - 🎯 목표: `https://query2.finance.yahoo.com/v8/finance/chart/{symbol}` 구성
-- [ ] testRequestBuilderWithInterval - interval 파라미터 추가
+- [x] testRequestBuilderWithInterval - interval 파라미터 추가 ✅ 완료
   - 📚 참조: yfinance-reference/yfinance/scrapers/history.py interval 처리
-  - 🔍 확인사항: interval=1m, period=1d 쿼리 파라미터
+  - 🔍 확인사항: interval=1m, range=1d, includePrePost, events 쿼리 파라미터
 - [ ] testRequestBuilderWithPeriod - period 파라미터 추가
   - 📚 참조: yfinance-reference/yfinance/scrapers/history.py period 처리
   - 🔍 확인사항: period=1d, 5d, 1mo 등 변환

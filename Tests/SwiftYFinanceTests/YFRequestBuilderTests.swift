@@ -97,4 +97,59 @@ struct YFRequestBuilderTests {
         #expect(request2.url?.absoluteString == "https://query2.finance.yahoo.com/v8/finance/chart/MSFT")
         #expect(request2.url?.path == "/v8/finance/chart/MSFT")
     }
+    
+    /// interval 파라미터 추가 테스트
+    @Test
+    func testRequestBuilderWithInterval() throws {
+        let session = YFSession()
+        let builder = YFRequestBuilder(session: session)
+        
+        // 1분 간격 파라미터 추가
+        let request1 = try builder
+            .path("/v8/finance/chart/AAPL")
+            .queryParam("interval", "1m")
+            .queryParam("range", "1d")
+            .build()
+        
+        #expect(request1.url?.query?.contains("interval=1m") == true)
+        #expect(request1.url?.query?.contains("range=1d") == true)
+        #expect(request1.url?.absoluteString.contains("interval=1m") == true)
+        
+        // 5분 간격 파라미터 추가
+        let request2 = try builder
+            .path("/v8/finance/chart/MSFT")
+            .queryParam("interval", "5m")
+            .queryParam("range", "5d")
+            .build()
+        
+        #expect(request2.url?.query?.contains("interval=5m") == true)
+        #expect(request2.url?.query?.contains("range=5d") == true)
+        
+        // 일간 간격 파라미터 추가
+        let request3 = try builder
+            .path("/v8/finance/chart/GOOGL")
+            .queryParam("interval", "1d")
+            .queryParam("range", "1mo")
+            .build()
+        
+        #expect(request3.url?.query?.contains("interval=1d") == true)
+        #expect(request3.url?.query?.contains("range=1mo") == true)
+        
+        // 복합 파라미터 테스트 (includePrePost, events 포함)
+        let request4 = try builder
+            .path("/v8/finance/chart/TSLA")
+            .queryParams([
+                "interval": "1h",
+                "range": "1wk",
+                "includePrePost": "false",
+                "events": "div,splits,capitalGains"
+            ])
+            .build()
+        
+        let query = request4.url?.query ?? ""
+        #expect(query.contains("interval=1h"))
+        #expect(query.contains("range=1wk"))
+        #expect(query.contains("includePrePost=false"))
+        #expect(query.contains("events=div,splits,capitalGains"))
+    }
 }
