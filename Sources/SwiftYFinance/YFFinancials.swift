@@ -1,6 +1,6 @@
 import Foundation
 
-public struct YFFinancials {
+public struct YFFinancials: Codable {
     public let ticker: YFTicker
     public let annualReports: [YFFinancialReport]
     public let quarterlyReports: [YFFinancialReport]
@@ -12,7 +12,7 @@ public struct YFFinancials {
     }
 }
 
-public struct YFFinancialReport {
+public struct YFFinancialReport: Codable {
     public let reportDate: Date
     public let totalRevenue: Double
     public let netIncome: Double
@@ -46,7 +46,7 @@ public struct YFFinancialReport {
     }
 }
 
-public struct YFBalanceSheet {
+public struct YFBalanceSheet: Codable {
     public let ticker: YFTicker
     public let annualReports: [YFBalanceSheetReport]
     public let quarterlyReports: [YFBalanceSheetReport]
@@ -58,7 +58,7 @@ public struct YFBalanceSheet {
     }
 }
 
-public struct YFBalanceSheetReport {
+public struct YFBalanceSheetReport: Codable {
     public let reportDate: Date
     public let totalCurrentAssets: Double
     public let totalCurrentLiabilities: Double

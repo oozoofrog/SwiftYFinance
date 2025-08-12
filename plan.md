@@ -54,29 +54,29 @@ Python yfinance 라이브러리를 Swift로 TDD 방식으로 포팅
 ### 🔄 재검토 체크리스트:
 
 #### YFSession → YFSessionTests.swift
-- [ ] testSessionInit 재검토 - 세션 초기화
+- [x] testSessionInit 재검토 - 세션 초기화
   - 📚 참조: yfinance-reference/yfinance/base.py:TickerBase.__init__() 세션 설정
   - 🔍 확인사항: URLSession 설정, User-Agent 헤더
-- [ ] testSessionDefaultHeaders 재검토 - 기본 헤더 설정
+- [x] testSessionDefaultHeaders 재검토 - 기본 헤더 설정
   - 📚 참조: yfinance-reference/yfinance/shared.py default headers
-- [ ] testSessionProxy 재검토 - 프록시 설정
+- [x] testSessionProxy 재검토 - 프록시 설정
   - 📚 참조: yfinance-reference/yfinance/data.py proxy 설정
 
 #### YFRequest Builder → YFRequestBuilderTests.swift
-- [ ] testRequestBuilderBaseURL 재검토 - 기본 URL 생성
+- [x] testRequestBuilderBaseURL 재검토 - 기본 URL 생성
   - 📚 참조: yfinance-reference/yfinance/const.py:_BASE_URL_
   - 🔍 확인사항: query.finance.yahoo.com 기본 URL
-- [ ] testRequestBuilderQueryParams 재검토 - 쿼리 파라미터 추가
+- [x] testRequestBuilderQueryParams 재검토 - 쿼리 파라미터 추가
   - 📚 참조: yfinance-reference/yfinance/scrapers/*.py 쿼리 파라미터 구성
-- [ ] testRequestBuilderHeaders 재검토 - 헤더 추가
+- [x] testRequestBuilderHeaders 재검토 - 헤더 추가
   - 📚 참조: yfinance-reference/yfinance/shared.py headers 설정
 
 #### YFResponse Parser → YFResponseParserTests.swift
-- [ ] testResponseParserValidJSON 재검토 - 유효한 JSON 파싱
+- [x] testResponseParserValidJSON 재검토 - 유효한 JSON 파싱
   - 📚 참조: yfinance-reference/yfinance/scrapers/fundamentals.py JSON 파싱
-- [ ] testResponseParserInvalidJSON 재검토 - 잘못된 JSON 처리
+- [x] testResponseParserInvalidJSON 재검토 - 잘못된 JSON 처리
   - 📚 참조: yfinance-reference/yfinance/exceptions.py 에러 처리
-- [ ] testResponseParserErrorHandling 재검토 - 에러 응답 처리
+- [x] testResponseParserErrorHandling 재검토 - 에러 응답 처리
   - 🔍 확인사항: HTTP 상태 코드, 타임아웃 처리
 
 ## Phase 4: API Integration (현재 작업 중) 🔄

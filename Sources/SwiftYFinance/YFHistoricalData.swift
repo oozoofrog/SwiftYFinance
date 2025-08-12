@@ -1,6 +1,6 @@
 import Foundation
 
-public struct YFHistoricalData {
+public struct YFHistoricalData: Codable {
     public let ticker: YFTicker
     public let prices: [YFPrice]
     public let startDate: Date

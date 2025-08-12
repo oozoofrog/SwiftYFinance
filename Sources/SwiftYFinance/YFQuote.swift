@@ -1,6 +1,6 @@
 import Foundation
 
-public struct YFQuote {
+public struct YFQuote: Codable {
     public let ticker: YFTicker
     public let regularMarketPrice: Double
     public let regularMarketVolume: Int
