@@ -259,4 +259,78 @@ struct YFClientTests {
             }
         }
     }
+    
+    /// 1분 간격 고해상도 데이터 조회 테스트
+    @Test func testFetchHistoryWithInterval1Min() async throws {
+        let client = YFClient()
+        let ticker = try YFTicker(symbol: "AAPL")
+        
+        // 1분 간격으로 1일 데이터 요청
+        let historicalData = try await client.fetchPriceHistory(
+            ticker: ticker,
+            period: .oneDay,
+            interval: .oneMinute
+        )
+        
+        #expect(historicalData.ticker.symbol == "AAPL")
+        #expect(!historicalData.prices.isEmpty)
+        
+        // 1분 간격 데이터는 1일에 약 390개 (6.5시간 거래시간)
+        #expect(historicalData.prices.count > 300)
+        #expect(historicalData.prices.count < 500)
+        
+        // 연속된 데이터 간격이 1분인지 확인
+        if historicalData.prices.count >= 2 {
+            let firstPrice = historicalData.prices[0]
+            let secondPrice = historicalData.prices[1]
+            let interval = abs(secondPrice.date.timeIntervalSince(firstPrice.date))
+            let oneMinute = 60.0
+            #expect(abs(interval - oneMinute) < 30.0) // 30초 허용 오차
+        }
+        
+        // 각 가격 데이터의 필수 필드 확인
+        let firstPrice = historicalData.prices.first!
+        #expect(firstPrice.open > 0)
+        #expect(firstPrice.high >= firstPrice.open)
+        #expect(firstPrice.low <= firstPrice.open)
+        #expect(firstPrice.close > 0)
+        #expect(firstPrice.volume >= 0)
+    }
+    
+    /// 5분 간격 고해상도 데이터 조회 테스트
+    @Test func testFetchHistoryWithInterval5Min() async throws {
+        let client = YFClient()
+        let ticker = try YFTicker(symbol: "AAPL")
+        
+        // 5분 간격으로 1일 데이터 요청
+        let historicalData = try await client.fetchPriceHistory(
+            ticker: ticker,
+            period: .oneDay,
+            interval: .fiveMinutes
+        )
+        
+        #expect(historicalData.ticker.symbol == "AAPL")
+        #expect(!historicalData.prices.isEmpty)
+        
+        // 5분 간격 데이터는 1일에 약 78개 (6.5시간 거래시간 / 5분)
+        #expect(historicalData.prices.count > 70)
+        #expect(historicalData.prices.count < 90)
+        
+        // 연속된 데이터 간격이 5분인지 확인
+        if historicalData.prices.count >= 2 {
+            let firstPrice = historicalData.prices[0]
+            let secondPrice = historicalData.prices[1]
+            let interval = abs(secondPrice.date.timeIntervalSince(firstPrice.date))
+            let fiveMinutes = 300.0 // 5분 = 300초
+            #expect(abs(interval - fiveMinutes) < 60.0) // 1분 허용 오차
+        }
+        
+        // 각 가격 데이터의 필수 필드 확인
+        let firstPrice = historicalData.prices.first!
+        #expect(firstPrice.open > 0)
+        #expect(firstPrice.high >= firstPrice.open)
+        #expect(firstPrice.low <= firstPrice.open)
+        #expect(firstPrice.close > 0)
+        #expect(firstPrice.volume >= 0)
+    }
 }

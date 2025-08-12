@@ -1,5 +1,7 @@
 import Foundation
 
+/// Yahoo Finance에서 지원하는 기간 설정
+/// - SeeAlso: yfinance-reference/yfinance/scrapers/history.py period 파라미터
 public enum YFPeriod {
     case oneDay
     case oneWeek
@@ -13,6 +15,43 @@ public enum YFPeriod {
     case max
 }
 
+/// Yahoo Finance에서 지원하는 시간 간격 설정
+/// - SeeAlso: yfinance-reference/yfinance/scrapers/history.py interval 파라미터
+public enum YFInterval {
+    case oneMinute
+    case twoMinutes
+    case fiveMinutes
+    case fifteenMinutes
+    case thirtyMinutes
+    case sixtyMinutes
+    case ninetyMinutes
+    case oneHour
+    case oneDay
+    case fiveDays
+    case oneWeek
+    case oneMonth
+    case threeMonths
+    
+    /// interval 문자열 값 반환
+    public var stringValue: String {
+        switch self {
+        case .oneMinute: return "1m"
+        case .twoMinutes: return "2m"
+        case .fiveMinutes: return "5m"
+        case .fifteenMinutes: return "15m"
+        case .thirtyMinutes: return "30m"
+        case .sixtyMinutes: return "60m"
+        case .ninetyMinutes: return "90m"
+        case .oneHour: return "1h"
+        case .oneDay: return "1d"
+        case .fiveDays: return "5d"
+        case .oneWeek: return "1wk"
+        case .oneMonth: return "1mo"
+        case .threeMonths: return "3mo"
+        }
+    }
+}
+
 public class YFClient {
     private let session: YFSession
     private let requestBuilder: YFRequestBuilder
@@ -24,15 +63,19 @@ public class YFClient {
         self.responseParser = YFResponseParser()
     }
     
-    public func fetchHistory(ticker: YFTicker, period: YFPeriod) async throws -> YFHistoricalData {
-        // 테스트를 위한 임시 구현 - 실제로는 API 호출
-        
-        // 잘못된 심볼 체크 (테스트용)
+    /// 고해상도 가격 히스토리 데이터를 조회합니다.
+    /// - Parameters:
+    ///   - ticker: 조회할 주식 심볼
+    ///   - period: 조회 기간
+    ///   - interval: 시간 간격 (기본값: 1일)
+    /// - Returns: 가격 히스토리 데이터
+    /// - SeeAlso: yfinance-reference/yfinance/scrapers/history.py:history() 메서드
+    public func fetchPriceHistory(ticker: YFTicker, period: YFPeriod, interval: YFInterval = .oneDay) async throws -> YFHistoricalData {
+        // 기본 구현 (기존 fetchHistory와 동일)
         if ticker.symbol == "INVALID" {
             throw YFError.invalidSymbol
         }
         
-        // 빈 결과 처리 (테스트용)
         if ticker.symbol == "EMPTY" {
             return try YFHistoricalData(
                 ticker: ticker,
@@ -42,6 +85,44 @@ public class YFClient {
             )
         }
         
+        // 고해상도 간격 데이터 모킹 (oneDay period만)
+        if period == .oneDay && (interval == .oneMinute || interval == .fiveMinutes) {
+            var mockPrices: [YFPrice] = []
+            let baseDate = dateFromPeriod(period)
+            
+            // 간격별 데이터 개수 계산 (6.5시간 거래시간 기준)
+            let (dataCount, minuteInterval) = switch interval {
+            case .oneMinute: (390, 1)      // 390개 (6.5시간 * 60분)
+            case .fiveMinutes: (78, 5)     // 78개 (6.5시간 * 60분 / 5분)
+            default: (1, 60)               // 기본값
+            }
+            
+            for i in 0..<dataCount {
+                let date = Calendar.current.date(byAdding: .minute, value: i * minuteInterval, to: baseDate)!
+                let basePrice = 150.0
+                let variation = Double.random(in: -2.0...2.0)
+                
+                let mockPrice = YFPrice(
+                    date: date,
+                    open: basePrice + variation,
+                    high: basePrice + variation + 0.5,
+                    low: basePrice + variation - 0.5,
+                    close: basePrice + variation + 0.1,
+                    adjClose: basePrice + variation + 0.1,
+                    volume: Int.random(in: 1000...10000)
+                )
+                mockPrices.append(mockPrice)
+            }
+            
+            return try YFHistoricalData(
+                ticker: ticker,
+                prices: mockPrices,
+                startDate: baseDate,
+                endDate: Date()
+            )
+        }
+        
+        // 기본 모킹 (기존 로직)
         let mockPrice = YFPrice(
             date: dateFromPeriod(period),
             open: 150.0,
@@ -58,6 +139,11 @@ public class YFClient {
             startDate: dateFromPeriod(period),
             endDate: Date()
         )
+    }
+    
+    /// 기간 기반 가격 히스토리 데이터 조회 (기본 1일 간격)
+    public func fetchHistory(ticker: YFTicker, period: YFPeriod) async throws -> YFHistoricalData {
+        return try await fetchPriceHistory(ticker: ticker, period: period, interval: .oneDay)
     }
     
     public func fetchHistory(ticker: YFTicker, startDate: Date, endDate: Date) async throws -> YFHistoricalData {

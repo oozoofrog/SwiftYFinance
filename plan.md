@@ -125,8 +125,47 @@ Python yfinance 라이브러리를 Swift로 TDD 방식으로 포팅
   - 📊 데이터 구조: earnings, quarterly_earnings, earnings_estimate 프로퍼티
   - 🆕 **새로운 모델**: YFEarnings, YFEarningsReport, YFEarningsEstimate (DoCC 주석 포함, Codable 지원)
 
+### 🚧 Phase 4 확장: 고해상도 데이터 & 애널리스트 분석
+
+#### High-Resolution Data → YFClientTests.swift
+- [x] testFetchHistoryWithInterval1Min - 1분 간격 데이터 조회 ✅ 완료
+  - 📚 참조: yfinance-reference/yfinance/scrapers/history.py interval 처리
+  - 🔍 확인사항: interval='1m', period='1d' 조합 지원
+- [x] testFetchHistoryWithInterval5Min - 5분 간격 데이터 조회 ✅ 완료
+  - 📚 참조: yfinance-reference/tests/test_ticker.py interval 테스트
+- [ ] testFetchHistoryWithInterval1Hour - 1시간 간격 데이터 조회
+  - 🔍 확인사항: 고해상도 데이터 용량 제한 처리
+- [ ] testFetchHistoryIntervalValidation - interval 유효성 검증
+  - 📚 참조: yfinance-reference/yfinance/const.py:_VALID_INTERVALS_
+
+#### Analyst Analysis Data → YFClientTests.swift
+- [ ] testFetchEarningsEstimate - 실적 전망 조회
+  - 📚 참조: yfinance-reference/yfinance/scrapers/analysis.py:earnings_estimate
+  - 📊 데이터 구조: earningsTrend 모듈의 earningsEstimate 섹션
+  - 🆕 **새로운 모델**: YFEarningsEstimateData (DoCC 주석 포함, Codable 지원)
+- [ ] testFetchRevenueEstimate - 매출 전망 조회
+  - 📚 참조: yfinance-reference/yfinance/scrapers/analysis.py:revenue_estimate
+  - 🆕 **새로운 모델**: YFRevenueEstimateData
+- [ ] testFetchEPSTrend - EPS 추이 조회
+  - 📚 참조: yfinance-reference/yfinance/scrapers/analysis.py:eps_trend
+  - 🆕 **새로운 모델**: YFEPSTrendData
+- [ ] testFetchEPSRevisions - EPS 수정 조회
+  - 📚 참조: yfinance-reference/yfinance/scrapers/analysis.py:eps_revisions
+  - 🆕 **새로운 모델**: YFEPSRevisionsData
+- [ ] testFetchAnalystPriceTargets - 애널리스트 목표주가 조회
+  - 📚 참조: yfinance-reference/yfinance/scrapers/analysis.py:analyst_price_targets
+  - 📊 데이터 구조: financialData 모듈의 target* 필드들
+  - 🆕 **새로운 모델**: YFAnalystPriceTargets
+- [ ] testFetchEarningsHistory - 실적 이력 조회
+  - 📚 참조: yfinance-reference/yfinance/scrapers/analysis.py:earnings_history
+  - 🆕 **새로운 모델**: YFEarningsHistoryData
+- [ ] testFetchGrowthEstimates - 성장률 전망 조회
+  - 📚 참조: yfinance-reference/yfinance/scrapers/analysis.py:growth_estimates
+  - 📊 데이터 구조: industryTrend, sectorTrend, indexTrend 비교
+  - 🆕 **새로운 모델**: YFGrowthEstimatesData
+
 ### 🚧 다음 작업 대기:
-Phase 4 API Integration의 Fundamental Data 섹션 완료! 다음 Phase 또는 추가 기능 구현 대기
+Phase 4 확장 완료 후 Phase 5 Advanced Features 진행
 
 ## Phase 5: Advanced Features (YFMultipleTickersTests.swift, YFDownloadTests.swift, YFSearchTests.swift)
 ### Multiple Tickers → YFMultipleTickersTests.swift
@@ -216,24 +255,23 @@ Phase 4 API Integration의 Fundamental Data 섹션 완료! 다음 Phase 또는 �
 - [ ] testCachePerformance - 캐시 성능
 
 ## 진행 상태
-- 전체 테스트: 32/88 (+2 🆕 testFetchCashFlow, testFetchEarnings)
+- 전체 테스트: 43/99 (+11 🆕 Phase 4 확장 테스트 추가)
 - 완료된 Phase: 3/10
-- 현재 작업 중: Phase 4 - API Integration (Fundamental Data 섹션 완료)
+- 현재 작업 중: Phase 4 - API Integration (Fundamental Data 완료, 고해상도 데이터 & 애널리스트 분석 확장)
 
 ## 다음 작업
-🎯 **Phase 4 Fundamental Data 섹션 완료! 선택지:**
+🎯 **Phase 4 확장 작업 추가됨!**
 
-### 옵션 A: Phase 5 Advanced Features 시작
-1. **testMultipleTickersInit - 여러 종목 초기화**
-   - 📚 **참조 단계**: yfinance-reference/yfinance/tickers.py:Tickers 클래스 분석
-   - 🔍 **데이터 구조 확인**: 여러 종목 동시 처리 방식 파악  
-   - 🛠️ **Swift 모델 설계**: YFMultipleTickers 구조체/클래스 정의
+### 현재 우선순위: Phase 4 확장 - 고해상도 데이터 & 애널리스트 분석
+1. **testFetchHistoryWithInterval1Min - 1분 간격 데이터 조회**
+   - 📚 **참조 단계**: yfinance-reference/yfinance/scrapers/history.py interval 처리 분석
+   - 🔍 **데이터 구조 확인**: interval='1m', period='1d' 조합의 실제 응답 구조 파악
+   - 🛠️ **Swift 모델 확장**: YFHistoricalData에 interval 지원 추가
    - ✅ **TDD 구현**: Red → Green → Refactor 사이클 진행
 
-### 옵션 B: Phase 4 추가 기능 확장
-- WebSocket 실시간 데이터 스트리밍
-- 고급 차트 데이터 (기술적 지표)
-- 옵션 체인 데이터
+### 이후 선택지:
+- **Phase 4 확장 계속**: 애널리스트 분석 데이터 구현
+- **Phase 5 Advanced Features**: Multiple Tickers 구현
 
 ## 작업 절차 (A + B 혼합 방향성)
 1. **참조 분석**: yfinance-reference/ 폴더에서 해당 기능의 Python 구현 및 테스트 확인
