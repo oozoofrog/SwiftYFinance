@@ -152,4 +152,72 @@ struct YFRequestBuilderTests {
         #expect(query.contains("includePrePost=false"))
         #expect(query.contains("events=div,splits,capitalGains"))
     }
+    
+    /// period 파라미터 추가 테스트 (range vs period1/period2)
+    @Test
+    func testRequestBuilderWithPeriod() throws {
+        let session = YFSession()
+        let builder = YFRequestBuilder(session: session)
+        
+        // range 파라미터를 사용하는 period 방식
+        let request1 = try builder
+            .path("/v8/finance/chart/AAPL")
+            .queryParam("range", "1d")
+            .queryParam("interval", "1m")
+            .build()
+        
+        #expect(request1.url?.query?.contains("range=1d") == true)
+        #expect(request1.url?.query?.contains("interval=1m") == true)
+        
+        // 다양한 period 테스트
+        let periods = ["1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"]
+        for period in periods {
+            let request = try builder
+                .path("/v8/finance/chart/MSFT")
+                .queryParam("range", period)
+                .queryParam("interval", "1d")
+                .build()
+            
+            #expect(request.url?.query?.contains("range=\(period)") == true)
+            #expect(request.url?.query?.contains("interval=1d") == true)
+        }
+        
+        // period1/period2 파라미터를 사용하는 날짜 범위 방식
+        let request2 = try builder
+            .path("/v8/finance/chart/GOOGL")
+            .queryParams([
+                "period1": "1640995200", // 2022-01-01 timestamp
+                "period2": "1643673600", // 2022-02-01 timestamp
+                "interval": "1d"
+            ])
+            .build()
+        
+        let query2 = request2.url?.query ?? ""
+        #expect(query2.contains("period1=1640995200"))
+        #expect(query2.contains("period2=1643673600"))
+        #expect(query2.contains("interval=1d"))
+        
+        // period와 interval 조합 테스트 (intraday vs interday)
+        let request3 = try builder
+            .path("/v8/finance/chart/TSLA")
+            .queryParams([
+                "range": "1d",
+                "interval": "5m"  // intraday 간격
+            ])
+            .build()
+        
+        #expect(request3.url?.query?.contains("range=1d") == true)
+        #expect(request3.url?.query?.contains("interval=5m") == true)
+        
+        let request4 = try builder
+            .path("/v8/finance/chart/NVDA")
+            .queryParams([
+                "range": "1y",
+                "interval": "1wk"  // weekly 간격
+            ])
+            .build()
+        
+        #expect(request4.url?.query?.contains("range=1y") == true)
+        #expect(request4.url?.query?.contains("interval=1wk") == true)
+    }
 }

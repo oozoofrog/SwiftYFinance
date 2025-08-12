@@ -304,9 +304,9 @@ Phase 4 확장 완료 후 Phase 5 Advanced Features 진행
 - [x] testRequestBuilderWithInterval - interval 파라미터 추가 ✅ 완료
   - 📚 참조: yfinance-reference/yfinance/scrapers/history.py interval 처리
   - 🔍 확인사항: interval=1m, range=1d, includePrePost, events 쿼리 파라미터
-- [ ] testRequestBuilderWithPeriod - period 파라미터 추가
+- [x] testRequestBuilderWithPeriod - period 파라미터 추가 ✅ 완료
   - 📚 참조: yfinance-reference/yfinance/scrapers/history.py period 처리
-  - 🔍 확인사항: period=1d, 5d, 1mo 등 변환
+  - 🔍 확인사항: range vs period1/period2 방식, 모든 유효 period 테스트
 - [ ] testRequestBuilderHeaders - 실제 User-Agent 헤더 설정
   - 📚 참조: yfinance-reference/yfinance/shared.py headers
   - 🔍 확인사항: Yahoo Finance 요구 헤더 구성
