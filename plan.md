@@ -14,40 +14,40 @@ Python yfinance 라이브러리를 Swift로 TDD 방식으로 포팅
 
 ## Phase 1: 기본 구조 설정 ✅ 완료
 ### 🔄 재검토 체크리스트:
-- [ ] Swift Package 초기화 재검토
+- [x] Swift Package 초기화 재검토
   - 📚 참조: yfinance-reference/setup.py 패키지 구조
   - 🔍 확인사항: Package.swift 의존성, Swift 버전
-- [ ] 기본 테스트 환경 설정 재검토
+- [x] 기본 테스트 환경 설정 재검토
   - 📚 참조: yfinance-reference/tests/ 폴더 구조
   - 🔍 확인사항: Swift Testing 프레임워크 설정
 
-## Phase 2: Core Data Model ✅ 완료
+## Phase 2: Pure Data Model ✅ 완료
 ### 🔄 재검토 체크리스트:
 
 #### YFTicker 기본 구조 → YFTickerTests.swift
-- [ ] testTickerInitWithSymbol 재검토 - 심볼로 Ticker 생성
+- [x] testTickerInitWithSymbol 재검토 - 심볼로 Ticker 생성
   - 📚 참조: yfinance-reference/yfinance/ticker.py:Ticker.__init__()
   - 🔍 확인사항: 심볼 검증, 대소문자 처리
-- [ ] testTickerSymbolValidation 재검토 - 유효하지 않은 심볼 처리
+- [x] testTickerSymbolValidation 재검토 - 유효하지 않은 심볼 처리
   - 📚 참조: yfinance-reference/yfinance/base.py 심볼 검증 로직
-- [ ] testTickerDescription 재검토 - Ticker 설명 문자열
+- [x] testTickerDescription 재검토 - Ticker 설명 문자열
   - 📚 참조: yfinance-reference/yfinance/ticker.py:Ticker.__repr__()
 
 #### YFPrice 모델 → YFPriceTests.swift
-- [ ] testPriceInitWithValues 재검토 - 가격 데이터 초기화
+- [x] testPriceInitWithValues 재검토 - 가격 데이터 초기화
   - 📚 참조: yfinance-reference/yfinance/scrapers/history.py 가격 데이터 구조
   - 🔍 확인사항: Open, High, Low, Close, Volume 필드
-- [ ] testPriceComparison 재검토 - 가격 비교 연산
+- [x] testPriceComparison 재검토 - 가격 비교 연산
   - 📚 참조: pandas DataFrame 비교 연산 참조
-- [ ] testPriceCodable 재검토 - JSON 인코딩/디코딩
+- [x] testPriceCodable 재검토 - JSON 인코딩/디코딩
   - 🔍 확인사항: Date 형식, Decimal 정밀도 처리
 
 #### YFHistoricalData 모델 → YFHistoricalDataTests.swift
-- [ ] testHistoricalDataInit 재검토 - 히스토리 데이터 초기화
+- [x] testHistoricalDataInit 재검토 - 히스토리 데이터 초기화
   - 📚 참조: yfinance-reference/yfinance/base.py:get_history() 반환 구조
-- [ ] testHistoricalDataDateRange 재검토 - 날짜 범위 검증
+- [x] testHistoricalDataDateRange 재검토 - 날짜 범위 검증
   - 📚 참조: yfinance-reference/tests/test_ticker.py history 관련 테스트
-- [ ] testHistoricalDataEmpty 재검토 - 빈 데이터 처리
+- [x] testHistoricalDataEmpty 재검토 - 빈 데이터 처리
   - 🔍 확인사항: 빈 DataFrame 처리 방식
 
 ## Phase 3: Network Layer ✅ 완료
