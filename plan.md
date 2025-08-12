@@ -8,6 +8,7 @@ Python yfinance 라이브러리를 Swift로 TDD 방식으로 포팅
 - ✅ Tidy First (구조 변경과 동작 변경 분리)
 - ✅ 한 번에 하나의 테스트만 작업
 - ✅ 테스트 통과를 위한 최소 코드만 구현
+- ✅ 각 단계 완료시 plan.md 업데이트 후 git commit 실행
 
 ## Phase 1: 기본 구조 설정
 - [x] Swift Package 초기화
