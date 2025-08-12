@@ -83,32 +83,32 @@ Python yfinance 라이브러리를 Swift로 TDD 방식으로 포팅
 ### ✅ 완료된 작업 재검토 체크리스트:
 
 #### Price History → YFClientTests.swift
-- [ ] testFetchPriceHistory1Day 재검토 - 1일 데이터 조회
+- [x] testFetchPriceHistory1Day 재검토 - 1일 데이터 조회
   - 📚 참조: yfinance-reference/yfinance/base.py:get_history() period='1d'
   - 🔍 확인사항: period 파라미터, interval 설정
-- [ ] testFetchPriceHistory1Week 재검토 - 1주 데이터 조회
+- [x] testFetchPriceHistory1Week 재검토 - 1주 데이터 조회
   - 📚 참조: yfinance-reference/tests/test_ticker.py history 테스트들
-- [ ] testFetchPriceHistoryCustomRange 재검토 - 사용자 지정 범위
+- [x] testFetchPriceHistoryCustomRange 재검토 - 사용자 지정 범위
   - 📚 참조: yfinance-reference/yfinance/base.py start/end date 처리
-- [ ] testFetchPriceHistoryInvalidSymbol 재검토 - 잘못된 심볼 처리
+- [x] testFetchPriceHistoryInvalidSymbol 재검토 - 잘못된 심볼 처리
   - 📚 참조: yfinance-reference/yfinance/exceptions.py:YFInvalidSymbolError
-- [ ] testFetchPriceHistoryEmptyResult 재검토 - 빈 결과 처리
+- [x] testFetchPriceHistoryEmptyResult 재검토 - 빈 결과 처리
   - 🔍 확인사항: 빈 DataFrame 반환 시 처리
 
 #### Quote Data → YFClientTests.swift
-- [ ] testFetchQuoteBasic 재검토 - 기본 시세 조회
+- [x] testFetchQuoteBasic 재검토 - 기본 시세 조회
   - 📚 참조: yfinance-reference/yfinance/scrapers/quote.py
   - 🔍 확인사항: regularMarketPrice, volume, marketCap 필드
-- [ ] testFetchQuoteRealtime 재검토 - 실시간 시세 조회
+- [x] testFetchQuoteRealtime 재검토 - 실시간 시세 조회
   - 📚 참조: yfinance-reference/yfinance/base.py:get_info() 실시간 데이터
-- [ ] testFetchQuoteAfterHours 재검토 - 시간외 거래 데이터
+- [x] testFetchQuoteAfterHours 재검토 - 시간외 거래 데이터
   - 🔍 확인사항: preMarketPrice, postMarketPrice 필드
 
 #### Fundamental Data → YFClientTests.swift (완료된 부분)
-- [ ] testFetchFinancials 재검토 - 재무제표 조회
+- [x] testFetchFinancials 재검토 - 재무제표 조회
   - 📚 참조: yfinance-reference/yfinance/base.py:get_financials()
   - 🔍 확인사항: annualReports, totalRevenue, netIncome 필드
-- [ ] testFetchBalanceSheet 재검토 - 대차대조표 조회
+- [x] testFetchBalanceSheet 재검토 - 대차대조표 조회
   - 📚 참조: yfinance-reference/yfinance/base.py:get_balance_sheet()
   - 🔍 확인사항: totalAssets, totalLiabilities, stockholderEquity
 
