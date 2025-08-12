@@ -36,4 +36,21 @@ struct YFSessionTests {
         #expect(combinedHeaders["Custom-Header"] == "CustomValue")
         #expect(combinedHeaders["User-Agent"]?.contains("SwiftYFinance") == true)
     }
+    
+    @Test
+    func testSessionProxy() {
+        let proxyConfig = [
+            "HTTPSProxy": "proxy.example.com",
+            "HTTPSPort": 8080
+        ] as [String: Any]
+        
+        let sessionWithProxy = YFSession(proxy: proxyConfig)
+        
+        #expect(sessionWithProxy.proxy != nil)
+        #expect(sessionWithProxy.proxy?["HTTPSProxy"] as? String == "proxy.example.com")
+        #expect(sessionWithProxy.proxy?["HTTPSPort"] as? Int == 8080)
+        
+        let sessionWithoutProxy = YFSession()
+        #expect(sessionWithoutProxy.proxy == nil)
+    }
 }

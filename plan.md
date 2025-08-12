@@ -33,7 +33,7 @@ Python yfinance 라이브러리를 Swift로 TDD 방식으로 포팅
 ### YFSession
 - [x] testSessionInit - 세션 초기화
 - [x] testSessionDefaultHeaders - 기본 헤더 설정
-- [ ] testSessionProxy - 프록시 설정
+- [x] testSessionProxy - 프록시 설정
 
 ### YFRequest Builder
 - [ ] testRequestBuilderBaseURL - 기본 URL 생성
@@ -137,9 +137,9 @@ Python yfinance 라이브러리를 Swift로 TDD 방식으로 포팅
 - [ ] testCachePerformance - 캐시 성능
 
 ## 진행 상태
-- 전체 테스트: 13/88
+- 전체 테스트: 14/88
 - 완료된 Phase: 1/10
 - 현재 작업 중: Phase 3 - Network Layer
 
 ## 다음 작업
-1. testSessionProxy - 프록시 설정
+1. testRequestBuilderBaseURL - 기본 URL 생성
