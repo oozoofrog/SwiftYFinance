@@ -36,9 +36,9 @@ Python yfinance 라이브러리를 Swift로 TDD 방식으로 포팅
 - [x] testSessionProxy - 프록시 설정
 
 ### YFRequest Builder
-- [ ] testRequestBuilderBaseURL - 기본 URL 생성
-- [ ] testRequestBuilderQueryParams - 쿼리 파라미터 추가
-- [ ] testRequestBuilderHeaders - 헤더 추가
+- [x] testRequestBuilderBaseURL - 기본 URL 생성
+- [x] testRequestBuilderQueryParams - 쿼리 파라미터 추가
+- [x] testRequestBuilderHeaders - 헤더 추가
 
 ### YFResponse Parser
 - [ ] testResponseParserValidJSON - 유효한 JSON 파싱
@@ -137,9 +137,9 @@ Python yfinance 라이브러리를 Swift로 TDD 방식으로 포팅
 - [ ] testCachePerformance - 캐시 성능
 
 ## 진행 상태
-- 전체 테스트: 14/88
+- 전체 테스트: 17/88
 - 완료된 Phase: 1/10
 - 현재 작업 중: Phase 3 - Network Layer
 
 ## 다음 작업
-1. testRequestBuilderBaseURL - 기본 URL 생성
+1. testResponseParserValidJSON - 유효한 JSON 파싱
