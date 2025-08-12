@@ -206,4 +206,57 @@ struct YFClientTests {
             #expect(abs(period - expectedPeriodDays) < tolerance)
         }
     }
+    
+    @Test
+    func testFetchEarnings() async throws {
+        let client = YFClient()
+        let ticker = try YFTicker(symbol: "MSFT")
+        
+        let earnings = try await client.fetchEarnings(ticker: ticker)
+        
+        #expect(earnings.ticker.symbol == "MSFT")
+        #expect(earnings.annualReports.count > 0)
+        
+        let latestReport = earnings.annualReports.first!
+        #expect(latestReport.totalRevenue > 0)
+        #expect(latestReport.earningsPerShare != 0)
+        #expect(!latestReport.reportDate.description.isEmpty)
+        
+        // 수익과 EPS는 일반적으로 양수여야 함
+        #expect(latestReport.totalRevenue > 0)
+        #expect(latestReport.earningsPerShare > 0)
+        
+        // Optional fields 확인
+        if let dilutedEPS = latestReport.dilutedEPS {
+            #expect(dilutedEPS > 0)
+        }
+        
+        if let netIncome = latestReport.netIncome {
+            #expect(netIncome != 0) // 손실일 수도 있으므로 0이 아닌지만 확인
+        }
+        
+        if let ebitda = latestReport.ebitda {
+            #expect(ebitda > 0)
+        }
+        
+        // 연간 보고서들 간의 기간 확인 (약 365일)
+        if earnings.annualReports.count >= 2 {
+            let period = abs(earnings.annualReports[0].reportDate.timeIntervalSince(earnings.annualReports[1].reportDate))
+            let expectedPeriodDays = 365.0 * 24 * 60 * 60 // 365일을 초로 변환
+            let tolerance = 30.0 * 24 * 60 * 60 // 30일 허용 오차 (회계연도 차이)
+            #expect(abs(period - expectedPeriodDays) < tolerance)
+        }
+        
+        // 추정치 확인 (있는 경우)
+        if !earnings.estimates.isEmpty {
+            let estimate = earnings.estimates.first!
+            #expect(!estimate.period.isEmpty)
+            #expect(estimate.consensusEPS != 0)
+            
+            if let high = estimate.highEstimate, let low = estimate.lowEstimate {
+                #expect(high >= low) // 최고 추정치가 최저 추정치보다 크거나 같아야 함
+                #expect(estimate.consensusEPS >= low && estimate.consensusEPS <= high)
+            }
+        }
+    }
 }

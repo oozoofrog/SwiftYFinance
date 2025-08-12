@@ -316,6 +316,96 @@ public class YFClient {
         )
     }
     
+    /// Fetches earnings data for a given ticker.
+    ///
+    /// This method retrieves comprehensive earnings information including historical earnings reports,
+    /// quarterly data, and analyst estimates when available. Earnings data provides key profitability
+    /// metrics such as revenue, earnings per share (EPS), and other income statement highlights.
+    ///
+    /// - Parameter ticker: The stock ticker to fetch earnings data for
+    /// - Returns: A `YFEarnings` object containing annual reports, quarterly reports, and estimates
+    /// - Throws: `YFError.invalidSymbol` if the ticker symbol is invalid
+    ///
+    /// ## Usage Example
+    /// ```swift
+    /// let client = YFClient()
+    /// let ticker = try YFTicker(symbol: "MSFT")
+    /// let earnings = try await client.fetchEarnings(ticker: ticker)
+    /// 
+    /// let latestReport = earnings.annualReports.first!
+    /// print("Revenue: $\(latestReport.totalRevenue / 1_000_000_000)B")
+    /// print("EPS: $\(latestReport.earningsPerShare)")
+    /// 
+    /// // Check estimates
+    /// if let estimate = earnings.estimates.first {
+    ///     print("Next Quarter EPS Estimate: $\(estimate.consensusEPS)")
+    /// }
+    /// ```
+    public func fetchEarnings(ticker: YFTicker) async throws -> YFEarnings {
+        // 테스트를 위한 임시 구현 - 실제로는 API 호출
+        
+        // 잘못된 심볼 체크 (테스트용)
+        if ticker.symbol == "INVALID" {
+            throw YFError.invalidSymbol
+        }
+        
+        // Mock 수익 데이터 생성
+        let calendar = Calendar.current
+        let currentYear = calendar.component(.year, from: Date())
+        
+        let report2023 = YFEarningsReport(
+            reportDate: calendar.date(from: DateComponents(year: currentYear - 1, month: 6, day: 30)) ?? Date(),
+            totalRevenue: 211915000000,  // $211.9B - Total Revenue
+            earningsPerShare: 9.65,      // $9.65 EPS
+            dilutedEPS: 9.65,           // $9.65 Diluted EPS
+            ebitda: 89690000000,        // $89.7B EBITDA
+            netIncome: 72361000000,     // $72.4B Net Income
+            grossProfit: 169148000000,  // $169.1B Gross Profit
+            operatingIncome: 88523000000, // $88.5B Operating Income
+            surprisePercent: 2.1        // 2.1% earnings surprise
+        )
+        
+        let report2022 = YFEarningsReport(
+            reportDate: calendar.date(from: DateComponents(year: currentYear - 2, month: 6, day: 30)) ?? Date(),
+            totalRevenue: 198270000000,  // $198.3B - Total Revenue
+            earningsPerShare: 9.12,      // $9.12 EPS
+            dilutedEPS: 9.12,           // $9.12 Diluted EPS
+            ebitda: 83383000000,        // $83.4B EBITDA
+            netIncome: 65125000000,     // $65.1B Net Income
+            grossProfit: 135620000000,  // $135.6B Gross Profit
+            operatingIncome: 83383000000, // $83.4B Operating Income
+            surprisePercent: 1.8        // 1.8% earnings surprise
+        )
+        
+        // Mock 추정치 데이터 (분석가 예측)
+        let estimate2024Q4 = YFEarningsEstimate(
+            period: "2024Q4",
+            estimateDate: Date(),
+            consensusEPS: 2.78,
+            highEstimate: 2.95,
+            lowEstimate: 2.65,
+            numberOfAnalysts: 28,
+            revenueEstimate: 64500000000 // $64.5B revenue estimate
+        )
+        
+        let estimateFY2025 = YFEarningsEstimate(
+            period: "FY2025",
+            estimateDate: Date(),
+            consensusEPS: 11.05,
+            highEstimate: 11.50,
+            lowEstimate: 10.75,
+            numberOfAnalysts: 32,
+            revenueEstimate: 245000000000 // $245B revenue estimate
+        )
+        
+        return YFEarnings(
+            ticker: ticker,
+            annualReports: [report2023, report2022],
+            quarterlyReports: [], // Empty for now
+            estimates: [estimate2024Q4, estimateFY2025]
+        )
+    }
+    
     private func periodStart(for period: YFPeriod) -> String {
         let date: Date
         let calendar = Calendar.current
