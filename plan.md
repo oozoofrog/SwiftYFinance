@@ -41,9 +41,9 @@ Python yfinance 라이브러리를 Swift로 TDD 방식으로 포팅
 - [x] testRequestBuilderHeaders - 헤더 추가
 
 ### YFResponse Parser
-- [ ] testResponseParserValidJSON - 유효한 JSON 파싱
-- [ ] testResponseParserInvalidJSON - 잘못된 JSON 처리
-- [ ] testResponseParserErrorHandling - 에러 응답 처리
+- [x] testResponseParserValidJSON - 유효한 JSON 파싱
+- [x] testResponseParserInvalidJSON - 잘못된 JSON 처리
+- [x] testResponseParserErrorHandling - 에러 응답 처리
 
 ## Phase 4: API Integration
 ### Price History
@@ -137,9 +137,9 @@ Python yfinance 라이브러리를 Swift로 TDD 방식으로 포팅
 - [ ] testCachePerformance - 캐시 성능
 
 ## 진행 상태
-- 전체 테스트: 17/88
-- 완료된 Phase: 1/10
-- 현재 작업 중: Phase 3 - Network Layer
+- 전체 테스트: 20/88
+- 완료된 Phase: 2/10
+- 현재 작업 중: Phase 4 - API Integration
 
 ## 다음 작업
-1. testResponseParserValidJSON - 유효한 JSON 파싱
+1. testFetchPriceHistory1Day - 1일 데이터 조회
