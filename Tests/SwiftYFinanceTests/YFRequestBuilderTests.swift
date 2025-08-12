@@ -12,7 +12,7 @@ struct YFRequestBuilderTests {
             .path("/v8/finance/chart/AAPL")
             .build()
         
-        #expect(request1.url?.absoluteString == "https://query1.finance.yahoo.com/v8/finance/chart/AAPL")
+        #expect(request1.url?.absoluteString == "https://query2.finance.yahoo.com/v8/finance/chart/AAPL")
         
         let customSession = YFSession(baseURL: URL(string: "https://custom.yahoo.com")!)
         let customBuilder = YFRequestBuilder(session: customSession)
@@ -71,5 +71,30 @@ struct YFRequestBuilderTests {
         
         #expect(request2.value(forHTTPHeaderField: "X-API-Key") == "secret")
         #expect(request2.value(forHTTPHeaderField: "X-Request-ID") == "12345")
+    }
+    
+    /// Yahoo Finance chart API URL 생성 테스트
+    @Test
+    func testRequestBuilderChartURL() throws {
+        let session = YFSession()
+        let builder = YFRequestBuilder(session: session)
+        
+        // Yahoo Finance chart API URL 생성: /v8/finance/chart/{symbol}
+        let request = try builder
+            .path("/v8/finance/chart/AAPL")
+            .build()
+        
+        #expect(request.url?.absoluteString == "https://query2.finance.yahoo.com/v8/finance/chart/AAPL")
+        #expect(request.url?.scheme == "https")
+        #expect(request.url?.host == "query2.finance.yahoo.com")
+        #expect(request.url?.path == "/v8/finance/chart/AAPL")
+        
+        // 다른 심볼로도 테스트
+        let request2 = try builder
+            .path("/v8/finance/chart/MSFT")
+            .build()
+        
+        #expect(request2.url?.absoluteString == "https://query2.finance.yahoo.com/v8/finance/chart/MSFT")
+        #expect(request2.url?.path == "/v8/finance/chart/MSFT")
     }
 }

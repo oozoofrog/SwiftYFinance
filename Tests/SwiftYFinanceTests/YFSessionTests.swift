@@ -7,7 +7,7 @@ struct YFSessionTests {
     func testSessionInit() {
         let session = YFSession()
         
-        #expect(session.baseURL.absoluteString == "https://query1.finance.yahoo.com")
+        #expect(session.baseURL.absoluteString == "https://query2.finance.yahoo.com")
         #expect(session.timeout == 30.0)
         
         let customSession = YFSession(

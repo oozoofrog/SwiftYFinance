@@ -22,7 +22,7 @@ public class YFSession {
     }
     
     public init(
-        baseURL: URL = URL(string: "https://query1.finance.yahoo.com")!,
+        baseURL: URL = URL(string: "https://query2.finance.yahoo.com")!,
         timeout: TimeInterval = 30.0,
         additionalHeaders: [String: String] = [:],
         proxy: [String: Any]? = nil

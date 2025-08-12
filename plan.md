@@ -50,34 +50,45 @@ Python yfinance 라이브러리를 Swift로 TDD 방식으로 포팅
 - [x] testHistoricalDataEmpty 재검토 - 빈 데이터 처리
   - 🔍 확인사항: 빈 DataFrame 처리 방식
 
-## Phase 3: Network Layer ✅ 완료
+## Phase 3: Network Layer 🚨 재검토 필요
+### 🚨 문제점
+- **기본 구조만 구현됨**: URLSession 설정, URL 생성, JSON 파싱 클래스만 존재
+- **실제 사용되지 않음**: YFClient에서 전혀 활용하지 않음
+- **모킹 데이터만 반환**: 실제 네트워크 호출 없음
+
 ### 🔄 재검토 체크리스트:
 
 #### YFSession → YFSessionTests.swift
-- [x] testSessionInit 재검토 - 세션 초기화
+- [x] testSessionInit 재검토 - 세션 초기화 ✅ 기본 구조만 완료
   - 📚 참조: yfinance-reference/yfinance/base.py:TickerBase.__init__() 세션 설정
-  - 🔍 확인사항: URLSession 설정, User-Agent 헤더
-- [x] testSessionDefaultHeaders 재검토 - 기본 헤더 설정
+  - 🚨 **재작업 필요**: YFClient에서 실제 사용하도록 통합
+- [x] testSessionDefaultHeaders 재검토 - 기본 헤더 설정 ✅ 기본 구조만 완료
   - 📚 참조: yfinance-reference/yfinance/shared.py default headers
-- [x] testSessionProxy 재검토 - 프록시 설정
+  - 🚨 **재작업 필요**: 실제 Yahoo Finance 헤더 요구사항 확인
+- [x] testSessionProxy 재검토 - 프록시 설정 ✅ 기본 구조만 완료
   - 📚 참조: yfinance-reference/yfinance/data.py proxy 설정
 
 #### YFRequest Builder → YFRequestBuilderTests.swift
-- [x] testRequestBuilderBaseURL 재검토 - 기본 URL 생성
+- [x] testRequestBuilderBaseURL 재검토 - 기본 URL 생성 ✅ 기본 구조만 완료
   - 📚 참조: yfinance-reference/yfinance/const.py:_BASE_URL_
-  - 🔍 확인사항: query.finance.yahoo.com 기본 URL
-- [x] testRequestBuilderQueryParams 재검토 - 쿼리 파라미터 추가
+  - 🚨 **재작업 필요**: 실제 Yahoo Finance 엔드포인트 확인
+- [x] testRequestBuilderQueryParams 재검토 - 쿼리 파라미터 추가 ✅ 기본 구조만 완료
   - 📚 참조: yfinance-reference/yfinance/scrapers/*.py 쿼리 파라미터 구성
-- [x] testRequestBuilderHeaders 재검토 - 헤더 추가
+  - 🚨 **재작업 필요**: 실제 chart API 필수 파라미터 확인
+- [x] testRequestBuilderHeaders 재검토 - 헤더 추가 ✅ 기본 구조만 완료
   - 📚 참조: yfinance-reference/yfinance/shared.py headers 설정
 
 #### YFResponse Parser → YFResponseParserTests.swift
-- [x] testResponseParserValidJSON 재검토 - 유효한 JSON 파싱
+- [x] testResponseParserValidJSON 재검토 - 유효한 JSON 파싱 ✅ 기본 구조만 완료
   - 📚 참조: yfinance-reference/yfinance/scrapers/fundamentals.py JSON 파싱
-- [x] testResponseParserInvalidJSON 재검토 - 잘못된 JSON 처리
+  - 🚨 **재작업 필요**: 실제 Yahoo chart JSON 구조 파싱
+- [x] testResponseParserInvalidJSON 재검토 - 잘못된 JSON 처리 ✅ 기본 구조만 완료
   - 📚 참조: yfinance-reference/yfinance/exceptions.py 에러 처리
-- [x] testResponseParserErrorHandling 재검토 - 에러 응답 처리
+- [x] testResponseParserErrorHandling 재검토 - 에러 응답 처리 ✅ 기본 구조만 완료
   - 🔍 확인사항: HTTP 상태 코드, 타임아웃 처리
+
+### 🎯 **Phase 3 완성을 위한 추가 작업**:
+Phase 4.1에서 실제 API 구현하면서 Phase 3의 **재작업 필요** 항목들도 함께 완성됩니다.
 
 ## Phase 4: API Integration (현재 작업 중) 🔄
 ### ✅ 완료된 작업 재검토 체크리스트:
@@ -255,27 +266,105 @@ Phase 4 확장 완료 후 Phase 5 Advanced Features 진행
 - [ ] testCachePerformance - 캐시 성능
 
 ## 진행 상태
-- 전체 테스트: 43/99 (+11 🆕 Phase 4 확장 테스트 추가)
-- 완료된 Phase: 3/10
-- 현재 작업 중: Phase 4 - API Integration (Fundamental Data 완료, 고해상도 데이터 & 애널리스트 분석 확장)
+- 전체 테스트: 60/116 (+17 🆕 실제 API 구현 테스트 추가)
+- 완료된 Phase: 2/10 (Phase 3도 재검토 필요)
+- 현재 작업 중: Phase 4.1 - Network Layer 실제 구현 (모킹 → 실제 API 전환)
+- 🚨 **중요**: 모든 기존 테스트는 모킹 데이터, 실제 API 구현 필요
 
 ## 다음 작업
-🎯 **Phase 4 확장 작업 추가됨!**
+🚨 **최우선: 실제 API 구현 전환!**
 
-### 현재 우선순위: Phase 4 확장 - 고해상도 데이터 & 애널리스트 분석
-1. **testFetchHistoryWithInterval1Min - 1분 간격 데이터 조회**
-   - 📚 **참조 단계**: yfinance-reference/yfinance/scrapers/history.py interval 처리 분석
-   - 🔍 **데이터 구조 확인**: interval='1m', period='1d' 조합의 실제 응답 구조 파악
-   - 🛠️ **Swift 모델 확장**: YFHistoricalData에 interval 지원 추가
-   - ✅ **TDD 구현**: Red → Green → Refactor 사이클 진행
+### 현재 우선순위: Phase 4.1 - Network Layer 실제 구현
+1. **YFRequestBuilder 실제 구현** (1단계)
+   - 📚 **참조 단계**: yfinance-reference/yfinance/const.py:_BASE_URL_ 분석
+   - 🔍 **API 구조 확인**: Yahoo Finance chart API 엔드포인트 파악
+   - 🛠️ **실제 URL 생성**: query1.finance.yahoo.com 기반 URL 구성
+   - ✅ **TDD 구현**: 기존 테스트 유지, 실제 구현으로 교체
 
-### 이후 선택지:
-- **Phase 4 확장 계속**: 애널리스트 분석 데이터 구현
-- **Phase 5 Advanced Features**: Multiple Tickers 구현
+### 이후 순서:
+- **YFSession 실제 구현** (2단계)
+- **YFResponseParser 실제 구현** (3단계)  
+- **fetchPriceHistory 실제 API 연동** (4단계)
+
+## 🚨 중요: 실제 API 구현 전환 계획
+
+### ⚠️ 현재 문제점
+- **모든 YFClient 메서드가 모킹 데이터** 사용 중
+- 실제 Yahoo Finance API 호출 **전혀 없음**
+- 테스트는 통과하지만 **가짜 데이터**만 반환
+
+### 🎯 실제 API 구현 단계별 계획
+
+#### Phase 4.1: Network Layer 실제 구현 (우선순위 1)
+
+##### YFRequestBuilder 실제 구현 → YFRequestBuilderTests.swift
+- [x] testRequestBuilderChartURL - Yahoo Finance chart API URL 생성 ✅ 완료
+  - 📚 참조: yfinance-reference/yfinance/const.py:_BASE_URL_
+  - 🎯 목표: `https://query2.finance.yahoo.com/v8/finance/chart/{symbol}` 구성
+- [ ] testRequestBuilderWithInterval - interval 파라미터 추가
+  - 📚 참조: yfinance-reference/yfinance/scrapers/history.py interval 처리
+  - 🔍 확인사항: interval=1m, period=1d 쿼리 파라미터
+- [ ] testRequestBuilderWithPeriod - period 파라미터 추가
+  - 📚 참조: yfinance-reference/yfinance/scrapers/history.py period 처리
+  - 🔍 확인사항: period=1d, 5d, 1mo 등 변환
+- [ ] testRequestBuilderHeaders - 실제 User-Agent 헤더 설정
+  - 📚 참조: yfinance-reference/yfinance/shared.py headers
+  - 🔍 확인사항: Yahoo Finance 요구 헤더 구성
+
+##### YFSession 실제 구현 → YFSessionTests.swift  
+- [ ] testSessionRealRequest - 실제 HTTP 요청 처리
+  - 📚 참조: yfinance-reference/yfinance/data.py HTTP 요청
+  - 🎯 목표: URLSession으로 실제 네트워크 호출
+- [ ] testSessionErrorHandling - 네트워크 에러 처리
+  - 📚 참조: yfinance-reference/yfinance/exceptions.py
+  - 🔍 확인사항: 타임아웃, 404, 403 등 HTTP 에러
+- [ ] testSessionUserAgent - User-Agent 헤더 설정
+  - 📚 참조: yfinance-reference/yfinance/shared.py
+  - 🔍 확인사항: Yahoo Finance 호환 User-Agent
+
+##### YFResponseParser 실제 구현 → YFResponseParserTests.swift
+- [ ] testParseChartResponse - 실제 Yahoo chart JSON 파싱
+  - 📚 참조: yfinance-reference/yfinance/scrapers/history.py 파싱 로직
+  - 🎯 목표: 실제 Yahoo JSON → YFPrice 배열 변환
+- [ ] testParseTimestamps - Unix timestamp 변환
+  - 📚 참조: yfinance-reference/yfinance/scrapers/history.py 시간 처리
+  - 🔍 확인사항: timezone 처리, Date 변환
+- [ ] testParseOHLCV - OHLCV 데이터 추출
+  - 📚 참조: yfinance-reference/yfinance/scrapers/history.py OHLC 처리
+  - 🔍 확인사항: open, high, low, close, volume 필드 매핑
+- [ ] testParseErrorResponse - Yahoo 에러 응답 처리
+  - 📚 참조: yfinance-reference/yfinance/exceptions.py
+  - 🔍 확인사항: 잘못된 심볼, API 에러 메시지 파싱
+
+#### Phase 4.2: API 통합 실제 구현 (우선순위 2)
+
+##### fetchPriceHistory 실제 구현 → YFClientTests.swift
+- [ ] testFetchPriceHistoryRealAPI - 실제 API 연동으로 전환
+  - 📚 참조: yfinance-reference/yfinance/base.py:get_history()
+  - 🎯 목표: 모킹 제거, 실제 AAPL 데이터 반환
+  - 🔍 확인사항: 기존 테스트 모두 통과 (testFetchPriceHistory1Day 등)
+- [ ] testFetchHistoryWithInterval1MinReal - 1분 간격 실제 데이터
+  - 📚 참조: yfinance-reference 실제 1분 데이터 응답 구조
+  - 🎯 목표: 390개 실제 데이터포인트 반환
+- [ ] testFetchHistoryWithInterval5MinReal - 5분 간격 실제 데이터
+  - 📚 참조: yfinance-reference 실제 5분 데이터 응답 구조
+  - 🎯 목표: 78개 실제 데이터포인트 반환
+
+##### 다른 API들 순차 전환
+- [ ] testFetchQuoteRealAPI - fetchQuote 실제 구현
+- [ ] testFetchFinancialsRealAPI - fetchFinancials 실제 구현
+- [ ] testFetchBalanceSheetRealAPI - fetchBalanceSheet 실제 구현
+- [ ] testFetchCashFlowRealAPI - fetchCashFlow 실제 구현
+- [ ] testFetchEarningsRealAPI - fetchEarnings 실제 구현
+
+### 🛠️ TDD 접근법
+- **기존 테스트 유지**: 테스트 코드는 변경하지 않음
+- **구현만 교체**: 모킹 → 실제 API 호출
+- **단계별 전환**: 한 번에 하나씩, TDD 사이클 유지
 
 ## 작업 절차 (A + B 혼합 방향성)
 1. **참조 분석**: yfinance-reference/ 폴더에서 해당 기능의 Python 구현 및 테스트 확인
 2. **실제 데이터 확인**: Python yfinance 실행하여 실제 API 응답 구조 파악
 3. **Swift 모델 설계**: 파악한 데이터 구조 기반으로 Swift 모델 정의
-4. **TDD 구현**: 실패하는 테스트 → 최소 구현 → 리팩토링
+4. **TDD 구현**: 실패하는 테스트 → **실제 API 구현** → 리팩토링
 5. **검증**: 구현된 기능이 Python yfinance와 동일한 결과 반환하는지 확인
