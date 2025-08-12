@@ -171,4 +171,39 @@ struct YFClientTests {
         #expect(latestReport.retainedEarnings > 0)
         #expect(!latestReport.reportDate.description.isEmpty)
     }
+    
+    @Test
+    func testFetchCashFlow() async throws {
+        let client = YFClient()
+        let ticker = try YFTicker(symbol: "AAPL")
+        
+        let cashFlow = try await client.fetchCashFlow(ticker: ticker)
+        
+        #expect(cashFlow.ticker.symbol == "AAPL")
+        #expect(cashFlow.annualReports.count > 0)
+        
+        let latestReport = cashFlow.annualReports.first!
+        #expect(latestReport.operatingCashFlow != 0)
+        #expect(!latestReport.reportDate.description.isEmpty)
+        
+        // Operating Cash Flow와 Net PPE Purchase And Sale는 Python에서 expected_keys
+        #expect(latestReport.operatingCashFlow > 0)
+        
+        // Optional fields 확인
+        if let freeCashFlow = latestReport.freeCashFlow {
+            #expect(freeCashFlow != 0)
+        }
+        
+        if let capex = latestReport.capitalExpenditure {
+            #expect(capex != 0)
+        }
+        
+        // 연간 보고서들 간의 기간 확인 (약 365일)
+        if cashFlow.annualReports.count >= 2 {
+            let period = abs(cashFlow.annualReports[0].reportDate.timeIntervalSince(cashFlow.annualReports[1].reportDate))
+            let expectedPeriodDays = 365.0 * 24 * 60 * 60 // 365일을 초로 변환
+            let tolerance = 20.0 * 24 * 60 * 60 // 20일 허용 오차
+            #expect(abs(period - expectedPeriodDays) < tolerance)
+        }
+    }
 }

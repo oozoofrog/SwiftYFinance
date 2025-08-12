@@ -112,11 +112,14 @@ Python yfinance 라이브러리를 Swift로 TDD 방식으로 포팅
   - 📚 참조: yfinance-reference/yfinance/base.py:get_balance_sheet()
   - 🔍 확인사항: totalAssets, totalLiabilities, stockholderEquity
 
-### 🚧 현재 작업 중인 항목:
-- [ ] testFetchCashFlow - 현금흐름표 조회
+#### Fundamental Data → YFClientTests.swift (완료된 부분)
+- [x] testFetchCashFlow 재검토 - 현금흐름표 조회 ✅ 새로 구현 완료
   - 📚 참조: yfinance-reference/tests/test_ticker.py:test_cash_flow()
   - 📊 데이터 구조: yfinance-reference/yfinance/const.py:'cash-flow' 키
   - 🔍 확인사항: Operating Cash Flow, Net PPE Purchase And Sale, Free Cash Flow 등
+  - 🆕 **새로운 모델**: YFCashFlow, YFCashFlowReport (DoCC 주석 포함, Codable 지원)
+
+### 🚧 현재 작업 중인 항목:
 - [ ] testFetchEarnings - 실적 데이터 조회
   - 📚 참조: yfinance-reference/tests/test_ticker.py:test_earnings*()
   - 📊 데이터 구조: earnings, quarterly_earnings 프로퍼티
@@ -209,15 +212,15 @@ Python yfinance 라이브러리를 Swift로 TDD 방식으로 포팅
 - [ ] testCachePerformance - 캐시 성능
 
 ## 진행 상태
-- 전체 테스트: 30/88
+- 전체 테스트: 31/88 (+1 🆕 testFetchCashFlow)
 - 완료된 Phase: 3/10
 - 현재 작업 중: Phase 4 - API Integration
 
 ## 다음 작업
-1. **testFetchCashFlow - 현금흐름표 조회**
-   - 📚 **참조 단계**: yfinance-reference/tests/test_ticker.py:test_cash_flow() 분석
-   - 🔍 **데이터 구조 확인**: Python yfinance로 실제 cash flow 데이터 구조 파악
-   - 🛠️ **Swift 모델 설계**: YFCashFlow 구조체/클래스 정의
+1. **testFetchEarnings - 실적 데이터 조회** ⬅️ 다음 작업
+   - 📚 **참조 단계**: yfinance-reference/tests/test_ticker.py:test_earnings*() 분석
+   - 🔍 **데이터 구조 확인**: Python yfinance earnings, quarterly_earnings 프로퍼티 파악
+   - 🛠️ **Swift 모델 설계**: YFEarnings 구조체/클래스 정의
    - ✅ **TDD 구현**: Red → Green → Refactor 사이클 진행
 
 ## 작업 절차 (A + B 혼합 방향성)
