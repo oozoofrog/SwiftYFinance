@@ -66,6 +66,20 @@ Sources/SwiftYFinance/
 - [Phase 4.3 CSRF 인증 시스템](docs/plans/phase4-csrf-authentication.md)
 - [Phase 4.4 브라우저 쿠키 관리](docs/plans/phase4-cookie-management.md)
 
+## 🏗️ 소스 파일 구조 정리 (진행 예정)
+
+### 현재 문제점
+- **YFClient.swift**: 1151줄 (🚨 즉시 분리 필요)
+- **YFFinancials.swift**: 395줄 (🚨 즉시 분리 필요)  
+- **YFSession.swift**: 326줄 (🚨 즉시 분리 필요)
+
+### 분리 계획
+총 3개 파일 → 14개 파일로 분리하여 평균 150줄 이하로 관리
+
+**상세 계획**:
+- [파일 구조 정리 가이드](docs/plans/file-organization.md)
+- [소스 파일 리팩토링 전략](docs/plans/source-file-refactoring.md)
+
 ## ✅ 최근 완료 작업 (2025-08-13)
 
 ### 1. 테스트 파일 분리 완료 ✅
@@ -155,15 +169,29 @@ TDD 기반 개발: ✅ Red → Green → Refactor 사이클 적용
 
 ## 🎯 다음 작업 계획
 
-### 즉시 실행 (이번 주)
-1. **소스 파일 구조 정리** (우선순위 1)
-   - YFClient.swift (1151줄) → 기능별 파일로 분리
-   - YFFinancials.swift (395줄) → 모델별 분리
-   - YFSession.swift (326줄) → 기능별 분리
-   
-2. **fetchEarnings 실제 API 연동**
-   - testFetchEarningsRealAPI 테스트 실행 및 구현
-   - TDD Red → Green → Refactor 사이클 완료
+### 🚨 즉시 실행 (최우선순위)
+1. **소스 파일 구조 정리** - 유지보수성 향상을 위한 필수 작업
+   - **Phase 1**: YFClient.swift (1151줄) → 7개 파일로 분리
+     - YFEnums.swift (60줄): YFPeriod, YFInterval enum
+     - YFChartModels.swift (100줄): Chart API 응답 구조체
+     - YFQuoteModels.swift (140줄): Quote API 응답 구조체
+     - YFHistoryAPI.swift (150줄): 가격 이력 API 메서드
+     - YFQuoteAPI.swift (100줄): 실시간 시세 API 메서드
+     - YFFinancialsAPI.swift (350줄): 재무 데이터 API 메서드
+     - YFClient.swift (200줄): 메인 클래스만 유지
+   - **Phase 2**: YFFinancials.swift (395줄) → 4개 파일로 분리
+     - YFFinancials.swift (90줄): 기본 재무제표
+     - YFBalanceSheet.swift (90줄): 대차대조표
+     - YFCashFlow.swift (130줄): 현금흐름표
+     - YFEarnings.swift (185줄): 손익계산서
+   - **Phase 3**: YFSession.swift (326줄) → 3개 파일로 분리
+     - YFSession.swift (150줄): 메인 세션 클래스
+     - YFSessionAuth.swift (100줄): CSRF 인증
+     - YFSessionCookie.swift (76줄): 쿠키 관리
+
+2. **~~fetchEarnings 실제 API 연동~~** ✅ 완료
+   - ~~testFetchEarningsRealAPI 테스트 실행 및 구현~~ ✅ 완료
+   - ~~TDD Red → Green → Refactor 사이클 완료~~ ✅ 완료
 
 ### 중기 계획 (다음 주)
 - **~~Phase 4 완료~~**: ~~모든 API 메서드 실제 구현 전환 완료~~ ✅ 완료

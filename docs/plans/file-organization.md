@@ -137,7 +137,55 @@ SwiftYFinance/
 - [ ] 불필요한 파일 정리
 - [ ] git commit으로 변경사항 기록
 
-## 🎯 우선순위 분리 대상
+## 🎯 소스 파일 분리 계획 (2025-08-13 업데이트)
+
+### 🚨 즉시 분리 필요 (300줄 이상)
+
+#### 1. YFClient.swift (1151줄) → 기능별 분리
+```
+현재 구조:
+- YFPeriod, YFInterval enum (60줄)
+- YFClient 클래스 + 6개 API 메서드 (850줄)
+- ChartResponse 관련 구조체 (100줄)
+- QuoteSummaryResponse 관련 구조체 (140줄)
+
+분리 계획:
+Core/YFEnums.swift (60줄)          # YFPeriod, YFInterval enum
+Core/YFClient.swift (200줄)        # 메인 클래스 + 초기화
+Core/YFHistoryAPI.swift (150줄)    # fetchHistory, fetchPriceHistory
+Core/YFQuoteAPI.swift (100줄)      # fetchQuote (realtime 포함)
+Core/YFFinancialsAPI.swift (350줄) # fetchFinancials, fetchBalanceSheet, fetchCashFlow, fetchEarnings
+Models/YFChartModels.swift (100줄) # ChartResponse 구조체들
+Models/YFQuoteModels.swift (140줄) # QuoteSummaryResponse 구조체들
+```
+
+#### 2. YFFinancials.swift (395줄) → 도메인별 분리
+```
+현재 구조:
+- YFFinancials + YFFinancialReport (46줄)
+- YFBalanceSheet + YFBalanceSheetReport (52줄)
+- YFCashFlow + YFCashFlowReport (121줄)
+- YFEarnings + YFEarningsReport (176줄)
+
+분리 계획:
+Models/YFFinancials.swift (90줄)   # YFFinancials + YFFinancialReport
+Models/YFBalanceSheet.swift (90줄) # YFBalanceSheet + YFBalanceSheetReport  
+Models/YFCashFlow.swift (130줄)    # YFCashFlow + YFCashFlowReport
+Models/YFEarnings.swift (185줄)    # YFEarnings + YFEarningsReport
+```
+
+#### 3. YFSession.swift (326줄) → 책임별 분리
+```
+현재 구조:
+- YFSession 메인 클래스 (100줄)
+- CSRF 인증 메서드들 (150줄)
+- Cookie 관리 메서드들 (76줄)
+
+분리 계획:
+Core/YFSession.swift (150줄)       # 메인 세션 클래스 + 기본 네트워크
+Core/YFSessionAuth.swift (100줄)   # CSRF 인증 전용
+Core/YFSessionCookie.swift (76줄)  # Cookie 관리 전용
+```
 
 ### 현재 상태 (2025-08-13 업데이트)
 
@@ -172,13 +220,31 @@ phase3-network.md              8개      ✅ 현재 적정
 phase2-models.md               7개      ✅ 현재 적정
 ```
 
-### 분리 순서
+## 📋 분리 실행 계획
+
+### Phase 1: YFClient.swift 분리 (우선순위 1)
+1. **YFEnums.swift** 생성 - YFPeriod, YFInterval enum 이동
+2. **YFChartModels.swift** 생성 - Chart 관련 구조체 이동  
+3. **YFQuoteModels.swift** 생성 - QuoteSummary 관련 구조체 이동
+4. **YFHistoryAPI.swift** 생성 - fetchHistory, fetchPriceHistory 메서드
+5. **YFQuoteAPI.swift** 생성 - fetchQuote 메서드들
+6. **YFFinancialsAPI.swift** 생성 - 재무 관련 4개 메서드
+7. **YFClient.swift** 정리 - 메인 클래스 + 초기화만 유지
+
+### Phase 2: YFFinancials.swift 분리 (우선순위 2)
+1. **YFFinancials.swift** 정리 - 기본 재무제표만 유지
+2. **YFBalanceSheet.swift** 생성 - 대차대조표 모델
+3. **YFCashFlow.swift** 생성 - 현금흐름표 모델  
+4. **YFEarnings.swift** 생성 - 손익계산서 모델
+
+### Phase 3: YFSession.swift 분리 (우선순위 3)
+1. **YFSessionAuth.swift** 생성 - CSRF 인증 메서드들
+2. **YFSessionCookie.swift** 생성 - 쿠키 관리 메서드들
+3. **YFSession.swift** 정리 - 메인 세션 클래스만 유지
+
+### 분리 순서 (완료된 항목)
 1. **~~1순위~~**: ~~YFResponseParserTests.swift → Parser/ 폴더로 분리~~ ✅ 완료
-2. **~~2순위~~**: ~~YFClientTests.swift → Client/ 폴더로 분리~~ ✅ 완료  
-3. **3순위**: YFClient.swift (1151줄) → 기능별 분리 필요
-4. **4순위**: YFFinancials.swift (395줄) → 모델별 분리 필요
-5. **5순위**: YFSession.swift (326줄) → 기능별 분리 필요
-6. **6순위**: YFCookieManagerTests.swift (341줄) → 테스트 분리 필요
+2. **~~2순위~~**: ~~YFClientTests.swift → Client/ 폴더로 분리~~ ✅ 완료
 
 ## 📝 유지보수 원칙
 
