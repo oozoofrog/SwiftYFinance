@@ -16,14 +16,18 @@
 
 ## 📁 파일 분리 작업 계획
 
-### 분리 대상 파일 (300줄 이상)
+### 🎉 주요 소스 파일 분리 완료 (2025-08-13)
 ```
-🚨 분리 필요:
-└── YFSession.swift (326줄)          # ⏳ 현재 우선순위
+✅ YFClient.swift (856줄) → 7개 Core 파일
+✅ YFFinancials.swift (395줄) → 4개 Models 파일  
+✅ YFSession.swift (326줄) → 3개 Core 파일
+```
 
-✅ 분리 완료:
-├── YFClient.swift → 7개 파일        # ✅ 완료
-└── YFFinancials.swift → 4개 파일    # ✅ 완료 (2025-08-13)
+### 다음 분리 후보
+```
+🔶 검토 중:
+├── YFCookieManagerTests.swift (341줄) - 테스트 파일
+└── phase4-api-integration.md (12개) - 문서 파일
 ```
 
 ### 네이밍 컨벤션
@@ -89,151 +93,69 @@
 - [ ] 불필요한 파일 정리
 - [ ] git commit으로 변경사항 기록
 
-## 🎯 소스 파일 분리 계획 (2025-08-13 업데이트)
+## 📊 분리 완료 현황 (2025-08-13 최종)
 
-### 🚨 즉시 분리 필요 (300줄 이상)
+### ✅ 완료된 분리 작업
 
-#### 1. YFClient.swift (1151줄) → 기능별 분리
+#### 1. YFClient.swift (856줄 → 7개 파일)
 ```
-현재 구조:
-- YFPeriod, YFInterval enum (60줄)
-- YFClient 클래스 + 6개 API 메서드 (850줄)
-- ChartResponse 관련 구조체 (100줄)
-- QuoteSummaryResponse 관련 구조체 (140줄)
-
-분리 계획:
-Core/YFEnums.swift (60줄)          # YFPeriod, YFInterval enum
-Core/YFClient.swift (200줄)        # 메인 클래스 + 초기화
-Core/YFHistoryAPI.swift (150줄)    # fetchHistory, fetchPriceHistory
-Core/YFQuoteAPI.swift (100줄)      # fetchQuote (realtime 포함)
-Core/YFFinancialsAPI.swift (350줄) # fetchFinancials, fetchBalanceSheet, fetchCashFlow, fetchEarnings
-Models/YFChartModels.swift (100줄) # ChartResponse 구조체들
-Models/YFQuoteModels.swift (140줄) # QuoteSummaryResponse 구조체들
+Core/YFEnums.swift (52줄) - YFPeriod, YFInterval enum
+Core/YFClient.swift (157줄) - 메인 클래스 + 초기화  
+Core/YFHistoryAPI.swift (252줄) - 가격 이력 API
+Core/YFQuoteAPI.swift (137줄) - 실시간 시세 API
+Core/YFFinancialsAPI.swift (153줄) - 재무 데이터 API
+Core/YFBalanceSheetAPI.swift (149줄) - 대차대조표 API
+Core/YFCashFlowAPI.swift (151줄) - 현금흐름 API
+Core/YFEarningsAPI.swift (179줄) - 손익계산서 API
+Models/YFChartModels.swift (91줄) - Chart 응답 모델
+Models/YFQuoteModels.swift (48줄) - Quote 응답 모델
 ```
 
-#### ~~2. YFFinancials.swift (395줄) → 도메인별 분리~~ ✅ **완료 (2025-08-13)**
+#### 2. YFFinancials.swift (395줄 → 4개 파일)
 ```
-원본 구조:
-- YFFinancials + YFFinancialReport (46줄)
-- YFBalanceSheet + YFBalanceSheetReport (52줄)
-- YFCashFlow + YFCashFlowReport (121줄)
-- YFEarnings + YFEarningsReport (176줄)
-
-✅ 완료된 분리:
-Models/YFFinancials.swift (121줄)   # YFFinancials + YFFinancialReport ✅
-Models/YFBalanceSheet.swift (105줄) # YFBalanceSheet + YFBalanceSheetReport ✅
-Models/YFCashFlow.swift (120줄)     # YFCashFlow + YFCashFlowReport ✅
-Models/YFEarnings.swift (179줄)     # YFEarnings + YFEarningsReport + YFEarningsEstimate ✅
+Models/YFFinancials.swift (121줄) - 기본 재무제표
+Models/YFBalanceSheet.swift (105줄) - 대차대조표
+Models/YFCashFlow.swift (120줄) - 현금흐름표  
+Models/YFEarnings.swift (179줄) - 손익계산서
 ```
 
-#### 3. YFSession.swift (326줄) → 책임별 분리
+#### 3. YFSession.swift (326줄 → 3개 파일)
 ```
-현재 구조:
-- YFSession 메인 클래스 (100줄)
-- CSRF 인증 메서드들 (150줄)
-- Cookie 관리 메서드들 (76줄)
-
-분리 계획:
-Core/YFSession.swift (150줄)       # 메인 세션 클래스 + 기본 네트워크
-Core/YFSessionAuth.swift (100줄)   # CSRF 인증 전용
-Core/YFSessionCookie.swift (76줄)  # Cookie 관리 전용
+Core/YFSession.swift (117줄) - 메인 세션 클래스
+Core/YFSessionAuth.swift (189줄) - CSRF 인증
+Core/YFSessionCookie.swift (19줄) - User-Agent 로테이션
 ```
 
-### 현재 상태 (2025-08-13 업데이트)
-
-#### 분리 필요 파일 (300줄 이상)
+### 🔍 남은 분리 후보 (300줄+ 기준)
 ```
-소스 파일:
-🎉 모든 주요 소스 파일 분리 완료!
-
-테스트 파일:  
-└── YFCookieManagerTests.swift      341줄    🔶 분리 검토 필요
-
-문서 파일:
-└── phase4-api-integration.md       12개     🔶 분리 검토 필요
+테스트 파일: YFCookieManagerTests.swift (341줄)
+문서 파일: phase4-api-integration.md (12개 섹션)
 ```
 
-## 📋 분리 실행 계획
+## 📈 분리 성과 요약
 
-### ~~Phase 1: YFClient.swift 분리~~ ✅ 완료
-~~7개 파일로 분리: YFEnums, YFChartModels, YFQuoteModels, YFHistoryAPI, YFQuoteAPI, YFFinancialsAPI 등~~
-
-### ~~Phase 2: YFFinancials.swift 분리~~ ✅ **완료 (2025-08-13)**
-1. **~~YFFinancials.swift 정리~~** ✅ - 기본 재무제표만 유지 (121줄)
-2. **~~YFBalanceSheet.swift 생성~~** ✅ - 대차대조표 모델 (105줄)
-3. **~~YFCashFlow.swift 생성~~** ✅ - 현금흐름표 모델 (120줄)
-4. **~~YFEarnings.swift 생성~~** ✅ - 손익계산서 모델 (179줄)
-
-**완료 결과**:
-- 원본 YFFinancials.swift (395줄) → 4개 분리 파일 (총 525줄)
-- TDD 방식: 분리 테스트 4개 작성 후 Green 구현
-- 전체 빌드 및 테스트 통과 확인 완료
-
-### ~~Phase 3: YFSession.swift 분리~~ ✅ **완료 (2025-08-13)**
-1. **~~YFSessionAuth.swift 생성~~** ✅ - CSRF 인증 메서드들 (189줄)
-2. **~~YFSessionCookie.swift 생성~~** ✅ - User-Agent 로테이션 메서드들 (19줄)
-3. **~~YFSession.swift 정리~~** ✅ - 메인 세션 클래스만 유지 (117줄)
-
-**완료 결과**:
-- 원본 YFSession.swift (326줄) → 3개 분리 파일 (총 325줄)
-- TDD 방식: 분리 테스트 3개 작성 후 Green 구현
-- 전체 빌드 및 테스트 통과 확인 완료
-
-### 분리 진행 상황
+### 전체 통계
 ```
-✅ 완료: 테스트 파일 분리 (Parser/, Client/ 폴더화)
-✅ 완료: YFClient.swift → 7개 Core 파일로 분리  
-✅ 완료: YFFinancials.swift → 4개 Models 파일로 분리 (2025-08-13)
-✅ 완료: YFSession.swift → 3개 Core 파일로 분리 (2025-08-13)
+분리된 파일 수: 3개 → 14개 파일
+감소된 복잡도: 1,577줄 → 평균 112줄/파일
+TDD 적용: 모든 분리에 Red → Green 사이클 적용
+테스트 통과율: 100% (전체 빌드 및 테스트 성공)
 ```
 
-### 🎉 주요 파일 분리 완료
-모든 300줄 이상 대형 파일의 분리가 완료되었습니다.
+### 🎯 달성한 목표
+- ✅ **유지보수성 향상**: 300줄+ 대형 파일 모두 분리
+- ✅ **단일 책임 원칙**: 각 파일이 명확한 단일 책임
+- ✅ **TDD 준수**: 모든 분리 작업에 테스트 우선 적용
+- ✅ **안전한 리팩토링**: 기능 변경 없이 구조만 개선
 
-### 다음 우선순위
-```
-테스트 파일:  
-└── YFCookieManagerTests.swift      341줄    🔶 분리 검토 필요
+## 📝 향후 유지보수 가이드
 
-문서 파일:
-└── phase4-api-integration.md       12개     🔶 분리 검토 필요
-```
+### 파일 크기 모니터링
+- **250줄 초과**: 분리 검토 시작  
+- **300줄 초과**: 강제 분리 실행
+- **TDD 적용**: 분리 시 반드시 테스트 우선 작성
 
-## 📝 유지보수 원칙
-
-### 지속적인 모니터링
-- 새로운 코드/테스트/문서 추가 시 적절한 파일 배치
-- 정기적인 파일 크기 점검 (250줄 기준)
-- 복잡도 메트릭 모니터링
-- 테스트 실행 시간 모니터링
-
-### 리팩토링 가이드라인
-- 파일 분리는 구조적 변경이므로 Tidy First 원칙 적용
-- 분리 작업은 독립된 커밋으로 관리
-- 기능 변경과 분리 작업을 혼재하지 않음
-- 각 분리 후 전체 테스트 스위트 실행
-
-### 문서 관리
-- API 변경 시 관련 문서 즉시 업데이트
-- 예제 코드는 실제 테스트 코드와 동기화
-- 버전별 변경사항 추적 (CHANGELOG.md)
-
-## 🚀 Best Practices
-
-### 소스코드
-- 프로토콜을 통한 의존성 주입
-- 확장(Extension)을 통한 기능 분리
-- 중첩 타입 최소화
-- 명확한 접근 제어자 사용
-
-### 테스트
-- Given-When-Then 패턴 사용
-- 테스트 더블(Mock, Stub) 활용
-- 테스트 fixture 재사용
-- 실패 메시지 명확화
-
-### 문서
-- 코드 예제 포함
-- 다이어그램 활용
-- FAQ 섹션 유지
-- 버전 호환성 명시
+### 분리 원칙
+- **Tidy First**: 구조 변경과 기능 변경 분리
+- **단일 책임**: 각 파일이 하나의 명확한 책임
+- **독립 커밋**: 분리 작업은 별도 커밋으로 관리
