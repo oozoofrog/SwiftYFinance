@@ -358,12 +358,14 @@ Phase 4 확장 완료 후 Phase 5 Advanced Features 진행
   - 📚 참조: yfinance-reference/yfinance/scrapers/history.py 파싱 로직
   - 🎯 목표: 실제 Yahoo JSON → YFPrice 배열 변환
   - ✅ 구현완료: 실제 Yahoo Finance API 구조에 맞춰 ChartResponse 구조체 수정 (0.353초)
-- [ ] testParseTimestamps - Unix timestamp 변환
-  - 📚 참조: yfinance-reference/yfinance/scrapers/history.py 시간 처리
-  - 🔍 확인사항: timezone 처리, Date 변환
-- [ ] testParseOHLCV - OHLCV 데이터 추출
-  - 📚 참조: yfinance-reference/yfinance/scrapers/history.py OHLC 처리
-  - 🔍 확인사항: open, high, low, close, volume 필드 매핑
+- [x] testParseTimestamps - Unix timestamp 변환 ✅ 완료
+  - 📚 참조: yfinance-reference/yfinance/utils.py:parse_quotes() pd.to_datetime(timestamps, unit="s")
+  - 🔍 확인사항: Swift Date(timeIntervalSince1970:) 변환, UTC 시간대 처리
+  - ✅ 구현완료: Unix timestamp 배열을 Date 객체로 변환, 시간 순서 및 간격 검증 (0.001초)
+- [x] testParseOHLCV - OHLCV 데이터 추출 ✅ 완료
+  - 📚 참조: yfinance-reference/yfinance/utils.py:parse_quotes() OHLCV 필드 추출
+  - 🔍 확인사항: ChartQuote 구조체 [Double?] -> [Double] 변경, null 값 -1.0 처리
+  - ✅ 구현완료: null 값을 -1.0/-1로 변환하는 custom decoder, 유효한 데이터만 YFPrice 변환 (0.001초)
 - [ ] testParseErrorResponse - Yahoo 에러 응답 처리
   - 📚 참조: yfinance-reference/yfinance/exceptions.py
   - 🔍 확인사항: 잘못된 심볼, API 에러 메시지 파싱

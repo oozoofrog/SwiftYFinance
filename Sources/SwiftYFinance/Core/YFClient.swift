@@ -567,18 +567,24 @@ public class YFClient {
                   i < quote.high.count,
                   i < quote.low.count,
                   i < quote.close.count,
-                  i < quote.volume.count,
-                  let open = quote.open[i],
-                  let high = quote.high[i],
-                  let low = quote.low[i],
-                  let close = quote.close[i],
-                  let volume = quote.volume[i] else {
+                  i < quote.volume.count else {
+                continue
+            }
+            
+            let open = quote.open[i]
+            let high = quote.high[i]
+            let low = quote.low[i]
+            let close = quote.close[i]
+            let volume = quote.volume[i]
+            
+            // -1.0 값 (null)은 건너뛰기
+            if open == -1.0 || high == -1.0 || low == -1.0 || close == -1.0 || volume == -1 {
                 continue
             }
             
             let date = Date(timeIntervalSince1970: TimeInterval(timestamps[i]))
             let adjClose = (adjCloseArray != nil && i < adjCloseArray!.count) ? 
-                          (adjCloseArray![i] ?? close) : close
+                          (adjCloseArray![i] == -1.0 ? close : adjCloseArray![i]) : close
             
             let price = YFPrice(
                 date: date,
@@ -648,13 +654,41 @@ struct ChartIndicators: Codable {
 }
 
 struct ChartQuote: Codable {
-    let open: [Double?]
-    let high: [Double?]
-    let low: [Double?]
-    let close: [Double?]
-    let volume: [Int?]
+    let open: [Double]
+    let high: [Double]
+    let low: [Double]
+    let close: [Double]
+    let volume: [Int]
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // null 값을 -1.0으로 처리
+        let openOptional = try container.decode([Double?].self, forKey: .open)
+        self.open = openOptional.map { $0 ?? -1.0 }
+        
+        let highOptional = try container.decode([Double?].self, forKey: .high)
+        self.high = highOptional.map { $0 ?? -1.0 }
+        
+        let lowOptional = try container.decode([Double?].self, forKey: .low)
+        self.low = lowOptional.map { $0 ?? -1.0 }
+        
+        let closeOptional = try container.decode([Double?].self, forKey: .close)
+        self.close = closeOptional.map { $0 ?? -1.0 }
+        
+        let volumeOptional = try container.decode([Int?].self, forKey: .volume)
+        self.volume = volumeOptional.map { $0 ?? -1 }
+    }
 }
 
 struct ChartAdjClose: Codable {
-    let adjclose: [Double?]
+    let adjclose: [Double]
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // null 값을 -1.0으로 처리
+        let adjcloseOptional = try container.decode([Double?].self, forKey: .adjclose)
+        self.adjclose = adjcloseOptional.map { $0 ?? -1.0 }
+    }
 }
