@@ -354,9 +354,10 @@ Phase 4 확장 완료 후 Phase 5 Advanced Features 진행
   - ✅ 구현완료: Mozilla/Chrome User-Agent 검증 및 커스텀 헤더 테스트 (0.324초)
 
 ##### YFResponseParser 실제 구현 → YFResponseParserTests.swift
-- [ ] testParseChartResponse - 실제 Yahoo chart JSON 파싱
+- [x] testParseChartResponse - 실제 Yahoo chart JSON 파싱 ✅ 완료
   - 📚 참조: yfinance-reference/yfinance/scrapers/history.py 파싱 로직
   - 🎯 목표: 실제 Yahoo JSON → YFPrice 배열 변환
+  - ✅ 구현완료: 실제 Yahoo Finance API 구조에 맞춰 ChartResponse 구조체 수정 (0.353초)
 - [ ] testParseTimestamps - Unix timestamp 변환
   - 📚 참조: yfinance-reference/yfinance/scrapers/history.py 시간 처리
   - 🔍 확인사항: timezone 처리, Date 변환

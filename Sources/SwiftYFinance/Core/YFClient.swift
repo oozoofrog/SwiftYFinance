@@ -560,27 +560,34 @@ public class YFClient {
         }
         
         var prices: [YFPrice] = []
+        let adjCloseArray = result.indicators.adjclose?.first?.adjclose
         
         for i in 0..<timestamps.count {
             guard i < quote.open.count,
                   i < quote.high.count,
                   i < quote.low.count,
                   i < quote.close.count,
-                  i < quote.volume.count else {
+                  i < quote.volume.count,
+                  let open = quote.open[i],
+                  let high = quote.high[i],
+                  let low = quote.low[i],
+                  let close = quote.close[i],
+                  let volume = quote.volume[i] else {
                 continue
             }
             
             let date = Date(timeIntervalSince1970: TimeInterval(timestamps[i]))
-            let adjClose = (i < quote.adjclose.count) ? quote.adjclose[i] : quote.close[i]
+            let adjClose = (adjCloseArray != nil && i < adjCloseArray!.count) ? 
+                          (adjCloseArray![i] ?? close) : close
             
             let price = YFPrice(
                 date: date,
-                open: quote.open[i],
-                high: quote.high[i],
-                low: quote.low[i],
-                close: quote.close[i],
+                open: open,
+                high: high,
+                low: low,
+                close: close,
                 adjClose: adjClose,
-                volume: quote.volume[i]
+                volume: volume
             )
             
             prices.append(price)
@@ -590,35 +597,64 @@ public class YFClient {
     }
 }
 
+// 실제 Yahoo Finance Chart API 응답 구조에 맞춘 구조체들
 struct ChartResponse: Codable {
     let chart: Chart
 }
 
 struct Chart: Codable {
-    let result: [ChartResult]
+    let result: [ChartResult]?
+    let error: ChartError?
+}
+
+struct ChartError: Codable {
+    let code: String
+    let description: String
 }
 
 struct ChartResult: Codable {
-    let meta: Meta
+    let meta: ChartMeta
     let timestamp: [Int]?
-    let indicators: Indicators
+    let indicators: ChartIndicators
 }
 
-struct Meta: Codable {
+struct ChartMeta: Codable {
+    let currency: String?
     let symbol: String
-    let regularMarketPrice: Double?
+    let exchangeName: String?
+    let fullExchangeName: String?
+    let instrumentType: String?
+    let firstTradeDate: Int?
     let regularMarketTime: Int?
+    let hasPrePostMarketData: Bool?
+    let gmtoffset: Int?
+    let timezone: String?
+    let exchangeTimezoneName: String?
+    let regularMarketPrice: Double?
+    let fiftyTwoWeekHigh: Double?
+    let fiftyTwoWeekLow: Double?
+    let regularMarketDayHigh: Double?
+    let regularMarketDayLow: Double?
+    let regularMarketVolume: Int?
+    let longName: String?
+    let shortName: String?
+    let priceHint: Int?
+    let validRanges: [String]?
 }
 
-struct Indicators: Codable {
-    let quote: [Quote]
+struct ChartIndicators: Codable {
+    let quote: [ChartQuote]
+    let adjclose: [ChartAdjClose]?
 }
 
-struct Quote: Codable {
-    let open: [Double]
-    let high: [Double]
-    let low: [Double]
-    let close: [Double]
-    let volume: [Int]
-    let adjclose: [Double]
+struct ChartQuote: Codable {
+    let open: [Double?]
+    let high: [Double?]
+    let low: [Double?]
+    let close: [Double?]
+    let volume: [Int?]
+}
+
+struct ChartAdjClose: Codable {
+    let adjclose: [Double?]
 }
