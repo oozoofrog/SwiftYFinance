@@ -27,21 +27,40 @@ Yahoo Finance의 고급 기능들을 Swift로 구현하여 완전한 금융 데�
 - `Sources/SwiftYFinance/Core/YFOptionsAPI.swift` - API 구현
 - `Tests/SwiftYFinanceTests/Client/OptionsDataTests.swift` - 테스트
 
-### 5.2 Fundamentals API (상세)
+#### Python 참조 구현 (실제 확인됨)
+- `yfinance-reference/yfinance/ticker.py:46-109` - option_chain() 메서드
+- `yfinance-reference/yfinance/const.py:2` - _BASE_URL_ 정의  
+- API 엔드포인트: `https://query2.finance.yahoo.com/v7/finance/options/{ticker}`
+- 데이터 필드: contractSymbol, strike, lastPrice, bid, ask, volume, openInterest, impliedVolatility
+
+### 5.2 Fundamentals API (상세) ✅ 완료 (2025-08-13)
 **목표**: 기존 재무제표 API 확장 - 분기별 데이터, 비율 분석 등
 
 #### 구현 사항
-- [ ] 분기별 재무제표 조회
-- [ ] 재무 비율 계산 (P/E, P/B, ROE, ROA 등)
-- [ ] 성장률 계산 (YoY, QoQ)
-- [ ] 산업 평균 대비 비교
-- [ ] 재무 건전성 지표
+- [x] 분기별 재무제표 조회 (`fetchQuarterlyFinancials`)
+- [x] 재무 비율 계산 (P/E, P/B, ROE, ROA 등) (`calculateFinancialRatios`)
+- [x] 성장률 계산 (YoY, QoQ) (`calculateGrowthMetrics`)
+- [x] 산업 평균 대비 비교 (`compareToIndustry`)
+- [x] 재무 건전성 지표 (`assessFinancialHealth`)
 
 #### 테스트 케이스
-- [ ] `testQuarterlyFinancials` - 분기별 데이터
-- [ ] `testFinancialRatios` - 비율 계산
-- [ ] `testGrowthMetrics` - 성장 지표
-- [ ] `testIndustryComparison` - 산업 비교
+- [x] `testFetchQuarterlyFinancials` - 분기별 데이터
+- [x] `testFinancialRatios` - 비율 계산
+- [x] `testGrowthMetrics` - 성장 지표
+- [x] `testFinancialHealthMetrics` - 재무 건전성
+- [x] `testIndustryComparison` - 산업 비교
+- [x] `testAdvancedFinancialsInvalidSymbol` - 에러 처리
+- [x] `testFinancialDataConsistency` - 데이터 일관성
+
+#### 구현 파일
+- `Sources/SwiftYFinance/Models/YFFinancialsAdvanced.swift` - 고급 재무 모델
+- `Sources/SwiftYFinance/Core/YFFinancialsAdvancedAPI.swift` - API 구현
+- `Tests/SwiftYFinanceTests/Client/FundamentalsAdvancedTests.swift` - 테스트
+
+#### Python 참조 구현 (실제 확인됨)
+- `yfinance-reference/yfinance/scrapers/fundamentals.py:127` - fundamentals-timeseries API
+- API 엔드포인트: `https://query2.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/{symbol}`
+- 데이터 필드: income, balance-sheet, cash-flow (yearly/quarterly/trailing)
 
 ### 5.3 Screening API
 **목표**: 조건에 맞는 종목 검색 및 필터링
