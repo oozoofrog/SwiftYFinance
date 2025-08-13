@@ -152,7 +152,7 @@ Yahoo Finance API 접근을 위한 완전한 브라우저 수준 쿠키 관리 �
 ## 🔗 연관 문서
 - [Phase 4.3: CSRF 인증 시스템](phase4-csrf-authentication.md)
 - [Phase 4: API Integration](phase4-api-integration.md)
-- [테스트 조직화 규칙](test-organization.md)
+- [파일 조직화 규칙](file-organization.md)
 
 ## 💡 구현 참고사항
 

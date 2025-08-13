@@ -127,4 +127,4 @@ Yahoo Finance의 비공개 API 접근을 위한 CSRF 토큰 기반 인증 시스
 ## 🔗 연관 문서
 - [Phase 4: API Integration](phase4-api-integration.md)
 - [Phase 3: Network Layer](phase3-network.md)
-- [테스트 조직화 규칙](test-organization.md)
+- [파일 조직화 규칙](file-organization.md)
