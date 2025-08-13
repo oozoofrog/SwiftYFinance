@@ -66,12 +66,13 @@ Python yfinance 라이브러리를 Swift로 TDD 방식으로 포팅
 
 **상세 계획**: [Phase 4.5 curl_cffi Swift 포팅](docs/plans/phase4.5-curl-cffi-porting.md)
 
-### 3. Phase 5: Advanced Features (준비 중)
+### 3. Phase 5: Advanced Features (시작)
 - **Options Trading API**: 옵션 데이터 조회
 - **Fundamentals API**: 재무제표 상세 데이터
 - **Screening API**: 종목 스크리닝
 - **News API**: 뉴스 데이터 통합
-**상세 계획**: 작성 예정
+- **Technical Indicators**: 기술적 분석 지표
+**상세 계획**: [Phase 5 Advanced Features](docs/plans/phase5-advanced.md)
 
 ---
 
