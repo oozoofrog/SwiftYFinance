@@ -14,64 +14,16 @@
 - 독립적으로 실행/사용 가능한 기능 그룹이 있을 때
 - 의존성 구조가 복잡해질 때
 
-## 📁 프로젝트 구조
+## 📁 파일 분리 작업 계획
 
-### 전체 디렉토리 구조
+### 분리 대상 파일 (300줄 이상)
 ```
-SwiftYFinance/
-├── Sources/SwiftYFinance/
-│   ├── Core/                    # 핵심 비즈니스 로직
-│   │   ├── YFClient.swift           # API 클라이언트
-│   │   ├── YFSession.swift          # 네트워크 세션
-│   │   ├── YFRequestBuilder.swift   # 요청 생성
-│   │   ├── YFResponseParser.swift   # 응답 파싱
-│   │   ├── YFHTMLParser.swift       # HTML 파싱
-│   │   └── YFCookieManager.swift    # 쿠키 관리
-│   ├── Models/                  # 데이터 모델
-│   │   ├── YFError.swift            # 에러 정의
-│   │   ├── YFTicker.swift           # 티커 정보
-│   │   ├── YFPrice.swift            # 가격 데이터
-│   │   ├── YFQuote.swift            # 실시간 시세
-│   │   ├── YFHistoricalData.swift   # 과거 데이터
-│   │   └── YFFinancials.swift       # 재무 정보
-│   └── SwiftYFinance.swift      # 패키지 진입점
-├── Tests/SwiftYFinanceTests/
-│   ├── Parser/                  # JSON 파싱 관련
-│   │   ├── BasicParsingTests.swift       # 기본 JSON 파싱
-│   │   ├── TimestampParsingTests.swift   # 타임스탬프 변환
-│   │   ├── OHLCVParsingTests.swift      # OHLCV 데이터 추출
-│   │   └── ErrorParsingTests.swift      # 에러 응답 처리
-│   ├── Network/                 # 네트워크 관련
-│   │   ├── SessionTests.swift           # YFSession
-│   │   └── RequestBuilderTests.swift   # YFRequestBuilder
-│   ├── Client/                  # API 클라이언트
-│   │   ├── PriceHistoryTests.swift     # 가격 이력
-│   │   ├── QuoteDataTests.swift        # 실시간 시세
-│   │   └── FinancialDataTests.swift    # 재무 데이터
-│   ├── Models/                  # 데이터 모델
-│   │   ├── TickerTests.swift
-│   │   ├── PriceTests.swift
-│   │   └── HistoricalDataTests.swift
-│   └── Integration/             # 통합 테스트
-│       ├── RealAPITests.swift         # 실제 API 호출
-│       └── EndToEndTests.swift       # E2E 테스트
-└── docs/
-    ├── plans/                   # 개발 계획 문서
-    │   ├── phase1-setup.md
-    │   ├── phase2-models.md
-    │   ├── phase3-network.md
-    │   ├── phase4-api-integration.md
-    │   ├── phase4-cookie-management.md
-    │   ├── phase4-csrf-authentication.md
-    │   └── file-organization.md
-    ├── api/                     # API 문서
-    │   ├── client-api.md
-    │   ├── models-api.md
-    │   └── error-handling.md
-    └── guides/                  # 사용 가이드
-        ├── quick-start.md
-        ├── authentication.md
-        └── advanced-usage.md
+🚨 분리 필요:
+└── YFSession.swift (326줄)          # ⏳ 현재 우선순위
+
+✅ 분리 완료:
+├── YFClient.swift → 7개 파일        # ✅ 완료
+└── YFFinancials.swift → 4개 파일    # ✅ 완료 (2025-08-13)
 ```
 
 ### 네이밍 컨벤션
@@ -189,47 +141,22 @@ Core/YFSessionCookie.swift (76줄)  # Cookie 관리 전용
 
 ### 현재 상태 (2025-08-13 업데이트)
 
-#### 테스트 파일
+#### 분리 필요 파일 (300줄 이상)
 ```
-파일명                          라인수    상태
-YFCookieManagerTests.swift      341줄    🚨 즉시 분리 필요
-YFSessionTests.swift            280줄    🔶 분리 검토 필요
-YFRequestBuilderTests.swift     268줄    🔶 분리 검토 필요
-QuoteSummaryTests.swift         246줄    ✅ 현재 적정
-Parser/* (4개 파일)             각 <200줄 ✅ 분리 완료
-Client/* (3개 파일)             각 <130줄 ✅ 분리 완료
-Integration/RealAPITests.swift  162줄    ✅ 분리 완료
-```
+소스 파일:
+└── YFSession.swift                 326줄    🚨 즉시 분리 필요
 
-#### 소스 파일
-```
-파일명                          라인수    상태
-YFClient.swift                  1151줄   🚨 즉시 분리 필요
-YFFinancials.swift              395줄    🚨 즉시 분리 필요
-YFSession.swift                 326줄    🚨 즉시 분리 필요
-YFCookieManager.swift           204줄    ✅ 현재 적정
-YFRequestBuilder.swift          73줄     ✅ 현재 적정
-YFResponseParser.swift          39줄     ✅ 현재 적정
-```
+테스트 파일:  
+└── YFCookieManagerTests.swift      341줄    🔶 분리 검토 필요
 
-#### 문서 파일
-```
-파일명                          섹션수   상태
-phase4-api-integration.md      12개     🔶 분리 검토 필요
-phase3-network.md              8개      ✅ 현재 적정
-phase2-models.md               7개      ✅ 현재 적정
+문서 파일:
+└── phase4-api-integration.md       12개     🔶 분리 검토 필요
 ```
 
 ## 📋 분리 실행 계획
 
-### Phase 1: YFClient.swift 분리 (우선순위 1)
-1. **YFEnums.swift** 생성 - YFPeriod, YFInterval enum 이동
-2. **YFChartModels.swift** 생성 - Chart 관련 구조체 이동  
-3. **YFQuoteModels.swift** 생성 - QuoteSummary 관련 구조체 이동
-4. **YFHistoryAPI.swift** 생성 - fetchHistory, fetchPriceHistory 메서드
-5. **YFQuoteAPI.swift** 생성 - fetchQuote 메서드들
-6. **YFFinancialsAPI.swift** 생성 - 재무 관련 4개 메서드
-7. **YFClient.swift** 정리 - 메인 클래스 + 초기화만 유지
+### ~~Phase 1: YFClient.swift 분리~~ ✅ 완료
+~~7개 파일로 분리: YFEnums, YFChartModels, YFQuoteModels, YFHistoryAPI, YFQuoteAPI, YFFinancialsAPI 등~~
 
 ### ~~Phase 2: YFFinancials.swift 분리~~ ✅ **완료 (2025-08-13)**
 1. **~~YFFinancials.swift 정리~~** ✅ - 기본 재무제표만 유지 (121줄)
@@ -242,19 +169,18 @@ phase2-models.md               7개      ✅ 현재 적정
 - TDD 방식: 분리 테스트 4개 작성 후 Green 구현
 - 전체 빌드 및 테스트 통과 확인 완료
 
-### Phase 3: YFSession.swift 분리 (우선순위 3)
+### Phase 3: YFSession.swift 분리 ⏳ **현재 우선순위**
 1. **YFSessionAuth.swift** 생성 - CSRF 인증 메서드들
-2. **YFSessionCookie.swift** 생성 - 쿠키 관리 메서드들
+2. **YFSessionCookie.swift** 생성 - 쿠키 관리 메서드들  
 3. **YFSession.swift** 정리 - 메인 세션 클래스만 유지
 
-### 분리 순서 (완료된 항목)
-1. **~~1순위~~**: ~~YFResponseParserTests.swift → Parser/ 폴더로 분리~~ ✅ 완료
-2. **~~2순위~~**: ~~YFClientTests.swift → Client/ 폴더로 분리~~ ✅ 완료
-3. **~~3순위~~**: ~~YFClient.swift → Core/ 폴더로 7개 파일로 분리~~ ✅ 완료 (Phase 1)
-4. **~~4순위~~**: ~~YFFinancials.swift → Models/ 폴더로 4개 파일로 분리~~ ✅ **완료 (2025-08-13)**
-
-### 다음 우선순위
-5. **5순위**: YFSession.swift → Core/ 폴더로 3개 파일로 분리 ⏳ **현재 우선순위**
+### 분리 진행 상황
+```
+✅ 완료: 테스트 파일 분리 (Parser/, Client/ 폴더화)
+✅ 완료: YFClient.swift → 7개 Core 파일로 분리  
+✅ 완료: YFFinancials.swift → 4개 Models 파일로 분리 (2025-08-13)
+⏳ 진행: YFSession.swift → 3개 Core 파일로 분리
+```
 
 ## 📝 유지보수 원칙
 
