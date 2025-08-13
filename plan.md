@@ -1,5 +1,25 @@
 # SwiftYFinance 포팅 계획
 
+## 🚨 **작업 원칙 (매우 중요!)**
+
+### TDD 원칙
+- ✅ **TDD (Red → Green → Refactor)**: 실패하는 테스트 → 최소 구현 → 리팩토링
+- ✅ **Tidy First**: 구조 변경과 동작 변경 분리
+- ✅ **한 번에 하나의 테스트만 작업**
+- ✅ **테스트 통과를 위한 최소 코드만 구현**
+
+### 문서화 및 커밋 규칙
+- ✅ **문서 먼저 업데이트**: 작업 완료 후 바로 커밋하지 말고 **반드시 문서부터 업데이트**
+- ✅ **각 테스트 완료시 서브플랜 업데이트 및 필요시 plan.md도 업데이트 후 git commit 실행**
+  - "단계"는 개별 테스트 케이스 또는 기능적으로 완결된 작업 단위를 의미
+  - 예시: testFetchPriceHistory1Day 테스트 통과, fetchPriceHistory API 연동 완료 등
+
+### 개발 방법론
+- ✅ **참조 기반 학습**: 각 테스트 작성 전 yfinance-reference/ 폴더의 Python 코드 참조
+- ✅ **실제 데이터 구조 확인**: Python yfinance로 실제 API 응답 구조 파악 후 Swift 모델 설계
+
+---
+
 ## 🎯 프로젝트 개요
 Python yfinance 라이브러리를 Swift로 TDD 방식으로 포팅
 
@@ -22,17 +42,6 @@ Sources/SwiftYFinance/
     ├── YFCookieManager.swift # 브라우저 쿠키 관리
     └── YFHTMLParser.swift  # HTML 파싱 (CSRF 토큰)
 ```
-
-## 🎯 작업 원칙
-- ✅ **TDD (Red → Green → Refactor)**: 실패하는 테스트 → 최소 구현 → 리팩토링
-- ✅ **Tidy First**: 구조 변경과 동작 변경 분리
-- ✅ **한 번에 하나의 테스트만 작업**
-- ✅ **테스트 통과를 위한 최소 코드만 구현**
-- ✅ **각 테스트 완료시 서브플랜 업데이트 및 필요시 plan.md도 업데이트 후 git commit 실행**
-  - "단계"는 개별 테스트 케이스 또는 기능적으로 완결된 작업 단위를 의미
-  - 예시: testFetchPriceHistory1Day 테스트 통과, fetchPriceHistory API 연동 완료 등
-- ✅ **참조 기반 학습**: 각 테스트 작성 전 yfinance-reference/ 폴더의 Python 코드 참조
-- ✅ **실제 데이터 구조 확인**: Python yfinance로 실제 API 응답 구조 파악 후 Swift 모델 설계
 
 ## 📊 전체 진행 상황
 
@@ -66,15 +75,19 @@ Sources/SwiftYFinance/
 - [Phase 4.3 CSRF 인증 시스템](docs/plans/phase4-csrf-authentication.md)
 - [Phase 4.4 브라우저 쿠키 관리](docs/plans/phase4-cookie-management.md)
 
-## 🏗️ 소스 파일 구조 정리 (진행 예정)
+## 🏗️ 소스 파일 구조 정리 (진행 중)
 
-### 현재 문제점
-- **YFClient.swift**: 1151줄 (🚨 즉시 분리 필요)
-- **YFFinancials.swift**: 395줄 (🚨 즉시 분리 필요)  
-- **YFSession.swift**: 326줄 (🚨 즉시 분리 필요)
+### ✅ 완료된 분리 작업 (2025-08-13)
+- **YFClient.swift**: 856줄 → 157줄 (✅ 분리 완료)
+  - YFEnums.swift (52줄): YFPeriod, YFInterval enum ✅
+  - YFQuoteAPI.swift (137줄): 실시간 시세 API 메서드 ✅
+  - YFFinancialsAPI.swift (463줄): 재무 데이터 API 메서드 (🚨 추가 분리 필요)
+  - YFBalanceSheetAPI.swift (149줄): 대차대조표 API 메서드 ✅
 
-### 분리 계획
-총 3개 파일 → 14개 파일로 분리하여 평균 150줄 이하로 관리
+### 🚨 남은 분리 작업
+- **YFFinancialsAPI.swift**: 463줄 (🚨 분리 필요 - fetchCashFlow, fetchEarnings 분리)
+- **YFFinancials.swift**: 395줄 (🚨 분리 필요)  
+- **YFSession.swift**: 326줄 (🚨 분리 필요)
 
 **상세 계획**:
 - [파일 구조 정리 가이드](docs/plans/file-organization.md)
@@ -125,13 +138,24 @@ Sources/SwiftYFinance/
 - **모든 API 메서드**: CSRF 인증 시도 및 재시도 로직 통합
 - **TDD 방식**: Red → Green 사이클로 각 테스트 작성 후 최소 구현
 
+### 7. 소스 파일 구조 정리 시작 ✅
+- **YFClient.swift 분리**: 856줄 → 157줄 (699줄 감소)
+  - YFQuoteAPI.swift (137줄): fetchQuote 메서드 분리
+  - YFFinancialsAPI.swift (463줄): 4개 재무 메서드 분리 (추가 분리 필요)
+  - YFBalanceSheetAPI.swift (149줄): fetchBalanceSheet 메서드 분리
+- **TDD 방식**: 각 분리마다 Red → Green 사이클 적용
+- **테스트 통과**: 모든 분리 후에도 테스트 스위트 정상 동작
+
 ## 🎯 다음 우선순위 작업
 
-### 1. ~~마지막 API 메서드 실제 구현 전환~~ ✅ 완료
-- **~~fetchEarnings~~**: ~~수익 데이터 API 연동 (모킹 → 실제 API)~~ ✅ 완료
-  - ~~testFetchEarningsRealAPI 테스트 작성~~ ✅ 완료
-  - ~~실제 quoteSummary API 호출 구현~~ ✅ 완료
-  - ~~TDD Red → Green 사이클 완료~~ ✅ 완료
+### 1. ~~소스 파일 구조 정리~~ 🚧 진행 중
+- **~~YFClient.swift 분리~~**: ~~856줄 → 157줄~~ ✅ 완료
+- **YFFinancialsAPI.swift 추가 분리**: 463줄 → 3개 파일로 분리 ⏳ 진행 중
+  - YFCashFlowAPI.swift 생성 및 이동 ⏳ **다음 작업**
+  - YFEarningsAPI.swift 생성 및 이동
+  - YFFinancialsAPI.swift 정리 (fetchFinancials만 남기기)
+- **YFFinancials.swift 분리**: 395줄 → 4개 파일로 분리
+- **YFSession.swift 분리**: 326줄 → 3개 파일로 분리
 
 ### 2. CSRF 인증 시스템 실제 환경 최적화
 - **현재 상태**: 브라우저 쿠키 관리 완성, 기본 CSRF 구조 준비

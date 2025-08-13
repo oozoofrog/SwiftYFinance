@@ -1,46 +1,81 @@
 # 소스 파일 리팩토링 가이드
 
+## 🚨 **작업 원칙 (매우 중요!)**
+
+### 작업 순서
+1. **문서 먼저 업데이트**: 작업 완료 후 바로 커밋하지 말고 **반드시 문서부터 업데이트**
+2. **변경사항 문서화**: plan.md, source-file-refactoring.md 등 관련 문서 상태 업데이트
+3. **체크리스트 갱신**: 완료된 작업을 체크리스트에서 [x]로 표시
+4. **그 다음 커밋**: 문서 업데이트 완료 후 코드와 문서를 함께 커밋
+
+### 의존성 관리
+1. **순환 참조 방지**: extension을 활용하여 의존성 단방향 유지
+2. **Import 최소화**: 필요한 Foundation 모듈만 import
+3. **접근 제어**: public/internal/private 적절히 설정
+
+### 테스트 호환성
+1. **@testable import**: 분리 후에도 기존 테스트가 동작하도록
+2. **API 호환성**: public 인터페이스 변경 없이 내부 구조만 정리
+3. **테스트 파일 매핑**: 새 파일에 맞춰 테스트도 일부 조정 필요
+
+### 빌드 안정성
+1. **점진적 분리**: 한 번에 하나씩 분리하여 빌드 오류 최소화
+2. **컴파일 검증**: 각 단계마다 swift build 확인
+3. **테스트 검증**: swift test로 기능 정상 동작 확인
+
+---
+
 ## 🎯 개요
 
 현재 프로젝트의 3개 대형 소스 파일을 기능별/책임별로 분리하여 유지보수성과 가독성을 향상시킵니다.
 
-- **YFClient.swift**: 1151줄 → 7개 파일로 분리
+- **YFClient.swift**: 856줄 → 4개 파일로 분리 (일부 이미 완료)
 - **YFFinancials.swift**: 395줄 → 4개 파일로 분리  
 - **YFSession.swift**: 326줄 → 3개 파일로 분리
 
 ## 📊 분리 전/후 비교
 
-### Before (현재)
+### 현재 상태 (2025-08-13 업데이트)
 ```
 Sources/SwiftYFinance/
 ├── Core/
-│   ├── YFClient.swift          (1151줄) 🚨
-│   ├── YFSession.swift         (326줄)  🚨
-│   └── ...
+│   ├── YFClient.swift          (157줄)  ✅ 정리 완료
+│   ├── YFSession.swift         (326줄)  🚨 분리 필요
+│   ├── YFEnums.swift           (52줄)   ✅ 완료
+│   ├── YFHistoryAPI.swift      (252줄)  ✅ 완료
+│   ├── YFQuoteAPI.swift        (137줄)  ✅ 완료
+│   ├── YFFinancialsAPI.swift   (463줄)  🚨 분리 필요
+│   ├── YFBalanceSheetAPI.swift (149줄)  ✅ 완료
+│   ├── YFRequestBuilder.swift  (73줄)   ✅ 완료
+│   ├── YFResponseParser.swift  (39줄)   ✅ 완료
+│   ├── YFCookieManager.swift   (204줄)  ✅ 완료
+│   └── YFHTMLParser.swift      (70줄)   ✅ 완료
 └── Models/
-    ├── YFFinancials.swift      (395줄)  🚨
-    └── ...
+    ├── YFFinancials.swift      (395줄)  🚨 분리 필요
+    ├── YFChartModels.swift     (91줄)   ✅ 완료
+    ├── YFQuoteModels.swift     (48줄)   ✅ 완료
+    ├── YFHistoricalData.swift  (31줄)   ✅ 완료
+    ├── YFQuote.swift           (62줄)   ✅ 완료
+    ├── YFTicker.swift          (27줄)   ✅ 완료
+    ├── YFPrice.swift           (32줄)   ✅ 완료
+    └── YFError.swift           (7줄)    ✅ 완료
 ```
 
-### After (목표)
+### 목표 (남은 작업)
 ```
 Sources/SwiftYFinance/
 ├── Core/
-│   ├── YFClient.swift          (200줄)  ✅
-│   ├── YFEnums.swift           (60줄)   ✅
-│   ├── YFHistoryAPI.swift      (150줄)  ✅
-│   ├── YFQuoteAPI.swift        (100줄)  ✅
-│   ├── YFFinancialsAPI.swift   (350줄)  ✅
-│   ├── YFSession.swift         (150줄)  ✅
-│   ├── YFSessionAuth.swift     (100줄)  ✅
-│   └── YFSessionCookie.swift   (76줄)   ✅
+│   ├── YFClient.swift          (200줄)  ⏳ 대기
+│   ├── YFQuoteAPI.swift        (150줄)  ⏳ 대기
+│   ├── YFFinancialsAPI.swift   (350줄)  ⏳ 대기
+│   ├── YFSession.swift         (150줄)  ⏳ 대기
+│   ├── YFSessionAuth.swift     (100줄)  ⏳ 대기
+│   └── YFSessionCookie.swift   (76줄)   ⏳ 대기
 └── Models/
-    ├── YFFinancials.swift      (90줄)   ✅
-    ├── YFBalanceSheet.swift    (90줄)   ✅
-    ├── YFCashFlow.swift        (130줄)  ✅
-    ├── YFEarnings.swift        (185줄)  ✅
-    ├── YFChartModels.swift     (100줄)  ✅
-    └── YFQuoteModels.swift     (140줄)  ✅
+    ├── YFFinancials.swift      (90줄)   ⏳ 대기
+    ├── YFBalanceSheet.swift    (90줄)   ⏳ 대기
+    ├── YFCashFlow.swift        (130줄)  ⏳ 대기
+    └── YFEarnings.swift        (185줄)  ⏳ 대기
 ```
 
 ## 🔧 Phase 1: YFClient.swift 분리
@@ -223,22 +258,6 @@ extension YFSession {
 }
 ```
 
-## ⚠️ 주의사항
-
-### 의존성 관리
-1. **순환 참조 방지**: extension을 활용하여 의존성 단방향 유지
-2. **Import 최소화**: 필요한 Foundation 모듈만 import
-3. **접근 제어**: public/internal/private 적절히 설정
-
-### 테스트 호환성
-1. **@testable import**: 분리 후에도 기존 테스트가 동작하도록
-2. **API 호환성**: public 인터페이스 변경 없이 내부 구조만 정리
-3. **테스트 파일 매핑**: 새 파일에 맞춰 테스트도 일부 조정 필요
-
-### 빌드 안정성
-1. **점진적 분리**: 한 번에 하나씩 분리하여 빌드 오류 최소화
-2. **컴파일 검증**: 각 단계마다 swift build 확인
-3. **테스트 검증**: swift test로 기능 정상 동작 확인
 
 ## 🎯 예상 효과
 
@@ -260,18 +279,23 @@ extension YFSession {
 ## 📋 체크리스트
 
 ### Phase 1: YFClient.swift 분리
-- [ ] YFEnums.swift 생성 및 이동
-- [ ] YFChartModels.swift 생성 및 이동
-- [ ] YFQuoteModels.swift 생성 및 이동
-- [ ] YFHistoryAPI.swift 생성 및 이동
-- [ ] YFQuoteAPI.swift 생성 및 이동  
-- [ ] YFFinancialsAPI.swift 생성 및 이동
-- [ ] YFClient.swift 정리
-- [ ] 컴파일 및 테스트 검증
+- [x] YFEnums.swift 생성 및 이동 ✅ 완료 (52줄)
+- [x] YFChartModels.swift 생성 및 이동 ✅ 완료 (91줄)
+- [x] YFQuoteModels.swift 생성 및 이동 ✅ 완료 (48줄)
+- [x] YFHistoryAPI.swift 생성 및 이동 ✅ 완료 (252줄)
+- [x] YFQuoteAPI.swift 생성 및 이동 ✅ 완료 (137줄)
+- [x] YFFinancialsAPI.swift 생성 및 이동 ✅ 완료 (463줄, 여전히 분리 필요)
+- [x] YFClient.swift 정리 ✅ 완료 (710줄 → 157줄)
+- [x] 컴파일 및 테스트 검증 ✅ 완료
 
-### Phase 2: YFFinancials.swift 분리
+### Phase 1.5: YFFinancialsAPI.swift 추가 분리 (463줄 → 3개 파일)
+- [x] YFBalanceSheetAPI.swift 생성 및 이동 ✅ 완료 (149줄)
+- [ ] YFCashFlowAPI.swift 생성 및 이동 ⏳ **다음 작업**
+- [ ] YFEarningsAPI.swift 생성 및 이동
+- [ ] YFFinancialsAPI.swift 정리 (fetchFinancials만 남기기)
+
+### Phase 2: YFFinancials.swift 분리  
 - [ ] YFBalanceSheet.swift 생성 및 이동
-- [ ] YFCashFlow.swift 생성 및 이동
 - [ ] YFEarnings.swift 생성 및 이동
 - [ ] YFFinancials.swift 정리
 - [ ] 컴파일 및 테스트 검증
