@@ -159,19 +159,19 @@ Models/YFChartModels.swift (100줄) # ChartResponse 구조체들
 Models/YFQuoteModels.swift (140줄) # QuoteSummaryResponse 구조체들
 ```
 
-#### 2. YFFinancials.swift (395줄) → 도메인별 분리
+#### ~~2. YFFinancials.swift (395줄) → 도메인별 분리~~ ✅ **완료 (2025-08-13)**
 ```
-현재 구조:
+원본 구조:
 - YFFinancials + YFFinancialReport (46줄)
 - YFBalanceSheet + YFBalanceSheetReport (52줄)
 - YFCashFlow + YFCashFlowReport (121줄)
 - YFEarnings + YFEarningsReport (176줄)
 
-분리 계획:
-Models/YFFinancials.swift (90줄)   # YFFinancials + YFFinancialReport
-Models/YFBalanceSheet.swift (90줄) # YFBalanceSheet + YFBalanceSheetReport  
-Models/YFCashFlow.swift (130줄)    # YFCashFlow + YFCashFlowReport
-Models/YFEarnings.swift (185줄)    # YFEarnings + YFEarningsReport
+✅ 완료된 분리:
+Models/YFFinancials.swift (121줄)   # YFFinancials + YFFinancialReport ✅
+Models/YFBalanceSheet.swift (105줄) # YFBalanceSheet + YFBalanceSheetReport ✅
+Models/YFCashFlow.swift (120줄)     # YFCashFlow + YFCashFlowReport ✅
+Models/YFEarnings.swift (179줄)     # YFEarnings + YFEarningsReport + YFEarningsEstimate ✅
 ```
 
 #### 3. YFSession.swift (326줄) → 책임별 분리
@@ -231,11 +231,16 @@ phase2-models.md               7개      ✅ 현재 적정
 6. **YFFinancialsAPI.swift** 생성 - 재무 관련 4개 메서드
 7. **YFClient.swift** 정리 - 메인 클래스 + 초기화만 유지
 
-### Phase 2: YFFinancials.swift 분리 (우선순위 2)
-1. **YFFinancials.swift** 정리 - 기본 재무제표만 유지
-2. **YFBalanceSheet.swift** 생성 - 대차대조표 모델
-3. **YFCashFlow.swift** 생성 - 현금흐름표 모델  
-4. **YFEarnings.swift** 생성 - 손익계산서 모델
+### ~~Phase 2: YFFinancials.swift 분리~~ ✅ **완료 (2025-08-13)**
+1. **~~YFFinancials.swift 정리~~** ✅ - 기본 재무제표만 유지 (121줄)
+2. **~~YFBalanceSheet.swift 생성~~** ✅ - 대차대조표 모델 (105줄)
+3. **~~YFCashFlow.swift 생성~~** ✅ - 현금흐름표 모델 (120줄)
+4. **~~YFEarnings.swift 생성~~** ✅ - 손익계산서 모델 (179줄)
+
+**완료 결과**:
+- 원본 YFFinancials.swift (395줄) → 4개 분리 파일 (총 525줄)
+- TDD 방식: 분리 테스트 4개 작성 후 Green 구현
+- 전체 빌드 및 테스트 통과 확인 완료
 
 ### Phase 3: YFSession.swift 분리 (우선순위 3)
 1. **YFSessionAuth.swift** 생성 - CSRF 인증 메서드들
@@ -245,6 +250,11 @@ phase2-models.md               7개      ✅ 현재 적정
 ### 분리 순서 (완료된 항목)
 1. **~~1순위~~**: ~~YFResponseParserTests.swift → Parser/ 폴더로 분리~~ ✅ 완료
 2. **~~2순위~~**: ~~YFClientTests.swift → Client/ 폴더로 분리~~ ✅ 완료
+3. **~~3순위~~**: ~~YFClient.swift → Core/ 폴더로 7개 파일로 분리~~ ✅ 완료 (Phase 1)
+4. **~~4순위~~**: ~~YFFinancials.swift → Models/ 폴더로 4개 파일로 분리~~ ✅ **완료 (2025-08-13)**
+
+### 다음 우선순위
+5. **5순위**: YFSession.swift → Core/ 폴더로 3개 파일로 분리 ⏳ **현재 우선순위**
 
 ## 📝 유지보수 원칙
 
