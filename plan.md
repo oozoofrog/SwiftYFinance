@@ -3,6 +3,24 @@
 ## 프로젝트 개요
 Python yfinance 라이브러리를 Swift로 TDD 방식으로 포팅
 
+## 프로젝트 구조
+```
+Sources/SwiftYFinance/
+├── SwiftYFinance.swift     # 메인 패키지 파일
+├── Models/                  # 데이터 모델
+│   ├── YFError.swift       # 에러 타입 정의
+│   ├── YFFinancials.swift  # 재무제표 모델 (Balance Sheet, Cash Flow, Earnings 포함)
+│   ├── YFHistoricalData.swift # 히스토리 데이터 모델
+│   ├── YFPrice.swift       # 가격 데이터 모델
+│   ├── YFQuote.swift       # 실시간 시세 모델
+│   └── YFTicker.swift      # 주식 심볼 모델
+└── Core/                    # 핵심 로직
+    ├── YFClient.swift      # 메인 API 클라이언트
+    ├── YFRequestBuilder.swift # HTTP 요청 빌더
+    ├── YFResponseParser.swift # JSON 응답 파서
+    └── YFSession.swift     # 네트워크 세션 관리
+```
+
 ## 작업 원칙
 - ✅ TDD (Red → Green → Refactor)
 - ✅ Tidy First (구조 변경과 동작 변경 분리)
@@ -20,6 +38,9 @@ Python yfinance 라이브러리를 Swift로 TDD 방식으로 포팅
 - [x] 기본 테스트 환경 설정 재검토
   - 📚 참조: yfinance-reference/tests/ 폴더 구조
   - 🔍 확인사항: Swift Testing 프레임워크 설정
+- [x] 폴더 구조 재구성 완료 ✅ 2025-08-13
+  - Models/ 폴더: 데이터 모델 파일 6개
+  - Core/ 폴더: 핵심 로직 파일 4개
 
 ## Phase 2: Pure Data Model ✅ 완료
 ### 🔄 재검토 체크리스트:
@@ -266,25 +287,31 @@ Phase 4 확장 완료 후 Phase 5 Advanced Features 진행
 - [ ] testCachePerformance - 캐시 성능
 
 ## 진행 상태
-- 전체 테스트: 60/116 (+17 🆕 실제 API 구현 테스트 추가)
-- 완료된 Phase: 2/10 (Phase 3도 재검토 필요)
+- 전체 테스트: 36/116 (36개 테스트 모두 통과 ✅)
+- 완료된 Phase: 2/10 (Phase 1: 기본 구조, Phase 2: 데이터 모델)
 - 현재 작업 중: Phase 4.1 - Network Layer 실제 구현 (모킹 → 실제 API 전환)
-- 🚨 **중요**: 모든 기존 테스트는 모킹 데이터, 실제 API 구현 필요
+- 🚨 **중요**: 모든 기존 테스트는 모킹 데이터 사용 중, 실제 API 구현 필요
+- ✅ **폴더 구조 재구성 완료** (2025-08-13): Models/, Core/ 분리
 
 ## 다음 작업
 🚨 **최우선: 실제 API 구현 전환!**
 
 ### 현재 우선순위: Phase 4.1 - Network Layer 실제 구현
-1. **YFRequestBuilder 실제 구현** (1단계)
+1. **YFRequestBuilder 실제 구현** ✅ 완료
    - 📚 **참조 단계**: yfinance-reference/yfinance/const.py:_BASE_URL_ 분석
    - 🔍 **API 구조 확인**: Yahoo Finance chart API 엔드포인트 파악
-   - 🛠️ **실제 URL 생성**: query1.finance.yahoo.com 기반 URL 구성
+   - 🛠️ **실제 URL 생성**: query2.finance.yahoo.com 기반 URL 구성
    - ✅ **TDD 구현**: 기존 테스트 유지, 실제 구현으로 교체
 
-### 이후 순서:
-- **YFSession 실제 구현** (2단계)
-- **YFResponseParser 실제 구현** (3단계)  
-- **fetchPriceHistory 실제 API 연동** (4단계)
+### 다음 작업 (최우선):
+1. **YFSession 실제 HTTP 요청 구현** (긴급)
+   - testSessionRealRequest 작성 및 구현
+   - 실제 Yahoo Finance API 호출 테스트
+2. **YFResponseParser 실제 JSON 파싱** (긴급)
+   - testParseChartResponse 작성 및 구현
+   - 실제 Yahoo Finance 응답 파싱
+3. **fetchPriceHistory 실제 API 연동** (중요)
+   - 모킹 제거, 실제 데이터 반환
 
 ## 🚨 중요: 실제 API 구현 전환 계획
 
