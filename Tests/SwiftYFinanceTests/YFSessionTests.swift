@@ -92,4 +92,69 @@ struct YFSessionTests {
         let meta = result?.first?["meta"] as? [String: Any]
         #expect(meta?["symbol"] as? String == "AAPL")
     }
+    
+    @Test
+    func testSessionErrorHandling() async throws {
+        // 네트워크 에러 처리 테스트
+        let session = YFSession()
+        let builder = YFRequestBuilder(session: session)
+        
+        // 404 에러 테스트: 잘못된 엔드포인트
+        let invalidRequest = try builder
+            .path("/invalid/endpoint/path")
+            .build()
+        
+        do {
+            let (_, response) = try await session.urlSession.data(for: invalidRequest)
+            let httpResponse = response as? HTTPURLResponse
+            // Yahoo Finance는 잘못된 엔드포인트에 대해 다양한 에러 코드 반환 가능
+            #expect(httpResponse?.statusCode == 404 || httpResponse?.statusCode == 500 || httpResponse?.statusCode == 403)
+        } catch {
+            // 네트워크 에러도 예상되는 결과
+            #expect(error is URLError)
+        }
+        
+        // 타임아웃 테스트: 매우 짧은 타임아웃 설정
+        let shortTimeoutSession = YFSession(timeout: 0.001)
+        let timeoutBuilder = YFRequestBuilder(session: shortTimeoutSession)
+        
+        let timeoutRequest = try timeoutBuilder
+            .path("/v8/finance/chart/AAPL")
+            .build()
+        
+        do {
+            let _ = try await shortTimeoutSession.urlSession.data(for: timeoutRequest)
+            // 타임아웃이 발생하지 않으면 테스트 실패가 아님 (네트워크 상황에 따라)
+        } catch let error as URLError {
+            #expect(error.code == .timedOut || error.code == .networkConnectionLost)
+        } catch {
+            // 다른 네트워크 에러도 허용
+        }
+        
+        // 잘못된 심볼로 403 에러 테스트
+        let forbiddenRequest = try builder
+            .path("/v8/finance/chart/INVALID_SYMBOL_TEST_123456789")
+            .build()
+        
+        do {
+            let (data, response) = try await session.urlSession.data(for: forbiddenRequest)
+            let httpResponse = response as? HTTPURLResponse
+            
+            // Yahoo Finance는 잘못된 심볼에 대해 200을 반환하고 에러를 JSON에 포함할 수 있음
+            if httpResponse?.statusCode == 200 {
+                let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+                let chart = json?["chart"] as? [String: Any]
+                let error = chart?["error"] as? [String: Any]
+                
+                // 에러가 있거나 결과가 null인 경우 확인
+                let result = chart?["result"]
+                #expect(error != nil || result == nil)
+            } else {
+                #expect(httpResponse?.statusCode == 404 || httpResponse?.statusCode == 403)
+            }
+        } catch {
+            // 네트워크 에러도 예상되는 결과
+            #expect(error is URLError)
+        }
+    }
 }
