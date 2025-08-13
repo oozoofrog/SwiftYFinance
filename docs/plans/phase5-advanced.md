@@ -62,21 +62,38 @@ Yahoo Finance의 고급 기능들을 Swift로 구현하여 완전한 금융 데�
 - API 엔드포인트: `https://query2.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/{symbol}`
 - 데이터 필드: income, balance-sheet, cash-flow (yearly/quarterly/trailing)
 
-### 5.3 Screening API
+### 5.3 Screening API ✅ 완료 (2025-08-13)
 **목표**: 조건에 맞는 종목 검색 및 필터링
 
 #### 구현 사항
-- [ ] YFScreener 모델 생성
-- [ ] 필터 조건 빌더 (`YFScreenerBuilder`)
-- [ ] 정렬 옵션 (시가총액, 거래량, 수익률 등)
-- [ ] 섹터/산업별 필터링
-- [ ] 커스텀 조건 조합
+- [x] YFScreener 빌더 클래스 생성
+- [x] 필터 조건 시스템 (시가총액, 가격, 재무비율 등)
+- [x] 정렬 옵션 (시가총액, 거래량, 수익률 등)
+- [x] 섹터/산업별 필터링
+- [x] 커스텀 조건 조합 (Fluent API)
+- [x] 사전 정의된 스크리너 (Day Gainers, Losers 등)
+- [x] 페이지네이션 지원
 
 #### 테스트 케이스
-- [ ] `testBasicScreening` - 기본 스크리닝
-- [ ] `testFilterByMarketCap` - 시가총액 필터
-- [ ] `testFilterBySector` - 섹터별 필터
-- [ ] `testCustomCriteria` - 복합 조건
+- [x] `testBasicScreening` - 기본 스크리닝 (시가총액, 지역, 가격)
+- [x] `testScreeningWithSorting` - 정렬 기능
+- [x] `testSectorFiltering` - 섹터별 필터
+- [x] `testFinancialRatiosFiltering` - 재무 비율 필터 (P/E, ROE)
+- [x] `testPredefinedScreeners` - 사전 정의된 스크리너
+- [x] `testComplexQuery` - 복합 조건 조합
+- [x] `testScreeningPagination` - 페이지네이션
+- [x] `testInvalidScreenerError` - 에러 처리
+
+#### 구현 파일
+- `Sources/SwiftYFinance/Models/YFScreener.swift` - 스크리너 빌더 및 모델
+- `Sources/SwiftYFinance/Core/YFScreeningAPI.swift` - API 구현
+- `Tests/SwiftYFinanceTests/Client/ScreeningTests.swift` - 테스트
+
+#### Python 참조 구현 (실제 확인됨)
+- `yfinance-reference/yfinance/screener/screener.py:54` - screen() 메인 함수
+- `yfinance-reference/yfinance/screener/query.py` - QueryBase 클래스
+- API 엔드포인트: `https://query1.finance.yahoo.com/v1/finance/screener`
+- 사전 정의 엔드포인트: `https://query1.finance.yahoo.com/v1/finance/screener/predefined/saved`
 
 ### 5.4 News API
 **목표**: 종목 관련 뉴스 및 분석 리포트 통합
