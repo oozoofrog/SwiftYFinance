@@ -157,4 +157,56 @@ struct YFSessionTests {
             #expect(error is URLError)
         }
     }
+    
+    @Test
+    func testSessionUserAgent() async throws {
+        // User-Agent 헤더 설정 테스트
+        let session = YFSession()
+        let builder = YFRequestBuilder(session: session)
+        
+        // 실제 요청 생성
+        let request = try builder
+            .path("/v8/finance/chart/AAPL")
+            .queryParam("range", "1d")
+            .build()
+        
+        // User-Agent 헤더 확인
+        let userAgent = request.value(forHTTPHeaderField: "User-Agent")
+        #expect(userAgent != nil)
+        
+        // Yahoo Finance 호환 User-Agent 검증
+        #expect(userAgent?.contains("Mozilla") == true)
+        #expect(userAgent?.contains("AppleWebKit") == true)
+        #expect(userAgent?.contains("Chrome") == true)
+        #expect(userAgent?.contains("Safari") == true)
+        
+        // 실제 API 호출에서 User-Agent가 작동하는지 확인
+        let (_, response) = try await session.urlSession.data(for: request)
+        let httpResponse = response as? HTTPURLResponse
+        #expect(httpResponse?.statusCode == 200)
+        
+        // 커스텀 User-Agent 테스트
+        let customHeaders = ["User-Agent": "TestBot/1.0"]
+        let customSession = YFSession(additionalHeaders: customHeaders)
+        let customBuilder = YFRequestBuilder(session: customSession)
+        
+        let customRequest = try customBuilder
+            .path("/v8/finance/chart/AAPL")
+            .queryParam("range", "1d")
+            .build()
+        
+        let customUserAgent = customRequest.value(forHTTPHeaderField: "User-Agent")
+        #expect(customUserAgent == "TestBot/1.0")
+        
+        // 커스텀 User-Agent로도 API 호출이 가능한지 확인
+        do {
+            let (_, customResponse) = try await customSession.urlSession.data(for: customRequest)
+            let customHttpResponse = customResponse as? HTTPURLResponse
+            // Yahoo Finance가 특정 User-Agent를 차단할 수 있으므로 200 또는 403 모두 허용
+            #expect(customHttpResponse?.statusCode == 200 || customHttpResponse?.statusCode == 403)
+        } catch {
+            // 네트워크 에러는 허용
+            #expect(error is URLError)
+        }
+    }
 }
