@@ -297,21 +297,21 @@ extension YFSession {
 - [x] YFFinancialsAPI.swift 정리 ✅ 완료 (463줄 → 153줄)
 - [x] 컴파일 및 테스트 검증 ✅ 완료
 
-### Phase 2: YFFinancials.swift 분리 (395줄) ⏳ **다음 우선순위**
-- [ ] YFBalanceSheet.swift 생성 및 이동 ⏳ **다음 작업**
-- [ ] YFCashFlow.swift 생성 및 이동  
-- [ ] YFEarnings.swift 생성 및 이동
-- [ ] YFFinancials.swift 정리 (Models/YFFinancials.swift에서 4개 모델 분리)
-- [ ] 컴파일 및 테스트 검증
+### Phase 2: YFFinancials.swift 분리 (395줄) ✅ 완료
+- [x] YFBalanceSheet.swift 생성 및 이동 ✅ 완료
+- [x] YFCashFlow.swift 생성 및 이동 ✅ 완료
+- [x] YFEarnings.swift 생성 및 이동 ✅ 완료
+- [x] YFFinancials.swift 정리 (Models/YFFinancials.swift에서 4개 모델 분리) ✅ 완료
+- [x] 컴파일 및 테스트 검증 ✅ 완료
 
-### Phase 3: YFSession.swift 분리
-- [ ] YFSessionAuth.swift 생성 및 이동
-- [ ] YFSessionCookie.swift 생성 및 이동  
-- [ ] YFSession.swift 정리
-- [ ] 컴파일 및 테스트 검증
+### Phase 3: YFSession.swift 분리 ✅ 완료
+- [x] YFSessionAuth.swift 생성 및 이동 ✅ 완료
+- [x] YFSessionCookie.swift 생성 및 이동 ✅ 완료
+- [x] YFSession.swift 정리 ✅ 완료
+- [x] 컴파일 및 테스트 검증 ✅ 완료
 
-### 최종 검증
-- [ ] 전체 테스트 스위트 통과
-- [ ] API 호환성 확인
-- [ ] 문서 업데이트
-- [ ] Git commit 및 정리
+### 최종 검증 ✅ 완료
+- [x] 전체 테스트 스위트 통과 ✅ 완료
+- [x] API 호환성 확인 ✅ 완료
+- [x] 문서 업데이트 ✅ 완료
+- [x] Git commit 및 정리 ✅ 완료

@@ -261,35 +261,35 @@ Yahoo Finance API 인증 문제 해결을 위해 Python yfinance의 curl_cffi Ch
 
 ### 🔧 긴급 수정 계획 (우선순위 순)
 
-#### 1단계: 컴파일 에러 해결 (최우선)
-- [ ] **YFBalanceSheetAPI.swift**
-  - [ ] `buildBalanceSheetURL()` 메서드 async 변경
-  - [ ] `session.isCSRFAuthenticated` 접근 시 await 추가
-  - [ ] 호출 부분에서 await 키워드 추가
+#### 1단계: 컴파일 에러 해결 (최우선) ✅ 완료
+- [x] **YFBalanceSheetAPI.swift**
+  - [x] `buildBalanceSheetURL()` 메서드 async 변경
+  - [x] `session.isCSRFAuthenticated` 접근 시 await 추가
+  - [x] 호출 부분에서 await 키워드 추가
 
-- [ ] **YFFinancialsAPI.swift**
-  - [ ] `buildFinancialsURL()` 메서드 async 변경
-  - [ ] async property 접근 패턴 수정
+- [x] **YFFinancialsAPI.swift**
+  - [x] `buildFinancialsURL()` 메서드 async 변경
+  - [x] async property 접근 패턴 수정
 
-- [ ] **YFCashFlowAPI.swift**
-  - [ ] 동일한 패턴으로 async 호환성 수정
+- [x] **YFCashFlowAPI.swift**
+  - [x] 동일한 패턴으로 async 호환성 수정
 
-- [ ] **YFEarningsAPI.swift**
-  - [ ] 동일한 패턴으로 async 호환성 수정
+- [x] **YFEarningsAPI.swift**
+  - [x] 동일한 패턴으로 async 호환성 수정
 
-- [ ] **YFQuoteAPI.swift 및 YFHistoryAPI.swift**
-  - [ ] async property 접근 확인 및 수정
+- [x] **YFQuoteAPI.swift 및 YFHistoryAPI.swift**
+  - [x] async property 접근 확인 및 수정
 
-#### 2단계: 테스트 실행 및 검증
-- [ ] 전체 컴파일 성공 확인
-- [ ] YFRateLimiterTests 실행 검증
-- [ ] YFSessionAuthRetryTests 실행 검증
+#### 2단계: 테스트 실행 및 검증 ✅ 완료
+- [x] 전체 컴파일 성공 확인
+- [x] YFRateLimiterTests 실행 검증
+- [x] YFSessionAuthRetryTests 실행 검증
 
-#### 3단계: 인증 실패 테스트 수정
-- [ ] `testFetchEarningsRealAPI` - makeAuthenticatedRequest 사용
-- [ ] `testFetchQuoteAfterHours` - 개선된 인증 로직 적용
-- [ ] `testFetchQuoteRealtime` - 전략 전환 재시도 활용
-- [ ] 나머지 6개 테스트 수정
+#### 3단계: 인증 실패 테스트 수정 ✅ 완료
+- [x] `testFetchEarningsRealAPI` - makeAuthenticatedRequest 사용
+- [x] `testFetchQuoteAfterHours` - 개선된 인증 로직 적용
+- [x] `testFetchQuoteRealtime` - 전략 전환 재시도 활용
+- [x] 나머지 6개 테스트 수정
 
 ### 📋 상세 Swift Concurrency 패턴
 
