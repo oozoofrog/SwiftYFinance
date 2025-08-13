@@ -47,7 +47,7 @@ struct YFSessionCSRFTests {
     
     @Test
     func testFormDataEncoding() throws {
-        let session = YFSession()
+        let _ = YFSession()
         
         // private 메서드를 직접 테스트할 수 없으므로
         // 동의 프로세스 전체를 통해 간접 테스트
@@ -67,7 +67,7 @@ struct YFSessionCSRFTests {
     // 실제 네트워크 없이 테스트하기 위한 Mock 테스트
     @Test 
     func testHTMLTokenExtraction() async throws {
-        let session = YFSession()
+        let _ = YFSession()
         
         // Yahoo consent 페이지와 유사한 HTML 구조
         let mockHTML = """
