@@ -33,24 +33,29 @@ Python yfinance 라이브러리를 Swift로 TDD 방식으로 포팅
 
 ### 🚨 긴급 수정 필요 사항
 - **Yahoo Finance API 인증 문제**: 13개 테스트가 "Authentication failed" 에러로 실패
-- **우선순위**: 파일 분리 작업 완료 후 즉시 수정 필요
-- **상세 계획**: [Phase 4.5 인증 시스템 재검토](docs/plans/phase4-authentication-fix.md) 생성 예정
+- **우선순위**: 파일 분리 작업 완료 → 즉시 curl_cffi 포팅 시작
+- **상세 계획**: [Phase 4.5 curl_cffi Swift 포팅](docs/plans/phase4.5-curl-cffi-porting.md) ✅ 생성완료
 
 ---
 
 ## 🎯 다음 작업
 
-### 1. 소스 파일 구조 정리 (현재 진행 중)
+### 1. ✅ 소스 파일 구조 정리 (완료)
 - **~~YFClient.swift 분리~~**: ✅ 완료
 - **~~YFFinancials.swift 분리~~**: ✅ 완료 (2025-08-13)
-- **YFSession.swift 분리**: ⏳ **다음 우선순위**
+- **~~YFSession.swift 분리~~**: ✅ 완료 (2025-08-13)
+- **~~YFCookieManagerTests.swift 분리~~**: ✅ 완료 (2025-08-13)
 
 **상세 계획**: [파일 구조 정리 가이드](docs/plans/file-organization.md)
 
-### 2. CSRF 인증 시스템 실제 환경 최적화
-**상세 계획**: [CSRF 인증 시스템](docs/plans/phase4-csrf-authentication.md)
+### 2. ⏳ Phase 4.5: curl_cffi Swift 포팅 (현재 진행 중)
+- **목표**: Yahoo Finance API 인증 문제 해결 (13개 실패 테스트 → 0개)
+- **접근법**: Python yfinance의 Chrome 모방 기능을 Swift로 포팅
+- **현재 단계**: Chrome 136 헤더 개선 (Phase 4.5.1)
 
-### 3. Phase 5: Advanced Features
+**상세 계획**: [Phase 4.5 curl_cffi Swift 포팅](docs/plans/phase4.5-curl-cffi-porting.md)
+
+### 3. Phase 5: Advanced Features (대기 중)
 **상세 계획**: [Advanced Features](docs/plans/phase5-advanced.md)
 
 ---

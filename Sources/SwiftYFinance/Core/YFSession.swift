@@ -42,34 +42,16 @@ public class YFSession {
     internal let htmlParser = YFHTMLParser()
     internal var isAuthenticated = false
     
-    // User-Agent 로테이션을 위한 Chrome 버전들
-    internal static let chromeUserAgents = [
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
-    ]
-    internal var currentUserAgentIndex = 0
+    // 브라우저 모방 기능
+    internal let browserImpersonator = YFBrowserImpersonator()
     
     // MARK: - Computed Properties
     
-    /// Chrome 브라우저 완전 모방 HTTP 헤더
+    /// Chrome 브라우저 완전 모방 HTTP 헤더 (YFBrowserImpersonator 활용)
     public var defaultHeaders: [String: String] {
-        var headers = [
-            "User-Agent": getCurrentUserAgent(),
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Accept-Encoding": "gzip, deflate, br, zstd",
-            "Connection": "keep-alive",
-            "Upgrade-Insecure-Requests": "1",
-            "Sec-Fetch-Dest": "document",
-            "Sec-Fetch-Mode": "navigate",
-            "Sec-Fetch-Site": "none",
-            "Sec-Fetch-User": "?1",
-            "Cache-Control": "max-age=0"
-        ]
+        var headers = browserImpersonator.getChrome136Headers()
         
+        // 추가 헤더 적용
         for (key, value) in additionalHeaders {
             headers[key] = value
         }
@@ -96,22 +78,13 @@ public class YFSession {
         self.additionalHeaders = additionalHeaders
         self.proxy = proxy
         
-        // 초기화 시 랜덤 User-Agent 선택 (탐지 방지)
-        self.currentUserAgentIndex = Int.random(in: 0..<Self.chromeUserAgents.count)
+        // YFBrowserImpersonator를 사용한 URLSession 생성
+        self.urlSession = browserImpersonator.createConfiguredURLSession()
         
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = timeout
-        config.timeoutIntervalForResource = timeout
-        
-        // HTTPCookieStorage 설정 - 브라우저 수준 쿠키 관리
-        config.httpCookieStorage = HTTPCookieStorage.shared
-        config.httpCookieAcceptPolicy = .always
-        config.httpShouldSetCookies = true
-        
+        // 프록시 설정이 있는 경우 적용
         if let proxy = proxy {
+            let config = self.urlSession.configuration
             config.connectionProxyDictionary = proxy
         }
-        
-        self.urlSession = URLSession(configuration: config)
     }
 }
