@@ -74,6 +74,11 @@ Sources/SwiftYFinance/
   - TimestampParsingTests.swift: Unix 타임스탬프 변환 테스트  
   - OHLCVParsingTests.swift: OHLCV 데이터 추출 테스트
   - ErrorParsingTests.swift: 에러 응답 처리 테스트
+- **YFClientTests.swift** (493줄) → Client/, Integration/ 폴더로 분리
+  - Client/PriceHistoryTests.swift: 가격 이력 테스트 (89줄)
+  - Client/QuoteDataTests.swift: 실시간 시세 테스트 (59줄)
+  - Client/FinancialDataTests.swift: 재무 데이터 테스트 (125줄)
+  - Integration/RealAPITests.swift: 실제 API 통합 테스트 (162줄)
 
 ### 2. fetchPriceHistory 실제 API 연동 완료 ✅
 - **모킹 데이터 제거**: 모든 mock 데이터 생성 로직 제거
@@ -133,19 +138,31 @@ Sources/SwiftYFinance/
 
 ### 테스트 통계
 ```
-총 테스트 파일: 11개 (Core/ 폴더 분리 완료)
+총 테스트 파일: 16개 (Parser/, Client/, Integration/ 폴더 구조화 완료)
 총 테스트 케이스: 64개 (RealAPI 테스트 3개 추가)
 실제 API 연동 테스트: ✅ 8개 (fetchPriceHistory, fetchQuote, fetchFinancials, fetchBalanceSheet, fetchCashFlow)
 모킹 기반 테스트: ✅ 50개+ (기존 테스트 유지)
 TDD 기반 개발: ✅ Red → Green → Refactor 사이클 적용
 평균 실행 시간: 실제 API 테스트 0.7-1.0초, 모킹 테스트 0.01초
+
+테스트 구조:
+- Parser/ (4개 파일): JSON 파싱 테스트
+- Client/ (3개 파일): API 클라이언트 테스트
+- Core/ (4개 파일): 핵심 로직 테스트
+- Integration/ (1개 파일): 실제 API 통합 테스트
+- Models/ (3개 파일): 데이터 모델 테스트
 ```
 
 ## 🎯 다음 작업 계획
 
 ### 즉시 실행 (이번 주)
-1. **fetchEarnings 실제 API 연동**
-   - testFetchEarningsRealAPI 테스트 작성
+1. **소스 파일 구조 정리** (우선순위 1)
+   - YFClient.swift (1151줄) → 기능별 파일로 분리
+   - YFFinancials.swift (395줄) → 모델별 분리
+   - YFSession.swift (326줄) → 기능별 분리
+   
+2. **fetchEarnings 실제 API 연동**
+   - testFetchEarningsRealAPI 테스트 실행 및 구현
    - TDD Red → Green → Refactor 사이클 완료
 
 ### 중기 계획 (다음 주)

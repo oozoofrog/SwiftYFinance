@@ -139,24 +139,29 @@ SwiftYFinance/
 
 ## 🎯 우선순위 분리 대상
 
-### 현재 상태 (2025-08-13)
+### 현재 상태 (2025-08-13 업데이트)
 
 #### 테스트 파일
 ```
 파일명                          라인수    상태
-YFResponseParserTests.swift     532줄    🚨 즉시 분리 필요
-YFClientTests.swift             335줄    🔶 분리 검토 필요  
+YFCookieManagerTests.swift      341줄    🚨 즉시 분리 필요
+YFSessionTests.swift            280줄    🔶 분리 검토 필요
 YFRequestBuilderTests.swift     268줄    🔶 분리 검토 필요
-YFSessionTests.swift            212줄    ✅ 현재 적정
+QuoteSummaryTests.swift         246줄    ✅ 현재 적정
+Parser/* (4개 파일)             각 <200줄 ✅ 분리 완료
+Client/* (3개 파일)             각 <130줄 ✅ 분리 완료
+Integration/RealAPITests.swift  162줄    ✅ 분리 완료
 ```
 
 #### 소스 파일
 ```
 파일명                          라인수    상태
-YFResponseParser.swift          280줄    🔶 분리 검토 필요
-YFClient.swift                  250줄    ⚠️  모니터링 필요
-YFRequestBuilder.swift          180줄    ✅ 현재 적정
-YFSession.swift                 150줄    ✅ 현재 적정
+YFClient.swift                  1151줄   🚨 즉시 분리 필요
+YFFinancials.swift              395줄    🚨 즉시 분리 필요
+YFSession.swift                 326줄    🚨 즉시 분리 필요
+YFCookieManager.swift           204줄    ✅ 현재 적정
+YFRequestBuilder.swift          73줄     ✅ 현재 적정
+YFResponseParser.swift          39줄     ✅ 현재 적정
 ```
 
 #### 문서 파일
@@ -168,10 +173,12 @@ phase2-models.md               7개      ✅ 현재 적정
 ```
 
 ### 분리 순서
-1. **1순위**: YFResponseParserTests.swift → Parser/ 폴더로 분리
-2. **2순위**: YFClientTests.swift → Client/ 폴더로 분리  
-3. **3순위**: YFResponseParser.swift → 기능별 분리 검토
-4. **4순위**: phase4-api-integration.md → 주제별 분리
+1. **~~1순위~~**: ~~YFResponseParserTests.swift → Parser/ 폴더로 분리~~ ✅ 완료
+2. **~~2순위~~**: ~~YFClientTests.swift → Client/ 폴더로 분리~~ ✅ 완료  
+3. **3순위**: YFClient.swift (1151줄) → 기능별 분리 필요
+4. **4순위**: YFFinancials.swift (395줄) → 모델별 분리 필요
+5. **5순위**: YFSession.swift (326줄) → 기능별 분리 필요
+6. **6순위**: YFCookieManagerTests.swift (341줄) → 테스트 분리 필요
 
 ## 📝 유지보수 원칙
 
