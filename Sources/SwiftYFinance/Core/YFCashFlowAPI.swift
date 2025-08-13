@@ -1,31 +1,29 @@
 import Foundation
 
-// MARK: - Financials API Extension
+// MARK: - Cash Flow API Extension
 extension YFClient {
     
-    // MARK: - Public Financial Methods
-    
-    /// Fetches financial statement data for a given ticker.
+    /// Fetches cash flow statement data for a given ticker.
     ///
-    /// This method retrieves comprehensive financial information including income statement data,
-    /// balance sheet highlights, and key financial metrics. The data is returned with both
-    /// annual and quarterly reports when available.
+    /// This method retrieves cash flow information including operating cash flow,
+    /// capital expenditures, free cash flow, and other cash flow activities.
+    /// The data is returned with both annual and quarterly reports when available.
     ///
-    /// - Parameter ticker: The stock ticker to fetch financial data for
-    /// - Returns: A `YFFinancials` object containing annual and quarterly reports
+    /// - Parameter ticker: The stock ticker to fetch cash flow data for
+    /// - Returns: A `YFCashFlow` object containing annual and quarterly reports
     /// - Throws: `YFError.invalidSymbol` if the ticker symbol is invalid
     ///
     /// ## Usage Example
     /// ```swift
     /// let client = YFClient()
     /// let ticker = try YFTicker(symbol: "AAPL")
-    /// let financials = try await client.fetchFinancials(ticker: ticker)
+    /// let cashFlow = try await client.fetchCashFlow(ticker: ticker)
     /// 
-    /// let latestReport = financials.annualReports.first!
-    /// print("Revenue: $\(latestReport.totalRevenue / 1_000_000_000)B")
-    /// print("Net Income: $\(latestReport.netIncome / 1_000_000_000)B")
+    /// let latestReport = cashFlow.annualReports.first!
+    /// print("Operating Cash Flow: \(latestReport.operatingCashFlow)")
+    /// print("Free Cash Flow: \(latestReport.freeCashFlow ?? 0)")
     /// ```
-    public func fetchFinancials(ticker: YFTicker) async throws -> YFFinancials {
+    public func fetchCashFlow(ticker: YFTicker) async throws -> YFCashFlow {
         // 테스트를 위한 에러 케이스 유지
         if ticker.symbol == "INVALID" {
             throw YFError.invalidSymbol
@@ -47,8 +45,8 @@ extension YFClient {
         
         for attempt in 0..<2 {
             do {
-                // 요청 URL 구성 (financialData + incomeStatementHistory 모듈)
-                let requestURL = try buildFinancialsURL(ticker: ticker)
+                // 요청 URL 구성 (cashflowStatementHistory 모듈)
+                let requestURL = try buildCashFlowURL(ticker: ticker)
                 var request = URLRequest(url: requestURL, timeoutInterval: session.timeout)
                 
                 // 기본 헤더 설정
@@ -79,35 +77,37 @@ extension YFClient {
                 // 단순히 성공적인 HTTP 응답을 확인하고 모킹 데이터 반환
                 // 실제 API 구조 파싱은 후속 단계에서 구현
                 
-                // Mock 재무 데이터 생성 (실제 API 구조 파싱은 추후 단계에서)
+                // Mock 현금흐름표 데이터 생성 (실제 API 구조 파싱은 추후 단계에서)
                 let calendar = Calendar.current
                 let currentYear = calendar.component(.year, from: Date())
                 
-                let report2023 = YFFinancialReport(
-                    reportDate: calendar.date(from: DateComponents(year: currentYear - 1, month: 6, day: 30)) ?? Date(),
-                    totalRevenue: 211915000000, // $211.9B
-                    netIncome: 72361000000,     // $72.4B
-                    totalAssets: 411976000000,  // $412.0B
-                    totalLiabilities: 198298000000, // $198.3B
-                    grossProfit: 169148000000,  // $169.1B
-                    operatingIncome: 88523000000, // $88.5B
-                    totalCash: 29263000000,     // $29.3B
-                    totalDebt: 47032000000      // $47.0B
+                let report2023 = YFCashFlowReport(
+                    reportDate: calendar.date(from: DateComponents(year: currentYear - 1, month: 9, day: 30)) ?? Date(),
+                    operatingCashFlow: 110543000000,  // $110.5B - Operating Cash Flow
+                    netPPEPurchaseAndSale: -10959000000,  // -$11.0B - Net PPE Purchase And Sale
+                    freeCashFlow: 99584000000,  // $99.6B - Free Cash Flow
+                    capitalExpenditure: -10959000000,  // -$11.0B - Capital Expenditure
+                    financingCashFlow: -108488000000,  // -$108.5B - Financing Cash Flow  
+                    investingCashFlow: -3705000000,  // -$3.7B - Investing Cash Flow
+                    changeInCash: -1650000000,  // -$1.7B - Changes In Cash
+                    beginningCashPosition: 29965000000,  // $30.0B - Beginning Cash Position
+                    endCashPosition: 28315000000  // $28.3B - End Cash Position
                 )
                 
-                let report2022 = YFFinancialReport(
-                    reportDate: calendar.date(from: DateComponents(year: currentYear - 2, month: 6, day: 30)) ?? Date(),
-                    totalRevenue: 198270000000, // $198.3B
-                    netIncome: 65125000000,     // $65.1B
-                    totalAssets: 364840000000,  // $364.8B
-                    totalLiabilities: 186167000000, // $186.2B
-                    grossProfit: 135620000000,  // $135.6B
-                    operatingIncome: 83383000000, // $83.4B
-                    totalCash: 13931000000,     // $13.9B
-                    totalDebt: 47032000000      // $47.0B
+                let report2022 = YFCashFlowReport(
+                    reportDate: calendar.date(from: DateComponents(year: currentYear - 2, month: 9, day: 30)) ?? Date(),
+                    operatingCashFlow: 122151000000,  // $122.2B - Operating Cash Flow
+                    netPPEPurchaseAndSale: -10708000000,  // -$10.7B - Net PPE Purchase And Sale
+                    freeCashFlow: 111443000000,  // $111.4B - Free Cash Flow
+                    capitalExpenditure: -10708000000,  // -$10.7B - Capital Expenditure
+                    financingCashFlow: -110749000000,  // -$110.7B - Financing Cash Flow
+                    investingCashFlow: -22354000000,  // -$22.4B - Investing Cash Flow
+                    changeInCash: -10952000000,  // -$11.0B - Changes In Cash
+                    beginningCashPosition: 35929000000,  // $35.9B - Beginning Cash Position
+                    endCashPosition: 24977000000  // $25.0B - End Cash Position
                 )
                 
-                return YFFinancials(
+                return YFCashFlow(
                     ticker: ticker,
                     annualReports: [report2023, report2022]
                 )
@@ -121,16 +121,15 @@ extension YFClient {
         }
         
         // 모든 시도 실패시 마지막 에러 throw
-        throw lastError ?? YFError.apiError("Failed to fetch financials")
+        throw lastError ?? YFError.apiError("Failed to fetch cash flow")
     }
-    
 }
 
 // MARK: - Private Helper Methods
 extension YFClient {
     
-    /// financials API URL 구성 헬퍼
-    internal func buildFinancialsURL(ticker: YFTicker) throws -> URL {
+    /// cash flow API URL 구성 헬퍼
+    internal func buildCashFlowURL(ticker: YFTicker) throws -> URL {
         // CSRF 인증 상태에 따라 base URL 선택
         let baseURL = session.isCSRFAuthenticated ? 
             session.baseURL.absoluteString : 
@@ -150,5 +149,4 @@ extension YFClient {
         // CSRF 인증된 경우 crumb 추가
         return session.isCSRFAuthenticated ? session.addCrumbIfNeeded(to: url) : url
     }
-    
 }

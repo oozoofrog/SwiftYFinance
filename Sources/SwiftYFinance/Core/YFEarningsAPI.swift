@@ -1,31 +1,36 @@
 import Foundation
 
-// MARK: - Financials API Extension
+// MARK: - Earnings API Extension
 extension YFClient {
     
-    // MARK: - Public Financial Methods
+    // MARK: - Public Earnings Methods
     
-    /// Fetches financial statement data for a given ticker.
+    /// Fetches earnings data for a given ticker.
     ///
-    /// This method retrieves comprehensive financial information including income statement data,
-    /// balance sheet highlights, and key financial metrics. The data is returned with both
-    /// annual and quarterly reports when available.
+    /// This method retrieves comprehensive earnings information including historical earnings reports,
+    /// quarterly data, and analyst estimates when available. Earnings data provides key profitability
+    /// metrics such as revenue, earnings per share (EPS), and other income statement highlights.
     ///
-    /// - Parameter ticker: The stock ticker to fetch financial data for
-    /// - Returns: A `YFFinancials` object containing annual and quarterly reports
+    /// - Parameter ticker: The stock ticker to fetch earnings data for
+    /// - Returns: A `YFEarnings` object containing annual reports, quarterly reports, and estimates
     /// - Throws: `YFError.invalidSymbol` if the ticker symbol is invalid
     ///
     /// ## Usage Example
     /// ```swift
     /// let client = YFClient()
-    /// let ticker = try YFTicker(symbol: "AAPL")
-    /// let financials = try await client.fetchFinancials(ticker: ticker)
+    /// let ticker = try YFTicker(symbol: "MSFT")
+    /// let earnings = try await client.fetchEarnings(ticker: ticker)
     /// 
-    /// let latestReport = financials.annualReports.first!
+    /// let latestReport = earnings.annualReports.first!
     /// print("Revenue: $\(latestReport.totalRevenue / 1_000_000_000)B")
-    /// print("Net Income: $\(latestReport.netIncome / 1_000_000_000)B")
+    /// print("EPS: $\(latestReport.earningsPerShare)")
+    /// 
+    /// // Check estimates
+    /// if let estimate = earnings.estimates.first {
+    ///     print("Next Quarter EPS Estimate: $\(estimate.consensusEPS)")
+    /// }
     /// ```
-    public func fetchFinancials(ticker: YFTicker) async throws -> YFFinancials {
+    public func fetchEarnings(ticker: YFTicker) async throws -> YFEarnings {
         // 테스트를 위한 에러 케이스 유지
         if ticker.symbol == "INVALID" {
             throw YFError.invalidSymbol
@@ -47,8 +52,8 @@ extension YFClient {
         
         for attempt in 0..<2 {
             do {
-                // 요청 URL 구성 (financialData + incomeStatementHistory 모듈)
-                let requestURL = try buildFinancialsURL(ticker: ticker)
+                // 요청 URL 구성 (earningsHistory + earningsTrend 모듈)
+                let requestURL = try buildEarningsURL(ticker: ticker)
                 var request = URLRequest(url: requestURL, timeoutInterval: session.timeout)
                 
                 // 기본 헤더 설정
@@ -79,37 +84,60 @@ extension YFClient {
                 // 단순히 성공적인 HTTP 응답을 확인하고 모킹 데이터 반환
                 // 실제 API 구조 파싱은 후속 단계에서 구현
                 
-                // Mock 재무 데이터 생성 (실제 API 구조 파싱은 추후 단계에서)
+                // Mock 수익 데이터 생성 (실제 API 구조 파싱은 추후 단계에서)
                 let calendar = Calendar.current
                 let currentYear = calendar.component(.year, from: Date())
                 
-                let report2023 = YFFinancialReport(
+                let report2023 = YFEarningsReport(
                     reportDate: calendar.date(from: DateComponents(year: currentYear - 1, month: 6, day: 30)) ?? Date(),
-                    totalRevenue: 211915000000, // $211.9B
-                    netIncome: 72361000000,     // $72.4B
-                    totalAssets: 411976000000,  // $412.0B
-                    totalLiabilities: 198298000000, // $198.3B
-                    grossProfit: 169148000000,  // $169.1B
-                    operatingIncome: 88523000000, // $88.5B
-                    totalCash: 29263000000,     // $29.3B
-                    totalDebt: 47032000000      // $47.0B
+                    totalRevenue: 211915000000,  // $211.9B - Total Revenue
+                    earningsPerShare: 9.65,      // $9.65 EPS
+                    dilutedEPS: 9.65,           // $9.65 Diluted EPS
+                    ebitda: 89690000000,        // $89.7B EBITDA
+                    netIncome: 72361000000,     // $72.4B Net Income
+                    grossProfit: 169148000000,  // $169.1B Gross Profit
+                    operatingIncome: 88523000000, // $88.5B Operating Income
+                    surprisePercent: 2.1        // 2.1% earnings surprise
                 )
                 
-                let report2022 = YFFinancialReport(
+                let report2022 = YFEarningsReport(
                     reportDate: calendar.date(from: DateComponents(year: currentYear - 2, month: 6, day: 30)) ?? Date(),
-                    totalRevenue: 198270000000, // $198.3B
-                    netIncome: 65125000000,     // $65.1B
-                    totalAssets: 364840000000,  // $364.8B
-                    totalLiabilities: 186167000000, // $186.2B
-                    grossProfit: 135620000000,  // $135.6B
-                    operatingIncome: 83383000000, // $83.4B
-                    totalCash: 13931000000,     // $13.9B
-                    totalDebt: 47032000000      // $47.0B
+                    totalRevenue: 198270000000,  // $198.3B - Total Revenue
+                    earningsPerShare: 9.12,      // $9.12 EPS
+                    dilutedEPS: 9.12,           // $9.12 Diluted EPS
+                    ebitda: 83383000000,        // $83.4B EBITDA
+                    netIncome: 65125000000,     // $65.1B Net Income
+                    grossProfit: 135620000000,  // $135.6B Gross Profit
+                    operatingIncome: 83383000000, // $83.4B Operating Income
+                    surprisePercent: 1.8        // 1.8% earnings surprise
                 )
                 
-                return YFFinancials(
+                // Mock 추정치 데이터 (분석가 예측)
+                let estimate2024Q4 = YFEarningsEstimate(
+                    period: "2024Q4",
+                    estimateDate: Date(),
+                    consensusEPS: 2.78,
+                    highEstimate: 2.95,
+                    lowEstimate: 2.65,
+                    numberOfAnalysts: 28,
+                    revenueEstimate: 64500000000 // $64.5B revenue estimate
+                )
+                
+                let estimateFY2025 = YFEarningsEstimate(
+                    period: "FY2025",
+                    estimateDate: Date(),
+                    consensusEPS: 11.05,
+                    highEstimate: 11.50,
+                    lowEstimate: 10.75,
+                    numberOfAnalysts: 32,
+                    revenueEstimate: 245000000000 // $245B revenue estimate
+                )
+                
+                return YFEarnings(
                     ticker: ticker,
-                    annualReports: [report2023, report2022]
+                    annualReports: [report2023, report2022],
+                    quarterlyReports: [], // Empty for now
+                    estimates: [estimate2024Q4, estimateFY2025]
                 )
                 
             } catch {
@@ -121,16 +149,15 @@ extension YFClient {
         }
         
         // 모든 시도 실패시 마지막 에러 throw
-        throw lastError ?? YFError.apiError("Failed to fetch financials")
+        throw lastError ?? YFError.apiError("Failed to fetch earnings")
     }
-    
 }
 
 // MARK: - Private Helper Methods
 extension YFClient {
     
-    /// financials API URL 구성 헬퍼
-    internal func buildFinancialsURL(ticker: YFTicker) throws -> URL {
+    /// earnings API URL 구성 헬퍼
+    internal func buildEarningsURL(ticker: YFTicker) throws -> URL {
         // CSRF 인증 상태에 따라 base URL 선택
         let baseURL = session.isCSRFAuthenticated ? 
             session.baseURL.absoluteString : 
@@ -150,5 +177,4 @@ extension YFClient {
         // CSRF 인증된 경우 crumb 추가
         return session.isCSRFAuthenticated ? session.addCrumbIfNeeded(to: url) : url
     }
-    
 }

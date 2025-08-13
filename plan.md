@@ -84,14 +84,21 @@ Sources/SwiftYFinance/
   - YFFinancialsAPI.swift (463줄): 재무 데이터 API 메서드 (🚨 추가 분리 필요)
   - YFBalanceSheetAPI.swift (149줄): 대차대조표 API 메서드 ✅
 
+### ✅ YFClient.swift 및 API 분리 완료 (2025-08-13)
+- **YFClient.swift**: 856줄 → 157줄 ✅ 완료
+- **YFFinancialsAPI.swift**: 463줄 → 153줄 ✅ 완료
+- **YFCashFlowAPI.swift**: 151줄 ✅ 생성 완료
+- **YFEarningsAPI.swift**: 179줄 ✅ 생성 완료
+- **YFBalanceSheetAPI.swift**: 149줄 ✅ 생성 완료
+
 ### 🚨 남은 분리 작업
-- **YFFinancialsAPI.swift**: 463줄 (🚨 분리 필요 - fetchCashFlow, fetchEarnings 분리)
-- **YFFinancials.swift**: 395줄 (🚨 분리 필요)  
-- **YFSession.swift**: 326줄 (🚨 분리 필요)
+- **YFFinancials.swift**: 395줄 (🚨 분리 필요 - 4개 모델 파일로 분리)
+- **YFSession.swift**: 326줄 (🚨 분리 필요 - 3개 파일로 분리)
 
 **상세 계획**:
 - [파일 구조 정리 가이드](docs/plans/file-organization.md)
 - [소스 파일 리팩토링 전략](docs/plans/source-file-refactoring.md)
+- **Phase 1 & 1.5 완료 (2025-08-13)**: YFClient.swift 및 모든 API 파일 분리 완성
 
 ## ✅ 최근 완료 작업 (2025-08-13)
 
@@ -138,23 +145,30 @@ Sources/SwiftYFinance/
 - **모든 API 메서드**: CSRF 인증 시도 및 재시도 로직 통합
 - **TDD 방식**: Red → Green 사이클로 각 테스트 작성 후 최소 구현
 
-### 7. 소스 파일 구조 정리 시작 ✅
-- **YFClient.swift 분리**: 856줄 → 157줄 (699줄 감소)
-  - YFQuoteAPI.swift (137줄): fetchQuote 메서드 분리
-  - YFFinancialsAPI.swift (463줄): 4개 재무 메서드 분리 (추가 분리 필요)
-  - YFBalanceSheetAPI.swift (149줄): fetchBalanceSheet 메서드 분리
-- **TDD 방식**: 각 분리마다 Red → Green 사이클 적용
-- **테스트 통과**: 모든 분리 후에도 테스트 스위트 정상 동작
+### 7. 소스 파일 구조 정리 완료 ✅ (Phase 1 & 1.5)
+- **YFClient.swift 분리**: 856줄 → 157줄 (699줄 감소) ✅ 완료
+  - YFEnums.swift (52줄): YFPeriod, YFInterval enum ✅
+  - YFHistoryAPI.swift (252줄): 가격 이력 API 메서드 ✅
+  - YFQuoteAPI.swift (137줄): fetchQuote 메서드 ✅
+  - YFFinancialsAPI.swift (153줄): fetchFinancials 메서드 ✅
+  - YFBalanceSheetAPI.swift (149줄): fetchBalanceSheet 메서드 ✅
+  - YFCashFlowAPI.swift (151줄): fetchCashFlow 메서드 ✅
+  - YFEarningsAPI.swift (179줄): fetchEarnings 메서드 ✅
+  - YFChartModels.swift (91줄): Chart API 응답 구조체 ✅
+  - YFQuoteModels.swift (48줄): Quote API 응답 구조체 ✅
+- **TDD 방식**: 각 분리마다 Red → Green 사이클 적용 ✅
+- **테스트 통과**: 모든 분리 후에도 전체 테스트 스위트 정상 동작 ✅
 
 ## 🎯 다음 우선순위 작업
 
-### 1. ~~소스 파일 구조 정리~~ 🚧 진행 중
+### 1. ~~소스 파일 구조 정리~~ ✅ Phase 1 & 1.5 완료
 - **~~YFClient.swift 분리~~**: ~~856줄 → 157줄~~ ✅ 완료
-- **YFFinancialsAPI.swift 추가 분리**: 463줄 → 3개 파일로 분리 ⏳ 진행 중
-  - YFCashFlowAPI.swift 생성 및 이동 ⏳ **다음 작업**
-  - YFEarningsAPI.swift 생성 및 이동
-  - YFFinancialsAPI.swift 정리 (fetchFinancials만 남기기)
-- **YFFinancials.swift 분리**: 395줄 → 4개 파일로 분리
+- **~~YFFinancialsAPI.swift 분리~~**: ~~463줄 → 4개 파일로 분리~~ ✅ 완료
+  - ~~YFCashFlowAPI.swift 생성 및 이동~~ ✅ 완료 (151줄)
+  - ~~YFEarningsAPI.swift 생성 및 이동~~ ✅ 완료 (179줄)
+  - ~~YFBalanceSheetAPI.swift 생성 및 이동~~ ✅ 완료 (149줄)
+  - ~~YFFinancialsAPI.swift 정리~~ ✅ 완료 (153줄)
+- **YFFinancials.swift 분리**: 395줄 → 4개 파일로 분리 ⏳ **다음 우선순위**
 - **YFSession.swift 분리**: 326줄 → 3개 파일로 분리
 
 ### 2. CSRF 인증 시스템 실제 환경 최적화

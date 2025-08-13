@@ -44,14 +44,16 @@ Sources/SwiftYFinance/
 │   ├── YFEnums.swift           (52줄)   ✅ 완료
 │   ├── YFHistoryAPI.swift      (252줄)  ✅ 완료
 │   ├── YFQuoteAPI.swift        (137줄)  ✅ 완료
-│   ├── YFFinancialsAPI.swift   (463줄)  🚨 분리 필요
+│   ├── YFFinancialsAPI.swift   (153줄)  ✅ 완료
 │   ├── YFBalanceSheetAPI.swift (149줄)  ✅ 완료
+│   ├── YFCashFlowAPI.swift     (151줄)  ✅ 완료
+│   ├── YFEarningsAPI.swift     (179줄)  ✅ 완료
 │   ├── YFRequestBuilder.swift  (73줄)   ✅ 완료
 │   ├── YFResponseParser.swift  (39줄)   ✅ 완료
 │   ├── YFCookieManager.swift   (204줄)  ✅ 완료
 │   └── YFHTMLParser.swift      (70줄)   ✅ 완료
 └── Models/
-    ├── YFFinancials.swift      (395줄)  🚨 분리 필요
+    ├── YFFinancials.swift      (395줄)  🚨 분리 필요 (다음 우선순위)
     ├── YFChartModels.swift     (91줄)   ✅ 완료
     ├── YFQuoteModels.swift     (48줄)   ✅ 완료
     ├── YFHistoricalData.swift  (31줄)   ✅ 완료
@@ -288,16 +290,18 @@ extension YFSession {
 - [x] YFClient.swift 정리 ✅ 완료 (710줄 → 157줄)
 - [x] 컴파일 및 테스트 검증 ✅ 완료
 
-### Phase 1.5: YFFinancialsAPI.swift 추가 분리 (463줄 → 3개 파일)
+### Phase 1.5: YFFinancialsAPI.swift 추가 분리 (463줄 → 4개 파일) ✅ 완료
 - [x] YFBalanceSheetAPI.swift 생성 및 이동 ✅ 완료 (149줄)
-- [ ] YFCashFlowAPI.swift 생성 및 이동 ⏳ **다음 작업**
-- [ ] YFEarningsAPI.swift 생성 및 이동
-- [ ] YFFinancialsAPI.swift 정리 (fetchFinancials만 남기기)
+- [x] YFCashFlowAPI.swift 생성 및 이동 ✅ 완료 (151줄)
+- [x] YFEarningsAPI.swift 생성 및 이동 ✅ 완료 (179줄)
+- [x] YFFinancialsAPI.swift 정리 ✅ 완료 (463줄 → 153줄)
+- [x] 컴파일 및 테스트 검증 ✅ 완료
 
-### Phase 2: YFFinancials.swift 분리  
-- [ ] YFBalanceSheet.swift 생성 및 이동
+### Phase 2: YFFinancials.swift 분리 (395줄) ⏳ **다음 우선순위**
+- [ ] YFBalanceSheet.swift 생성 및 이동 ⏳ **다음 작업**
+- [ ] YFCashFlow.swift 생성 및 이동  
 - [ ] YFEarnings.swift 생성 및 이동
-- [ ] YFFinancials.swift 정리
+- [ ] YFFinancials.swift 정리 (Models/YFFinancials.swift에서 4개 모델 분리)
 - [ ] 컴파일 및 테스트 검증
 
 ### Phase 3: YFSession.swift 분리
