@@ -102,71 +102,16 @@ Sources/SwiftYFinance/
 
 ## ✅ 최근 완료 작업 (2025-08-13)
 
-### 1. ~~YFFinancials.swift 파일 분리 완료~~ ✅ **신규 완료 (2025-08-13)**
-- **YFFinancials.swift** (395줄) → 4개 파일로 완전 분리 완성
-  - Models/YFFinancials.swift (121줄): YFFinancials + YFFinancialReport 모델
-  - Models/YFBalanceSheet.swift (105줄): YFBalanceSheet + YFBalanceSheetReport 모델
-  - Models/YFCashFlow.swift (120줄): YFCashFlow + YFCashFlowReport 모델  
-  - Models/YFEarnings.swift (179줄): YFEarnings + YFEarningsReport + YFEarningsEstimate 모델
-- **TDD 방식**: Red → Green 사이클로 분리 테스트 작성 후 구현
-- **정상 동작**: 분리 테스트 4개 모두 통과, 전체 빌드 성공 확인
+### 1. YFFinancials.swift 파일 분리 완료 ✅ **신규 완료 (2025-08-13)**
+- **YFFinancials.swift** (395줄) → 4개 Models 파일로 분리 완성
+- **TDD 방식**: Red → Green 사이클 적용, 모든 테스트 통과
 
-### 2. 테스트 파일 분리 완료 ✅
-- **YFResponseParserTests.swift** (532줄) → Parser/ 폴더로 4개 파일로 분리
-  - BasicParsingTests.swift: 핵심 JSON 파싱 테스트
-  - TimestampParsingTests.swift: Unix 타임스탬프 변환 테스트  
-  - OHLCVParsingTests.swift: OHLCV 데이터 추출 테스트
-  - ErrorParsingTests.swift: 에러 응답 처리 테스트
-- **YFClientTests.swift** (493줄) → Client/, Integration/ 폴더로 분리
-  - Client/PriceHistoryTests.swift: 가격 이력 테스트 (89줄)
-  - Client/QuoteDataTests.swift: 실시간 시세 테스트 (59줄)
-  - Client/FinancialDataTests.swift: 재무 데이터 테스트 (125줄)
-  - Integration/RealAPITests.swift: 실제 API 통합 테스트 (162줄)
-
-### 2. fetchPriceHistory 실제 API 연동 완료 ✅
-- **모킹 데이터 제거**: 모든 mock 데이터 생성 로직 제거
-- **실제 API 구현**: Yahoo Finance Chart API 실제 호출
-- **에러 처리 강화**: networkError, apiError 케이스 추가
-- **전체 테스트 통과**: 43개 테스트 모두 실제 API로 동작
-
-### 3. Yahoo Finance CSRF 인증 시스템 기반 구조 완성 ✅
-- **YFHTMLParser**: HTML에서 CSRF 토큰/sessionId 정규표현식 추출
-- **YFSession CSRF 지원**: 쿠키 전략 관리 및 동의 프로세스 자동화
-- **인증 플로우**: basic/csrf 전략 자동 전환 및 crumb 토큰 획득
-- **테스트 커버리지**: HTML 파서 6개 테스트 모두 통과
-
-### 4. quoteSummary API 통합 및 CSRF 기반 fetchQuote 구현 완성 ✅
-- **quoteSummary API 구조체**: price, summaryDetail 모듈 완전 파싱 지원
-- **CSRF 인증 통합**: 자동 인증 시도 및 실패시 재시도 로직
-- **이중 전략 URL 구성**: query1/query2 기반 동적 API 엔드포인트 선택
-- **포괄적 에러 처리**: 인증 실패, 네트워크 오류, API 에러 세분화 처리
-
-### 5. 브라우저 수준 쿠키 관리 시스템 완성 ✅
-- **YFCookieManager**: A3 쿠키 추출, 유효성 검증, 메모리 기반 캐시 관리
-- **브라우저 헤더 모방**: Chrome 완전 모방 헤더 세트 (Accept-*, Sec-Fetch-*)
-- **User-Agent 로테이션**: 5개 Chrome 버전 탐지 방지 시스템
-- **HTTPCookieStorage 통합**: 시스템 레벨 쿠키 자동 관리 및 영속성
-
-### 6. 나머지 API 메서드 실제 구현 전환 완료 ✅
-- **fetchFinancials**: 실제 quoteSummary API 호출 + HTTP 검증 (testFetchFinancialsRealAPI 추가)
-- **fetchBalanceSheet**: 실제 quoteSummary API 호출 + HTTP 검증 (testFetchBalanceSheetRealAPI 추가)
-- **fetchCashFlow**: 실제 quoteSummary API 호출 + HTTP 검증 (testFetchCashFlowRealAPI 추가)
-- **모든 API 메서드**: CSRF 인증 시도 및 재시도 로직 통합
-- **TDD 방식**: Red → Green 사이클로 각 테스트 작성 후 최소 구현
-
-### 7. 소스 파일 구조 정리 완료 ✅ (Phase 1 & 1.5)
-- **YFClient.swift 분리**: 856줄 → 157줄 (699줄 감소) ✅ 완료
-  - YFEnums.swift (52줄): YFPeriod, YFInterval enum ✅
-  - YFHistoryAPI.swift (252줄): 가격 이력 API 메서드 ✅
-  - YFQuoteAPI.swift (137줄): fetchQuote 메서드 ✅
-  - YFFinancialsAPI.swift (153줄): fetchFinancials 메서드 ✅
-  - YFBalanceSheetAPI.swift (149줄): fetchBalanceSheet 메서드 ✅
-  - YFCashFlowAPI.swift (151줄): fetchCashFlow 메서드 ✅
-  - YFEarningsAPI.swift (179줄): fetchEarnings 메서드 ✅
-  - YFChartModels.swift (91줄): Chart API 응답 구조체 ✅
-  - YFQuoteModels.swift (48줄): Quote API 응답 구조체 ✅
-- **TDD 방식**: 각 분리마다 Red → Green 사이클 적용 ✅
-- **테스트 통과**: 모든 분리 후에도 전체 테스트 스위트 정상 동작 ✅
+### 2. 이전 완료 작업들 ✅
+- **테스트 파일 분리**: YFResponseParserTests, YFClientTests → 폴더별 분리
+- **소스 파일 분리**: YFClient.swift → 7개 Core 파일로 분리  
+- **실제 API 연동**: 모든 fetch 메서드 Yahoo Finance API 실제 호출
+- **CSRF 인증 시스템**: 브라우저 모방 쿠키 관리 완성
+- **TDD 방식**: 모든 작업에 Red → Green 사이클 적용
 
 ## 🚨 긴급 수정 필요 사항
 
@@ -182,19 +127,10 @@ Sources/SwiftYFinance/
 
 ## 🎯 다음 우선순위 작업
 
-### 1. ~~소스 파일 구조 정리~~ ✅ Phase 1 & 1.5 완료
-- **~~YFClient.swift 분리~~**: ~~856줄 → 157줄~~ ✅ 완료
-- **~~YFFinancialsAPI.swift 분리~~**: ~~463줄 → 4개 파일로 분리~~ ✅ 완료
-  - ~~YFCashFlowAPI.swift 생성 및 이동~~ ✅ 완료 (151줄)
-  - ~~YFEarningsAPI.swift 생성 및 이동~~ ✅ 완료 (179줄)
-  - ~~YFBalanceSheetAPI.swift 생성 및 이동~~ ✅ 완료 (149줄)
-  - ~~YFFinancialsAPI.swift 정리~~ ✅ 완료 (153줄)
-- **~~YFFinancials.swift 분리~~**: ~~395줄 → 4개 파일로 분리~~ ✅ **완료 (2025-08-13)**
-  - Models/YFFinancials.swift (121줄): YFFinancials + YFFinancialReport ✅
-  - Models/YFBalanceSheet.swift (105줄): YFBalanceSheet + YFBalanceSheetReport ✅  
-  - Models/YFCashFlow.swift (120줄): YFCashFlow + YFCashFlowReport ✅
-  - Models/YFEarnings.swift (179줄): YFEarnings + YFEarningsReport + YFEarningsEstimate ✅
-- **YFSession.swift 분리**: 326줄 → 3개 파일로 분리
+### 1. 소스 파일 구조 정리 ✅ 대부분 완료
+- **~~YFClient.swift 분리~~**: ~~856줄 → 7개 Core 파일~~ ✅ 완료
+- **~~YFFinancials.swift 분리~~**: ~~395줄 → 4개 Models 파일~~ ✅ 완료 (2025-08-13)
+- **YFSession.swift 분리**: 326줄 → 3개 파일로 분리 ⏳ **다음 우선순위**
 
 ### 2. CSRF 인증 시스템 실제 환경 최적화
 - **현재 상태**: 브라우저 쿠키 관리 완성, 기본 CSRF 구조 준비
