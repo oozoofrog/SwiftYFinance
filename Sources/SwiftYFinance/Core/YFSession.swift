@@ -42,6 +42,7 @@ public final class YFSession: @unchecked Sendable {
     // Immutable components
     internal let htmlParser = YFHTMLParser()
     internal let browserImpersonator = YFBrowserImpersonator()
+    internal let networkLogger = YFNetworkLogger.shared
     
     // MARK: - Computed Properties
     
@@ -80,15 +81,15 @@ public final class YFSession: @unchecked Sendable {
     
     // MARK: - Initialization
     
-    /// YFSession 초기화
+    /// YFSession 초기화 (Phase 4.5.3 네트워크 최적화)
     /// - Parameters:
     ///   - baseURL: 기본 API URL (기본값: query2.finance.yahoo.com)
-    ///   - timeout: 요청 타임아웃 (기본값: 30초)
+    ///   - timeout: 요청 타임아웃 (기본값: 15초로 단축)
     ///   - additionalHeaders: 추가 HTTP 헤더
     ///   - proxy: 프록시 설정
     public init(
         baseURL: URL = URL(string: "https://query2.finance.yahoo.com")!,
-        timeout: TimeInterval = 30.0,
+        timeout: TimeInterval = 15.0,  // Phase 4.5.3: 30초 → 15초 단축
         additionalHeaders: [String: String] = [:],
         proxy: [String: Any]? = nil
     ) {
@@ -97,7 +98,7 @@ public final class YFSession: @unchecked Sendable {
         self.additionalHeaders = additionalHeaders
         self.proxy = proxy
         
-        // YFBrowserImpersonator를 사용한 URLSession 생성
+        // YFBrowserImpersonator를 사용한 네트워크 최적화된 URLSession 생성
         self.urlSession = browserImpersonator.createConfiguredURLSession()
         
         // 프록시 설정이 있는 경우 적용

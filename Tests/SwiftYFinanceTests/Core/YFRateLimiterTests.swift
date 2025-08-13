@@ -42,9 +42,9 @@ struct YFRateLimiterTests {
     
     @Test("Request interval minimum")
     func testRequestIntervalMinimum() async {
-        // Given: Rate limiter
+        // Given: Rate limiter (Phase 4.5.3 네트워크 최적화)
         let limiter = YFRateLimiter.shared
-        let minimumInterval: TimeInterval = 0.5 // 500ms
+        let minimumInterval: TimeInterval = 0.3 // 300ms (0.5 → 0.3초로 단축)
         
         // When: 연속된 두 요청의 시간 측정
         let firstRequestTime = Date()

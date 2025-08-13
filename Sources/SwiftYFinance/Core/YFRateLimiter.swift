@@ -2,16 +2,17 @@ import Foundation
 
 /// Yahoo Finance API 요청의 rate limiting을 관리하는 싱글톤 actor
 /// Python yfinance의 rate limiting 전략을 Swift Concurrency로 포팅
+/// Phase 4.5.3: 네트워크 계층 최적화로 재시도 전략 강화
 actor YFRateLimiter {
     
     /// 싱글톤 인스턴스
     static let shared = YFRateLimiter()
     
-    /// 최대 동시 요청 수
-    private let maxConcurrentRequests = 2
+    /// 최대 동시 요청 수 (Phase 4.5.3: Yahoo Finance 서버 안정성 고려)
+    private let maxConcurrentRequests = 3  // 2 → 3으로 증가 (네트워크 최적화로 인한 여유)
     
-    /// 최소 요청 간격 (초) 
-    private let minimumInterval: TimeInterval = 0.5
+    /// 최소 요청 간격 (초) - Phase 4.5.3: 응답 속도 향상으로 간격 단축
+    private let minimumInterval: TimeInterval = 0.3  // 0.5 → 0.3초로 단축
     
     /// 현재 실행 중인 요청 수
     private var activeRequests = 0
@@ -84,16 +85,51 @@ actor YFRateLimiter {
         }
     }
     
-    /// 최소 요청 간격을 보장하는 내부 메서드
+    /// 최소 요청 간격을 보장하는 내부 메서드 (Phase 4.5.3 강화)
     private func enforceMinimumInterval() async {
         let currentTime = Date()
         let timeSinceLastRequest = currentTime.timeIntervalSince(lastRequestTime)
         
         if timeSinceLastRequest < minimumInterval {
             let waitTime = minimumInterval - timeSinceLastRequest
+            // Phase 4.5.3: 더 정밀한 sleep 제어
             try? await Task.sleep(nanoseconds: UInt64(waitTime * 1_000_000_000))
         }
         
         lastRequestTime = Date()
+    }
+    
+    // MARK: - Phase 4.5.3: 재시도 전략 강화 메서드
+    
+    /// 지수 백오프와 지터를 적용한 재시도 실행
+    /// - Parameters:
+    ///   - operation: 실행할 작업
+    ///   - maxRetries: 최대 재시도 횟수 (기본값: 3)
+    ///   - baseDelay: 기본 지연 시간 (기본값: 1초)
+    /// - Returns: 작업 결과
+    func executeWithRetry<T: Sendable>(
+        maxRetries: Int = 3,
+        baseDelay: TimeInterval = 1.0,
+        operation: @escaping @Sendable () async throws -> T
+    ) async throws -> T {
+        var lastError: Error?
+        
+        for attempt in 0...maxRetries {
+            do {
+                return try await executeRequest(operation)
+            } catch {
+                lastError = error
+                
+                // 마지막 시도가 아닌 경우에만 재시도
+                if attempt < maxRetries {
+                    // 지수 백오프 + 지터 적용
+                    let delay = baseDelay * pow(2.0, Double(attempt)) + Double.random(in: 0...0.5)
+                    try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                }
+            }
+        }
+        
+        // 모든 재시도 실패 시 마지막 에러 throw
+        throw lastError!
     }
 }

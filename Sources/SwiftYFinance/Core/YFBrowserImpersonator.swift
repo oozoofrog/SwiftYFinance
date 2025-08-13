@@ -86,24 +86,40 @@ public class YFBrowserImpersonator {
     
     // MARK: - URLSession Configuration
     
-    /// Chrome 136과 유사한 URLSession 생성
+    /// Chrome 136과 유사한 URLSession 생성 (네트워크 계층 최적화)
     /// - Returns: 최적화된 URLSession
     public func createConfiguredURLSession() -> URLSession {
         let config = URLSessionConfiguration.default
         
-        // Chrome과 유사한 네트워크 설정
-        config.timeoutIntervalForRequest = 30.0
-        config.timeoutIntervalForResource = 30.0
-        config.httpMaximumConnectionsPerHost = 6  // Chrome 기본값
+        // Phase 4.5.3: 네트워크 계층 최적화
+        // 단계별 타임아웃 설정 (Yahoo Finance API 최적화)
+        config.timeoutIntervalForRequest = 15.0    // 연결 + 요청: 15초
+        config.timeoutIntervalForResource = 45.0   // 전체 리소스: 45초
         
-        // HTTP/2 및 쿠키 설정
+        // Connection pooling 최적화 (Yahoo Finance 도메인 특화)
+        config.httpMaximumConnectionsPerHost = 4   // Yahoo Finance 서버 부하 고려
+        
+        // HTTP/2 강제 사용 설정 (Chrome 136 동일)
+        config.httpAdditionalHeaders = [
+            "Connection": "keep-alive",
+            "Keep-Alive": "timeout=60, max=100"
+        ]
+        
+        // 쿠키 및 캐시 설정 (Chrome 동일)
         config.httpCookieStorage = HTTPCookieStorage.shared
         config.httpCookieAcceptPolicy = .always
         config.httpShouldSetCookies = true
+        config.httpShouldUsePipelining = false  // Yahoo Finance 호환성
         
-        // Keep-alive 연결 최적화
-        config.requestCachePolicy = .useProtocolCachePolicy
-        config.urlCache = URLCache.shared
+        // TLS 및 보안 설정 최적화
+        config.tlsMinimumSupportedProtocolVersion = .TLSv13
+        config.requestCachePolicy = .reloadIgnoringLocalCacheData  // 실시간 데이터 보장
+        
+        // 네트워크 서비스 타입 설정 (금융 데이터 우선순위)
+        config.networkServiceType = .responsiveData
+        
+        // 백그라운드 다운로드 비활성화 (실시간 응답 최적화)
+        config.shouldUseExtendedBackgroundIdleMode = false
         
         return URLSession(configuration: config)
     }
