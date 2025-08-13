@@ -102,7 +102,16 @@ Sources/SwiftYFinance/
 
 ## ✅ 최근 완료 작업 (2025-08-13)
 
-### 1. 테스트 파일 분리 완료 ✅
+### 1. ~~YFFinancials.swift 파일 분리 완료~~ ✅ **신규 완료 (2025-08-13)**
+- **YFFinancials.swift** (395줄) → 4개 파일로 완전 분리 완성
+  - Models/YFFinancials.swift (121줄): YFFinancials + YFFinancialReport 모델
+  - Models/YFBalanceSheet.swift (105줄): YFBalanceSheet + YFBalanceSheetReport 모델
+  - Models/YFCashFlow.swift (120줄): YFCashFlow + YFCashFlowReport 모델  
+  - Models/YFEarnings.swift (179줄): YFEarnings + YFEarningsReport + YFEarningsEstimate 모델
+- **TDD 방식**: Red → Green 사이클로 분리 테스트 작성 후 구현
+- **정상 동작**: 분리 테스트 4개 모두 통과, 전체 빌드 성공 확인
+
+### 2. 테스트 파일 분리 완료 ✅
 - **YFResponseParserTests.swift** (532줄) → Parser/ 폴더로 4개 파일로 분리
   - BasicParsingTests.swift: 핵심 JSON 파싱 테스트
   - TimestampParsingTests.swift: Unix 타임스탬프 변환 테스트  
@@ -159,6 +168,18 @@ Sources/SwiftYFinance/
 - **TDD 방식**: 각 분리마다 Red → Green 사이클 적용 ✅
 - **테스트 통과**: 모든 분리 후에도 전체 테스트 스위트 정상 동작 ✅
 
+## 🚨 긴급 수정 필요 사항
+
+### Yahoo Finance API 인증 문제 (2025-08-13 발견)
+- **문제**: 13개 테스트가 "Authentication failed" 에러로 실패
+- **실패하는 테스트들**:
+  - QuoteDataTests: testFetchQuoteBasic, testFetchQuoteRealtime, testFetchQuoteAfterHours
+  - FinancialDataTests: testFetchFinancials, testFetchBalanceSheet, testFetchCashFlow, testFetchEarnings  
+  - RealAPITests: testFetchEarningsRealAPI, testFetchBalanceSheetRealAPI
+- **원인 추정**: Yahoo Finance CSRF 인증 시스템 변경 또는 User-Agent 차단
+- **우선순위**: 파일 분리 작업 완료 후 즉시 수정 필요
+- **상세 계획**: [Phase 4.5 인증 시스템 재검토](docs/plans/phase4-authentication-fix.md) 생성 예정
+
 ## 🎯 다음 우선순위 작업
 
 ### 1. ~~소스 파일 구조 정리~~ ✅ Phase 1 & 1.5 완료
@@ -168,7 +189,11 @@ Sources/SwiftYFinance/
   - ~~YFEarningsAPI.swift 생성 및 이동~~ ✅ 완료 (179줄)
   - ~~YFBalanceSheetAPI.swift 생성 및 이동~~ ✅ 완료 (149줄)
   - ~~YFFinancialsAPI.swift 정리~~ ✅ 완료 (153줄)
-- **YFFinancials.swift 분리**: 395줄 → 4개 파일로 분리 ⏳ **다음 우선순위**
+- **~~YFFinancials.swift 분리~~**: ~~395줄 → 4개 파일로 분리~~ ✅ **완료 (2025-08-13)**
+  - Models/YFFinancials.swift (121줄): YFFinancials + YFFinancialReport ✅
+  - Models/YFBalanceSheet.swift (105줄): YFBalanceSheet + YFBalanceSheetReport ✅  
+  - Models/YFCashFlow.swift (120줄): YFCashFlow + YFCashFlowReport ✅
+  - Models/YFEarnings.swift (179줄): YFEarnings + YFEarningsReport + YFEarningsEstimate ✅
 - **YFSession.swift 분리**: 326줄 → 3개 파일로 분리
 
 ### 2. CSRF 인증 시스템 실제 환경 최적화
