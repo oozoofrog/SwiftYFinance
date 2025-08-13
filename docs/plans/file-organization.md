@@ -126,9 +126,18 @@ Core/YFSessionAuth.swift (189줄) - CSRF 인증
 Core/YFSessionCookie.swift (19줄) - User-Agent 로테이션
 ```
 
-### 🔍 남은 분리 후보 (300줄+ 기준)
+#### 4. YFCookieManagerTests.swift (342줄 → 6개 파일)
 ```
-테스트 파일: YFCookieManagerTests.swift (341줄)
+Core/YFCookieManagerExtractionTests.swift (89줄) - A3 쿠키 추출/필터링
+Core/YFCookieManagerValidationTests.swift (88줄) - 쿠키 유효성 검증  
+Core/YFCookieManagerCacheTests.swift (65줄) - 메모리 캐시 테스트
+Core/YFCookieManagerStorageTests.swift (38줄) - HTTPCookieStorage 연동
+Core/YFCookieManagerStatusTests.swift (43줄) - 쿠키 상태 테스트
+Core/YFCookieManagerSeparationTests.swift (76줄) - 분리 검증 테스트
+```
+
+### 🔍 남은 분리 후보 (300줄+ 기준)  
+```
 문서 파일: phase4-api-integration.md (12개 섹션)
 ```
 
@@ -136,8 +145,8 @@ Core/YFSessionCookie.swift (19줄) - User-Agent 로테이션
 
 ### 전체 통계
 ```
-분리된 파일 수: 3개 → 14개 파일
-감소된 복잡도: 1,577줄 → 평균 112줄/파일
+분리된 파일 수: 4개 → 20개 파일
+감소된 복잡도: 1,919줄 → 평균 96줄/파일  
 TDD 적용: 모든 분리에 Red → Green 사이클 적용
 테스트 통과율: 100% (전체 빌드 및 테스트 성공)
 ```
