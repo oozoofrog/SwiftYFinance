@@ -19,7 +19,7 @@
 **Phase 2 완료!** 🎉
 
 ### Phase 3: 네트워크 레이어  
-- [ ] YFSession.swift 문서 보완
+- [x] YFSession.swift 문서 보완 ✅
 - [ ] YFEnums.swift 문서 보완
 - [ ] YFRequestBuilder.swift 문서 보완
 - [ ] YFResponseParser.swift 문서 보완

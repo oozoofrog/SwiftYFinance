@@ -1,9 +1,23 @@
 import Foundation
 
 /// 쿠키 인증 전략
+///
+/// Yahoo Finance API 접근을 위한 인증 방법을 정의합니다.
+/// Python yfinance와 동일한 두 가지 전략을 지원하며, 실패 시 자동으로 전환됩니다.
+///
 /// - SeeAlso: yfinance-reference/yfinance/data.py _cookie_strategy
 public enum CookieStrategy: Sendable {
+    
+    /// 기본 인증 전략
+    ///
+    /// fc.yahoo.com에서 기본 쿠키를 획득한 후 query1.finance.yahoo.com에서 crumb 토큰을 요청합니다.
+    /// 가장 간단하고 빠른 방법이지만 차단될 가능성이 있습니다.
     case basic
+    
+    /// CSRF 인증 전략  
+    ///
+    /// 동의 페이지를 거쳐 CSRF 토큰을 획득한 후 query2.finance.yahoo.com에서 crumb 토큰을 요청합니다.
+    /// 더 안전하고 안정적이지만 추가 단계가 필요합니다.
     case csrf
 }
 

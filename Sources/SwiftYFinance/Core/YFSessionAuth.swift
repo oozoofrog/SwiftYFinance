@@ -11,6 +11,11 @@ extension YFSession {
     }
     
     /// Rate limiting과 함께 인증 수행
+    ///
+    /// YFRateLimiter를 통해 인증 요청 빈도를 제한하여 Yahoo Finance API 차단을 방지합니다.
+    /// 내부적으로 재시도 로직과 전략 전환을 포함합니다.
+    ///
+    /// - Throws: ``YFError/apiError`` 모든 전략이 실패한 경우
     private func performAuthenticationWithRateLimit() async throws {
         // Rate limiting 적용
         await YFRateLimiter.shared.executeRequest {
@@ -291,7 +296,28 @@ extension YFSession {
     }
     
     /// API 요청을 Rate Limiting과 자동 재인증과 함께 실행
-    /// Python yfinance의 _make_request() 메서드와 동일한 로직
+    ///
+    /// Python yfinance의 _make_request() 메서드와 동일한 로직을 구현합니다.
+    /// 요청 실패 시 자동으로 재인증하고 전략을 전환하여 재시도합니다.
+    ///
+    /// ## 주요 기능
+    /// - **Rate Limiting**: 요청 빈도 제한으로 차단 방지
+    /// - **자동 인증**: 인증되지 않은 상태에서 자동으로 인증 수행  
+    /// - **Crumb 자동 추가**: URL에 필요한 crumb 파라미터 자동 추가
+    /// - **재시도 로직**: 실패 시 전략 전환 후 자동 재시도
+    ///
+    /// ## 사용 예시
+    /// ```swift
+    /// let url = URL(string: "https://query2.finance.yahoo.com/v8/finance/chart/AAPL")!
+    /// let (data, response) = try await session.makeAuthenticatedRequest(url: url)
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - url: 요청할 API URL
+    ///   - method: HTTP 메서드 (기본값: GET)
+    ///   - body: POST 요청시 전송할 데이터 (옵셔널)
+    /// - Returns: API 응답 데이터와 URLResponse 튜플
+    /// - Throws: ``YFError`` 네트워크 오류 또는 인증 실패시
     public func makeAuthenticatedRequest(url: URL, method: HTTPMethod = .GET, body: Data? = nil) async throws -> (Data, URLResponse) {
         return try await YFRateLimiter.shared.executeRequest {
             return try await self.performRequestWithAuth(url: url, method: method, body: body)
@@ -348,7 +374,18 @@ extension YFSession {
 }
 
 /// HTTP 메서드 열거형
+///
+/// Yahoo Finance API 요청에 사용되는 HTTP 메서드를 정의합니다.
+/// 대부분의 API는 GET 요청을 사용하지만, 일부 고급 기능에서는 POST를 사용합니다.
 public enum HTTPMethod: String, Sendable {
+    
+    /// GET 메서드
+    ///
+    /// 데이터 조회용으로 사용됩니다. Yahoo Finance API의 대부분이 GET 요청입니다.
     case GET = "GET"
+    
+    /// POST 메서드  
+    ///
+    /// 데이터 전송이 필요한 요청에 사용됩니다. 주로 동의 처리나 복잡한 쿼리에서 사용됩니다.
     case POST = "POST"
 }
