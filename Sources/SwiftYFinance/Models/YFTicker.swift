@@ -1,6 +1,6 @@
 import Foundation
 
-public struct YFTicker: CustomStringConvertible, Codable {
+public struct YFTicker: CustomStringConvertible, Codable, Hashable, Sendable {
     public let symbol: String
     
     public var description: String {

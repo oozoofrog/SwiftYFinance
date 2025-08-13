@@ -95,21 +95,40 @@ Yahoo Finance의 고급 기능들을 Swift로 구현하여 완전한 금융 데�
 - API 엔드포인트: `https://query1.finance.yahoo.com/v1/finance/screener`
 - 사전 정의 엔드포인트: `https://query1.finance.yahoo.com/v1/finance/screener/predefined/saved`
 
-### 5.4 News API
+### 5.4 News API ✅ 완료 (2025-08-13)
 **목표**: 종목 관련 뉴스 및 분석 리포트 통합
 
 #### 구현 사항
-- [ ] YFNews 모델 생성
-- [ ] 뉴스 피드 조회 (`fetchNews`)
-- [ ] 뉴스 카테고리 분류
-- [ ] 감성 분석 (긍정/부정/중립)
-- [ ] 관련 종목 연결
+- [x] YFNews 모델 생성 (뉴스 기사, 감성 분석, 이미지 정보)
+- [x] 뉴스 피드 조회 (`fetchNews`)
+- [x] 뉴스 카테고리 분류 (속보, 실적, 분석, 보도자료 등)
+- [x] 감성 분석 (긍정/부정/중립, 점수, 신뢰도)
+- [x] 관련 종목 연결
+- [x] 날짜 범위 필터링
+- [x] 다중 종목 뉴스 조회
+- [x] 이미지 및 메타데이터 지원
 
 #### 테스트 케이스
-- [ ] `testFetchNewsBasic` - 기본 뉴스 조회
-- [ ] `testNewsCategories` - 카테고리 분류
-- [ ] `testNewsSentiment` - 감성 분석
-- [ ] `testRelatedTickers` - 관련 종목
+- [x] `testFetchBasicNews` - 기본 뉴스 조회
+- [x] `testFetchNewsWithLimit` - 개수 제한 조회
+- [x] `testFetchNewsByCategory` - 카테고리별 조회
+- [x] `testNewsSentimentAnalysis` - 감성 분석
+- [x] `testRelatedStocksInNews` - 관련 종목
+- [x] `testNewsFiltering` - 날짜 범위 필터링
+- [x] `testNewsCategories` - 카테고리 분류
+- [x] `testInvalidTickerNews` - 에러 처리
+- [x] `testNewsImageHandling` - 이미지 처리
+
+#### 구현 파일
+- `Sources/SwiftYFinance/Models/YFNews.swift` - 뉴스 모델 및 감성 분석
+- `Sources/SwiftYFinance/Core/YFNewsAPI.swift` - API 구현
+- `Tests/SwiftYFinanceTests/Client/NewsTests.swift` - 테스트
+
+#### Python 참조 구현 (실제 확인됨)
+- `yfinance-reference/yfinance/base.py:663` - get_news() 메서드
+- API 엔드포인트: `https://finance.yahoo.com/xhr/ncp?queryRef={queryRef}&serviceKey=ncp_fin`
+- 쿼리 참조: newsAll, latestNews, pressRelease
+- 데이터 필드: title, summary, link, publishedDate, source, category
 
 ### 5.5 Technical Indicators
 **목표**: 기술적 분석 지표 계산
