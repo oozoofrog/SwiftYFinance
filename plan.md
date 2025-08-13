@@ -26,7 +26,9 @@ Sources/SwiftYFinance/
 - ✅ **Tidy First**: 구조 변경과 동작 변경 분리
 - ✅ **한 번에 하나의 테스트만 작업**
 - ✅ **테스트 통과를 위한 최소 코드만 구현**
-- ✅ **각 단계 완료시 서브플랜 업데이트 및 필요시 plan.md도 업데이트 후 git commit 실행**
+- ✅ **각 테스트 완료시 서브플랜 업데이트 및 필요시 plan.md도 업데이트 후 git commit 실행**
+  - "단계"는 개별 테스트 케이스 또는 기능적으로 완결된 작업 단위를 의미
+  - 예시: testFetchPriceHistory1Day 테스트 통과, fetchPriceHistory API 연동 완료 등
 - ✅ **참조 기반 학습**: 각 테스트 작성 전 yfinance-reference/ 폴더의 Python 코드 참조
 - ✅ **실제 데이터 구조 확인**: Python yfinance로 실제 API 응답 구조 파악 후 Swift 모델 설계
 
@@ -47,27 +49,48 @@ Sources/SwiftYFinance/
 
 ## 🔄 현재 작업 중
 
-### Phase 4: API Integration (75% 완료)
+### Phase 4: API Integration (60% 완료)
 - ✅ **Phase 4.1 완료**: Network Layer 실제 구현
   - YFRequestBuilder, YFSession, YFResponseParser 실제 API 연동 완성
-- 🔄 **Phase 4.2 진행 예정**: API 통합 실제 구현
-  - fetchPriceHistory 모킹 → 실제 API 전환
+- ✅ **Phase 4.2 완료**: fetchPriceHistory 실제 API 전환
+  - Chart API 기반 실제 Yahoo Finance 데이터 반환
+- 🔄 **Phase 4.3 진행중**: Yahoo Finance CSRF 인증 시스템
+  - quoteSummary API 접근을 위한 CSRF 토큰/쿠키 관리
 
-**상세 진행사항**: [Phase 4 상세 계획](docs/plans/phase4-api-integration.md)
+**상세 진행사항**: 
+- [Phase 4 API Integration](docs/plans/phase4-api-integration.md)
+- [Phase 4.3 CSRF 인증 시스템](docs/plans/phase4-csrf-authentication.md)
+
+## ✅ 최근 완료 작업 (2025-08-13)
+
+### 1. 테스트 파일 분리 완료 ✅
+- **YFResponseParserTests.swift** (532줄) → Parser/ 폴더로 4개 파일로 분리
+  - BasicParsingTests.swift: 핵심 JSON 파싱 테스트
+  - TimestampParsingTests.swift: Unix 타임스탬프 변환 테스트  
+  - OHLCVParsingTests.swift: OHLCV 데이터 추출 테스트
+  - ErrorParsingTests.swift: 에러 응답 처리 테스트
+
+### 2. fetchPriceHistory 실제 API 연동 완료 ✅
+- **모킹 데이터 제거**: 모든 mock 데이터 생성 로직 제거
+- **실제 API 구현**: Yahoo Finance Chart API 실제 호출
+- **에러 처리 강화**: networkError, apiError 케이스 추가
+- **전체 테스트 통과**: 43개 테스트 모두 실제 API로 동작
 
 ## 🚨 즉시 해결 필요
 
-### 1. 테스트 파일 분리 (우선순위 1)
-현재 테스트 파일들이 너무 커져서 관리가 어려움
-- **YFResponseParserTests.swift**: 532줄 🚨 즉시 분리 필요
-- **YFClientTests.swift**: 335줄 🔶 분리 검토 필요
+### 1. Yahoo Finance CSRF 인증 시스템 구현 (우선순위 1)
+- **문제**: quoteSummary API가 "Invalid Crumb" 에러 반환
+- **원인**: Yahoo Finance 비공개 API의 CSRF 토큰 요구사항
+- **해결**: yfinance 방식의 쿠키/crumb 토큰 인증 시스템 구현
 
-**해결 계획**: [테스트 분리 규칙 및 체크리스트](docs/plans/test-organization.md)
+**상세 계획**: [Phase 4.3 CSRF 인증 시스템](docs/plans/phase4-csrf-authentication.md)
 
-### 2. Phase 4.2: 실제 API 구현 전환
-- **문제**: 모든 YFClient 메서드가 모킹 데이터 사용 중
-- **목표**: 실제 Yahoo Finance API 호출로 전환
-- **우선순위**: fetchPriceHistory부터 시작
+### 2. CSRF 기반 API 메서드 실제 구현 전환
+- **fetchQuote**: quoteSummary API 연동 (CSRF 인증 필수)
+- **fetchFinancials**: fundamentals API 연동
+- **fetchBalanceSheet**: 대차대조표 API 연동  
+- **fetchCashFlow**: 현금흐름표 API 연동
+- **fetchEarnings**: 수익 데이터 API 연동
 
 ## 📈 주요 성과
 

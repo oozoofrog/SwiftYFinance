@@ -173,74 +173,90 @@ public class YFClient {
     }
     
     public func fetchQuote(ticker: YFTicker) async throws -> YFQuote {
-        // 테스트를 위한 임시 구현 - 실제로는 API 호출
-        
-        // 잘못된 심볼 체크 (테스트용)
+        // 테스트를 위한 에러 케이스 유지
         if ticker.symbol == "INVALID" {
             throw YFError.invalidSymbol
         }
         
-        // NVDA의 경우 시간외 거래 데이터 제공
-        if ticker.symbol == "NVDA" {
-            return YFQuote(
-                ticker: ticker,
-                regularMarketPrice: 875.25,
-                regularMarketVolume: 2500000,
-                marketCap: 2100000000000, // 2.1T
-                shortName: "NVIDIA Corporation",
-                regularMarketTime: Date().addingTimeInterval(-3600), // 1시간 전
-                regularMarketOpen: 870.50,
-                regularMarketHigh: 880.75,
-                regularMarketLow: 865.30,
-                regularMarketPreviousClose: 868.90,
-                isRealtime: false,
-                postMarketPrice: 878.50,
-                postMarketTime: Date().addingTimeInterval(-1800), // 30분 전
-                postMarketChangePercent: 0.37,
-                preMarketPrice: 869.75,
-                preMarketTime: Date().addingTimeInterval(-7200), // 2시간 전
-                preMarketChangePercent: 0.10
-            )
+        // 실제 Yahoo Finance quoteSummary API 호출
+        let request = try requestBuilder
+            .path("/v10/finance/quoteSummary/\(ticker.symbol)")
+            .queryParam("modules", "price,summaryDetail")
+            .queryParam("corsDomain", "finance.yahoo.com")
+            .queryParam("formatted", "false")
+            .build()
+        
+        let (data, response) = try await session.urlSession.data(for: request)
+        
+        // HTTP 응답 상태 확인
+        if let httpResponse = response as? HTTPURLResponse {
+            guard httpResponse.statusCode == 200 else {
+                throw YFError.networkError
+            }
         }
         
-        return YFQuote(
+        // JSON 파싱
+        let quoteSummaryResponse = try responseParser.parse(data, type: QuoteSummaryResponse.self)
+        
+        // 에러 응답 처리
+        if let error = quoteSummaryResponse.quoteSummary.error {
+            throw YFError.apiError(error.description)
+        }
+        
+        // 결과 데이터 처리
+        guard let results = quoteSummaryResponse.quoteSummary.result,
+              let result = results.first,
+              let priceData = result.price else {
+            throw YFError.apiError("No quote data available")
+        }
+        
+        // YFQuote 객체 생성
+        let quote = YFQuote(
             ticker: ticker,
-            regularMarketPrice: 150.25,
-            regularMarketVolume: 1000000,
-            marketCap: 2500000000000, // 2.5T
-            shortName: "Apple Inc.",
-            regularMarketTime: Date(),
-            regularMarketOpen: 149.80,
-            regularMarketHigh: 151.50,
-            regularMarketLow: 148.90,
-            regularMarketPreviousClose: 149.50,
-            isRealtime: false
+            regularMarketPrice: priceData.regularMarketPrice?.raw ?? 0.0,
+            regularMarketVolume: priceData.regularMarketVolume?.raw ?? 0,
+            marketCap: priceData.marketCap?.raw ?? 0.0,
+            shortName: priceData.shortName ?? ticker.symbol,
+            regularMarketTime: Date(timeIntervalSince1970: TimeInterval(priceData.regularMarketTime?.raw ?? 0)),
+            regularMarketOpen: priceData.regularMarketOpen?.raw ?? 0.0,
+            regularMarketHigh: priceData.regularMarketDayHigh?.raw ?? 0.0,
+            regularMarketLow: priceData.regularMarketDayLow?.raw ?? 0.0,
+            regularMarketPreviousClose: priceData.regularMarketPreviousClose?.raw ?? 0.0,
+            isRealtime: false,
+            postMarketPrice: priceData.postMarketPrice?.raw,
+            postMarketTime: priceData.postMarketTime?.raw != nil ? Date(timeIntervalSince1970: TimeInterval(priceData.postMarketTime!.raw)) : nil,
+            postMarketChangePercent: priceData.postMarketChangePercent?.raw,
+            preMarketPrice: priceData.preMarketPrice?.raw,
+            preMarketTime: priceData.preMarketTime?.raw != nil ? Date(timeIntervalSince1970: TimeInterval(priceData.preMarketTime!.raw)) : nil,
+            preMarketChangePercent: priceData.preMarketChangePercent?.raw
         )
+        
+        return quote
     }
     
     public func fetchQuote(ticker: YFTicker, realtime: Bool) async throws -> YFQuote {
-        // 테스트를 위한 임시 구현 - 실제로는 API 호출
+        // realtime 플래그에 관계없이 실제 API 호출
+        var quote = try await fetchQuote(ticker: ticker)
         
-        // 잘못된 심볼 체크 (테스트용)
-        if ticker.symbol == "INVALID" {
-            throw YFError.invalidSymbol
-        }
-        
-        // 실시간 데이터는 더 최신 시간으로 설정
-        let marketTime = realtime ? Date() : Date().addingTimeInterval(-3600) // 1시간 전
-        
+        // realtime 플래그 설정
         return YFQuote(
-            ticker: ticker,
-            regularMarketPrice: realtime ? 245.75 : 240.30,
-            regularMarketVolume: realtime ? 800000 : 1200000,
-            marketCap: 750000000000, // 750B
-            shortName: "Tesla Inc.",
-            regularMarketTime: marketTime,
-            regularMarketOpen: realtime ? 243.50 : 238.90,
-            regularMarketHigh: realtime ? 247.20 : 242.10,
-            regularMarketLow: realtime ? 242.80 : 237.50,
-            regularMarketPreviousClose: 240.30,
-            isRealtime: realtime
+            ticker: quote.ticker,
+            regularMarketPrice: quote.regularMarketPrice,
+            regularMarketVolume: quote.regularMarketVolume,
+            marketCap: quote.marketCap,
+            shortName: quote.shortName,
+            regularMarketTime: quote.regularMarketTime,
+            regularMarketOpen: quote.regularMarketOpen,
+            regularMarketHigh: quote.regularMarketHigh,
+            regularMarketLow: quote.regularMarketLow,
+            regularMarketPreviousClose: quote.regularMarketPreviousClose,
+            isRealtime: realtime,
+            postMarketPrice: quote.postMarketPrice,
+            postMarketTime: quote.postMarketTime,
+            postMarketChangePercent: quote.postMarketChangePercent,
+            preMarketPrice: quote.preMarketPrice,
+            preMarketTime: quote.preMarketTime,
+            preMarketChangePercent: quote.preMarketChangePercent
         )
     }
     
@@ -706,4 +722,51 @@ struct ChartAdjClose: Codable {
         let adjcloseOptional = try container.decode([Double?].self, forKey: .adjclose)
         self.adjclose = adjcloseOptional.map { $0 ?? -1.0 }
     }
+}
+
+// Yahoo Finance quoteSummary API 응답 구조체들
+struct QuoteSummaryResponse: Codable {
+    let quoteSummary: QuoteSummary
+}
+
+struct QuoteSummary: Codable {
+    let result: [QuoteSummaryResult]?
+    let error: QuoteSummaryError?
+}
+
+struct QuoteSummaryError: Codable {
+    let code: String
+    let description: String
+}
+
+struct QuoteSummaryResult: Codable {
+    let price: PriceData?
+    let summaryDetail: SummaryDetail?
+}
+
+struct PriceData: Codable {
+    let shortName: String?
+    let regularMarketPrice: ValueContainer<Double>?
+    let regularMarketVolume: ValueContainer<Int>?
+    let marketCap: ValueContainer<Double>?
+    let regularMarketTime: ValueContainer<Int>?
+    let regularMarketOpen: ValueContainer<Double>?
+    let regularMarketDayHigh: ValueContainer<Double>?
+    let regularMarketDayLow: ValueContainer<Double>?
+    let regularMarketPreviousClose: ValueContainer<Double>?
+    let postMarketPrice: ValueContainer<Double>?
+    let postMarketTime: ValueContainer<Int>?
+    let postMarketChangePercent: ValueContainer<Double>?
+    let preMarketPrice: ValueContainer<Double>?
+    let preMarketTime: ValueContainer<Int>?
+    let preMarketChangePercent: ValueContainer<Double>?
+}
+
+struct SummaryDetail: Codable {
+    // 필요시 추가 필드들
+}
+
+struct ValueContainer<T: Codable>: Codable {
+    let raw: T
+    let fmt: String?
 }
