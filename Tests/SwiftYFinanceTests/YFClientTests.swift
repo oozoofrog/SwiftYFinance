@@ -155,6 +155,37 @@ struct YFClientTests {
     }
     
     @Test
+    func testFetchFinancialsRealAPI() async throws {
+        let client = YFClient()
+        let ticker = try YFTicker(symbol: "AAPL")
+        
+        let financials = try await client.fetchFinancials(ticker: ticker)
+        
+        #expect(financials.ticker.symbol == "AAPL")
+        #expect(financials.annualReports.count > 0)
+        
+        let latestReport = financials.annualReports.first!
+        #expect(latestReport.totalRevenue > 0)
+        #expect(latestReport.netIncome != 0) // 순이익은 손실일 수도 있으므로 0이 아닌지만 확인
+        #expect(latestReport.totalAssets > 0)
+        #expect(latestReport.totalLiabilities >= 0)
+        #expect(!latestReport.reportDate.description.isEmpty)
+        
+        // 실제 API 호출이므로 합리적인 값 범위 확인
+        #expect(latestReport.totalRevenue > 100_000_000_000) // $100B 이상
+        #expect(latestReport.totalAssets > 200_000_000_000) // $200B 이상
+        #expect(abs(latestReport.netIncome) > 10_000_000_000) // $10B 이상 (절댓값)
+        
+        // 연간 보고서들 간의 기간 확인 (약 365일)
+        if financials.annualReports.count >= 2 {
+            let period = abs(financials.annualReports[0].reportDate.timeIntervalSince(financials.annualReports[1].reportDate))
+            let expectedPeriodDays = 365.0 * 24 * 60 * 60 // 365일을 초로 변환
+            let tolerance = 30.0 * 24 * 60 * 60 // 30일 허용 오차 (회계연도 차이)
+            #expect(abs(period - expectedPeriodDays) < tolerance)
+        }
+    }
+    
+    @Test
     func testFetchBalanceSheet() async throws {
         let client = YFClient()
         let ticker = try YFTicker(symbol: "GOOGL")
@@ -170,6 +201,41 @@ struct YFClientTests {
         #expect(latestReport.totalStockholderEquity > 0)
         #expect(latestReport.retainedEarnings > 0)
         #expect(!latestReport.reportDate.description.isEmpty)
+    }
+    
+    @Test
+    func testFetchBalanceSheetRealAPI() async throws {
+        let client = YFClient()
+        let ticker = try YFTicker(symbol: "AAPL")
+        
+        let balanceSheet = try await client.fetchBalanceSheet(ticker: ticker)
+        
+        #expect(balanceSheet.ticker.symbol == "AAPL")
+        #expect(balanceSheet.annualReports.count > 0)
+        
+        let latestReport = balanceSheet.annualReports.first!
+        #expect(latestReport.totalCurrentAssets > 0)
+        #expect(latestReport.totalCurrentLiabilities > 0)
+        #expect(latestReport.totalStockholderEquity > 0)
+        #expect(latestReport.retainedEarnings != 0) // 잉여금은 음수일 수도 있으므로 0이 아닌지만 확인
+        #expect(!latestReport.reportDate.description.isEmpty)
+        
+        // 실제 API 호출이므로 합리적인 값 범위 확인
+        #expect(latestReport.totalCurrentAssets > 50_000_000_000) // $50B 이상
+        #expect(latestReport.totalStockholderEquity > 100_000_000_000) // $100B 이상
+        
+        // Optional 필드 확인
+        if let totalAssets = latestReport.totalAssets {
+            #expect(totalAssets > 200_000_000_000) // $200B 이상
+        }
+        
+        // 연간 보고서들 간의 기간 확인 (약 365일)
+        if balanceSheet.annualReports.count >= 2 {
+            let period = abs(balanceSheet.annualReports[0].reportDate.timeIntervalSince(balanceSheet.annualReports[1].reportDate))
+            let expectedPeriodDays = 365.0 * 24 * 60 * 60 // 365일을 초로 변환
+            let tolerance = 30.0 * 24 * 60 * 60 // 30일 허용 오차 (회계연도 차이)
+            #expect(abs(period - expectedPeriodDays) < tolerance)
+        }
     }
     
     @Test
@@ -203,6 +269,45 @@ struct YFClientTests {
             let period = abs(cashFlow.annualReports[0].reportDate.timeIntervalSince(cashFlow.annualReports[1].reportDate))
             let expectedPeriodDays = 365.0 * 24 * 60 * 60 // 365일을 초로 변환
             let tolerance = 20.0 * 24 * 60 * 60 // 20일 허용 오차
+            #expect(abs(period - expectedPeriodDays) < tolerance)
+        }
+    }
+    
+    @Test
+    func testFetchCashFlowRealAPI() async throws {
+        let client = YFClient()
+        let ticker = try YFTicker(symbol: "AAPL")
+        
+        let cashFlow = try await client.fetchCashFlow(ticker: ticker)
+        
+        #expect(cashFlow.ticker.symbol == "AAPL")
+        #expect(cashFlow.annualReports.count > 0)
+        
+        let latestReport = cashFlow.annualReports.first!
+        #expect(latestReport.operatingCashFlow != 0)
+        #expect(!latestReport.reportDate.description.isEmpty)
+        
+        // 실제 API 호출이므로 합리적인 값 범위 확인
+        #expect(abs(latestReport.operatingCashFlow) > 50_000_000_000) // $50B 이상 (절댓값)
+        
+        // Optional fields 확인
+        if let freeCashFlow = latestReport.freeCashFlow {
+            #expect(abs(freeCashFlow) > 10_000_000_000) // $10B 이상 (절댓값)
+        }
+        
+        if let capex = latestReport.capitalExpenditure {
+            #expect(abs(capex) > 5_000_000_000) // $5B 이상 (절댓값, 보통 음수)
+        }
+        
+        if let netPPE = latestReport.netPPEPurchaseAndSale {
+            #expect(abs(netPPE) > 5_000_000_000) // $5B 이상 (절댓값)
+        }
+        
+        // 연간 보고서들 간의 기간 확인 (약 365일)
+        if cashFlow.annualReports.count >= 2 {
+            let period = abs(cashFlow.annualReports[0].reportDate.timeIntervalSince(cashFlow.annualReports[1].reportDate))
+            let expectedPeriodDays = 365.0 * 24 * 60 * 60 // 365일을 초로 변환
+            let tolerance = 30.0 * 24 * 60 * 60 // 30일 허용 오차 (회계연도 차이)
             #expect(abs(period - expectedPeriodDays) < tolerance)
         }
     }
