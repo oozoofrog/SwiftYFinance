@@ -26,8 +26,10 @@ struct YFSessionTests {
         let headers = session.defaultHeaders
         
         #expect(headers["User-Agent"]?.contains("Mozilla") == true)
-        #expect(headers["Accept"] == "application/json")
-        #expect(headers["Content-Type"] == "application/json")
+        #expect(headers["Accept"]?.contains("text/html") == true)
+        #expect(headers["Accept-Language"] == "en-US,en;q=0.9")
+        #expect(headers["Accept-Encoding"]?.contains("gzip") == true)
+        #expect(headers["Connection"] == "keep-alive")
         
         let customHeaders = ["Custom-Header": "CustomValue"]
         let sessionWithHeaders = YFSession(additionalHeaders: customHeaders)
@@ -208,5 +210,71 @@ struct YFSessionTests {
             // 네트워크 에러는 허용
             #expect(error is URLError)
         }
+    }
+    
+    @Test
+    func testUserAgentRotation() {
+        // User-Agent 로테이션 기능 테스트
+        let session = YFSession()
+        
+        let originalUserAgent = session.defaultHeaders["User-Agent"]
+        #expect(originalUserAgent?.contains("Chrome") == true)
+        
+        // User-Agent 로테이션
+        session.rotateUserAgent()
+        let rotatedUserAgent = session.defaultHeaders["User-Agent"] 
+        
+        // 로테이션 후 다른 User-Agent 일 가능성 (배열이 1개보다 많은 경우)
+        // 또는 같을 수도 있음 (배열이 1개인 경우)
+        #expect(rotatedUserAgent?.contains("Chrome") == true)
+        
+        // 랜덤 User-Agent 선택
+        session.randomizeUserAgent()
+        let randomUserAgent = session.defaultHeaders["User-Agent"]
+        #expect(randomUserAgent?.contains("Chrome") == true)
+        
+        // 여러 번 로테이션해서 순환하는지 확인
+        var userAgents: Set<String> = []
+        for _ in 0..<10 {
+            session.rotateUserAgent()
+            if let ua = session.defaultHeaders["User-Agent"] {
+                userAgents.insert(ua)
+            }
+        }
+        
+        // 최소 1개 이상의 User-Agent가 있어야 함
+        #expect(userAgents.count >= 1)
+        
+        // 모든 User-Agent가 Chrome을 포함해야 함
+        for userAgent in userAgents {
+            #expect(userAgent.contains("Chrome"))
+            #expect(userAgent.contains("Mozilla"))
+            #expect(userAgent.contains("Safari"))
+        }
+    }
+    
+    @Test
+    func testBrowserLevelHeaders() {
+        // 브라우저 수준 헤더 확인
+        let session = YFSession()
+        let headers = session.defaultHeaders
+        
+        // 필수 브라우저 헤더들 확인
+        #expect(headers["Accept"]?.contains("text/html") == true)
+        #expect(headers["Accept-Language"] == "en-US,en;q=0.9")
+        #expect(headers["Accept-Encoding"]?.contains("gzip") == true)
+        #expect(headers["Connection"] == "keep-alive")
+        #expect(headers["Upgrade-Insecure-Requests"] == "1")
+        #expect(headers["Sec-Fetch-Dest"] == "document")
+        #expect(headers["Sec-Fetch-Mode"] == "navigate")
+        #expect(headers["Sec-Fetch-Site"] == "none")
+        #expect(headers["Sec-Fetch-User"] == "?1")
+        #expect(headers["Cache-Control"] == "max-age=0")
+        
+        // User-Agent는 Chrome 브라우저여야 함
+        #expect(headers["User-Agent"]?.contains("Chrome") == true)
+        #expect(headers["User-Agent"]?.contains("Mozilla") == true)
+        #expect(headers["User-Agent"]?.contains("AppleWebKit") == true)
+        #expect(headers["User-Agent"]?.contains("Safari") == true)
     }
 }

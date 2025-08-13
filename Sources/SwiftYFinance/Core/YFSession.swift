@@ -2,7 +2,7 @@ import Foundation
 
 /// 쿠키 인증 전략
 /// - SeeAlso: yfinance-reference/yfinance/data.py _cookie_strategy
-public enum CookieStrategy {
+public enum CookieStrategy: Sendable {
     case basic
     case csrf
 }
@@ -20,11 +20,29 @@ public class YFSession {
     private let htmlParser = YFHTMLParser()
     private var isAuthenticated = false
     
+    // User-Agent 로테이션을 위한 Chrome 버전들
+    private static let chromeUserAgents = [
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+    ]
+    private var currentUserAgentIndex = 0
+    
     public var defaultHeaders: [String: String] {
         var headers = [
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
-            "Accept": "application/json",
-            "Content-Type": "application/json"
+            "User-Agent": getCurrentUserAgent(),
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br, zstd",
+            "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "none",
+            "Sec-Fetch-User": "?1",
+            "Cache-Control": "max-age=0"
         ]
         
         for (key, value) in additionalHeaders {
@@ -45,9 +63,17 @@ public class YFSession {
         self.additionalHeaders = additionalHeaders
         self.proxy = proxy
         
+        // 초기화 시 랜덤 User-Agent 선택 (탐지 방지)
+        self.currentUserAgentIndex = Int.random(in: 0..<Self.chromeUserAgents.count)
+        
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = timeout
         config.timeoutIntervalForResource = timeout
+        
+        // HTTPCookieStorage 설정 - 브라우저 수준 쿠키 관리
+        config.httpCookieStorage = HTTPCookieStorage.shared
+        config.httpCookieAcceptPolicy = .always
+        config.httpShouldSetCookies = true
         
         if let proxy = proxy {
             config.connectionProxyDictionary = proxy
@@ -280,5 +306,22 @@ public class YFSession {
     /// 현재 인증 상태 확인
     public var isCSRFAuthenticated: Bool {
         return isAuthenticated && crumbToken != nil
+    }
+    
+    // MARK: - User-Agent 로테이션 메서드들
+    
+    /// 현재 User-Agent 반환
+    private func getCurrentUserAgent() -> String {
+        return Self.chromeUserAgents[currentUserAgentIndex]
+    }
+    
+    /// User-Agent 로테이션 (탐지 방지)
+    public func rotateUserAgent() {
+        currentUserAgentIndex = (currentUserAgentIndex + 1) % Self.chromeUserAgents.count
+    }
+    
+    /// 랜덤 User-Agent 선택
+    public func randomizeUserAgent() {
+        currentUserAgentIndex = Int.random(in: 0..<Self.chromeUserAgents.count)
     }
 }
