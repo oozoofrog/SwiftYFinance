@@ -366,9 +366,10 @@ Phase 4 확장 완료 후 Phase 5 Advanced Features 진행
   - 📚 참조: yfinance-reference/yfinance/utils.py:parse_quotes() OHLCV 필드 추출
   - 🔍 확인사항: ChartQuote 구조체 [Double?] -> [Double] 변경, null 값 -1.0 처리
   - ✅ 구현완료: null 값을 -1.0/-1로 변환하는 custom decoder, 유효한 데이터만 YFPrice 변환 (0.001초)
-- [ ] testParseErrorResponse - Yahoo 에러 응답 처리
-  - 📚 참조: yfinance-reference/yfinance/exceptions.py
-  - 🔍 확인사항: 잘못된 심볼, API 에러 메시지 파싱
+- [x] testParseErrorResponse - Yahoo 에러 응답 처리 ✅ 완료
+  - 📚 참조: yfinance-reference/yfinance/exceptions.py (YFTickerMissingError, YFRateLimitError 등)
+  - 🔍 확인사항: 8가지 에러 시나리오 (Invalid symbol, Rate limit, Invalid period, Server error 등)
+  - ✅ 구현완료: 포괄적인 Yahoo Finance API 에러 응답 파싱 테스트 (0.001초)
 
 #### Phase 4.2: API 통합 실제 구현 (우선순위 2)
 
