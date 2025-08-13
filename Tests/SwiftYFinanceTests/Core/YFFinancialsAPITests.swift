@@ -1,8 +1,9 @@
-import XCTest
+import Testing
 @testable import SwiftYFinance
 
-final class YFFinancialsAPITests: XCTestCase {
+struct YFFinancialsAPITests {
     
+    @Test("YFFinancialsAPI file exists")
     func testYFFinancialsAPIFileExists() async throws {
         // TDD Red: YFFinancialsAPI.swift 파일이 존재하고 financial 메서드들이 분리되어 있는지 테스트
         let client = YFClient()
@@ -13,41 +14,41 @@ final class YFFinancialsAPITests: XCTestCase {
         // fetchFinancials 테스트
         do {
             _ = try await client.fetchFinancials(ticker: invalidTicker)
-            XCTFail("Should have thrown invalidSymbol error")
+            Issue.record("Should have thrown invalidSymbol error")
         } catch YFError.invalidSymbol {
-            XCTAssertTrue(true, "fetchFinancials method works from YFFinancialsAPI extension")
+            #expect(Bool(true)) // fetchFinancials method works from YFFinancialsAPI extension
         } catch {
-            XCTFail("Unexpected error: \(error)")
+            Issue.record("Unexpected error: \(error)")
         }
         
         // fetchBalanceSheet 테스트
         do {
             _ = try await client.fetchBalanceSheet(ticker: invalidTicker)
-            XCTFail("Should have thrown invalidSymbol error")
+            Issue.record("Should have thrown invalidSymbol error")
         } catch YFError.invalidSymbol {
-            XCTAssertTrue(true, "fetchBalanceSheet method works from YFFinancialsAPI extension")
+            #expect(Bool(true)) // fetchBalanceSheet method works from YFFinancialsAPI extension
         } catch {
-            XCTFail("Unexpected error: \(error)")
+            Issue.record("Unexpected error: \(error)")
         }
         
         // fetchCashFlow 테스트
         do {
             _ = try await client.fetchCashFlow(ticker: invalidTicker)
-            XCTFail("Should have thrown invalidSymbol error")
+            Issue.record("Should have thrown invalidSymbol error")
         } catch YFError.invalidSymbol {
-            XCTAssertTrue(true, "fetchCashFlow method works from YFFinancialsAPI extension")
+            #expect(Bool(true)) // fetchCashFlow method works from YFFinancialsAPI extension
         } catch {
-            XCTFail("Unexpected error: \(error)")
+            Issue.record("Unexpected error: \(error)")
         }
         
         // fetchEarnings 테스트
         do {
             _ = try await client.fetchEarnings(ticker: invalidTicker)
-            XCTFail("Should have thrown invalidSymbol error")
+            Issue.record("Should have thrown invalidSymbol error")
         } catch YFError.invalidSymbol {
-            XCTAssertTrue(true, "fetchEarnings method works from YFFinancialsAPI extension")
+            #expect(Bool(true)) // fetchEarnings method works from YFFinancialsAPI extension
         } catch {
-            XCTFail("Unexpected error: \(error)")
+            Issue.record("Unexpected error: \(error)")
         }
     }
 }

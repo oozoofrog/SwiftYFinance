@@ -3,27 +3,57 @@ import Foundation
 extension YFSession {
     // MARK: - CSRF 인증 메서드들
     
-    /// Yahoo Finance CSRF 인증 프로세스
+    /// Yahoo Finance 인증 프로세스 (Rate Limiting 지원)
     /// - SeeAlso: yfinance-reference/yfinance/data.py:_get_cookie_and_crumb()
     public func authenticateCSRF() async throws {
-        // 전략별로 인증 시도
-        let success = cookieStrategy == .csrf ? 
-            await attemptCSRFAuthentication() : 
-            await attemptBasicAuthentication()
-        
-        if !success {
-            // 현재 전략이 실패하면 다른 전략으로 전환
-            toggleCookieStrategy()
-            let retrySuccess = cookieStrategy == .csrf ? 
-                await attemptCSRFAuthentication() : 
-                await attemptBasicAuthentication()
-            
-            if !retrySuccess {
-                throw YFError.apiError("Failed to authenticate with Yahoo Finance")
-            }
+        // Rate limiter를 통해 인증 요청 실행
+        try await performAuthenticationWithRateLimit()
+    }
+    
+    /// Rate limiting과 함께 인증 수행
+    private func performAuthenticationWithRateLimit() async throws {
+        // Rate limiting 적용
+        await YFRateLimiter.shared.executeRequest {
+            // 인증 수행
         }
         
-        isAuthenticated = true
+        // 실제 인증 로직 실행
+        try await performAuthenticationWithRetry()
+    }
+    
+    /// 전략 전환과 재시도를 포함한 인증 수행
+    /// Python yfinance의 전략 전환 로직과 동일
+    private func performAuthenticationWithRetry() async throws {
+        // 1차 시도: 현재 전략으로 인증
+        let success = await attemptAuthenticationWithCurrentStrategy()
+        
+        if success {
+            await sessionState.setAuthenticated(true)
+            return
+        }
+        
+        // 1차 실패 시 전략 전환 후 재시도
+        await sessionState.toggleCookieStrategy()
+        let retrySuccess = await attemptAuthenticationWithCurrentStrategy()
+        
+        if retrySuccess {
+            await sessionState.setAuthenticated(true)
+            return
+        }
+        
+        // 두 전략 모두 실패 시 예외 발생
+        throw YFError.apiError("Failed to authenticate with both basic and csrf strategies")
+    }
+    
+    /// 현재 쿠키 전략으로 인증 시도
+    private func attemptAuthenticationWithCurrentStrategy() async -> Bool {
+        let strategy = await sessionState.cookieStrategy
+        switch strategy {
+        case .basic:
+            return await attemptBasicAuthentication()
+        case .csrf:
+            return await attemptCSRFAuthentication()
+        }
     }
     
     /// CSRF 전략으로 인증 시도
@@ -50,7 +80,40 @@ extension YFSession {
     /// Basic 전략으로 인증 시도  
     /// - SeeAlso: yfinance-reference/yfinance/data.py:_get_cookie_and_crumb_basic()
     internal func attemptBasicAuthentication() async -> Bool {
+        // 1. 기본 쿠키 획득 (fc.yahoo.com 접근)
+        if !(await getBasicCookie()) {
+            return false
+        }
+        
+        // 2. Crumb 토큰 획득
         return await getCrumbToken(strategy: .basic)
+    }
+    
+    /// 기본 쿠키 획득 (fc.yahoo.com)
+    /// - SeeAlso: yfinance-reference/yfinance/data.py:_get_cookie_basic()
+    private func getBasicCookie() async -> Bool {
+        do {
+            let url = URL(string: "https://fc.yahoo.com")!
+            var request = URLRequest(url: url, timeoutInterval: timeout)
+            
+            // 기본 헤더 설정
+            for (key, value) in defaultHeaders {
+                request.setValue(value, forHTTPHeaderField: key)
+            }
+            
+            let (_, response) = try await urlSession.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                return false
+            }
+            
+            // 200-299 범위의 응답이면 성공
+            return (200...299).contains(httpResponse.statusCode)
+            
+        } catch {
+            // DNS 에러 등 네트워크 오류도 허용 (Python 구현과 동일)
+            return false
+        }
     }
     
     /// 동의 페이지에서 CSRF 토큰과 세션 ID 획득
@@ -155,9 +218,9 @@ extension YFSession {
                 return false
             }
             
-            // Rate limiting 체크
+            // Rate limiting 체크 (Python yfinance와 동일)
             if httpResponse.statusCode == 429 {
-                throw YFError.apiError("Rate limited")
+                return false  // 429 에러 시 false 반환하여 전략 전환 유도
             }
             
             guard httpResponse.statusCode == 200 else {
@@ -166,12 +229,12 @@ extension YFSession {
             
             let crumb = String(data: data, encoding: .utf8) ?? ""
             
-            // 유효한 crumb인지 확인
-            guard !crumb.isEmpty && !crumb.contains("<html>") else {
+            // 유효한 crumb인지 확인 (Python yfinance와 동일)
+            if crumb.isEmpty || crumb.contains("<html>") || crumb.contains("Too Many Requests") {
                 return false
             }
             
-            self.crumbToken = crumb
+            await sessionState.setCrumbToken(crumb)
             return true
             
         } catch {
@@ -181,10 +244,8 @@ extension YFSession {
     
     /// 쿠키 전략 전환
     /// - SeeAlso: yfinance-reference/yfinance/data.py:_set_cookie_strategy()
-    internal func toggleCookieStrategy() {
-        cookieStrategy = cookieStrategy == .basic ? .csrf : .basic
-        crumbToken = nil
-        isAuthenticated = false
+    internal func toggleCookieStrategy() async {
+        await sessionState.toggleCookieStrategy()
         
         // 쿠키 초기화
         urlSession.configuration.httpCookieStorage?.removeCookies(since: Date.distantPast)
@@ -192,8 +253,8 @@ extension YFSession {
     
     /// URL 요청에 crumb 파라미터 자동 추가
     /// - SeeAlso: yfinance-reference/yfinance/data.py:get() 메서드
-    public func addCrumbIfNeeded(to url: URL) -> URL {
-        guard let crumb = crumbToken,
+    public func addCrumbIfNeeded(to url: URL) async -> URL {
+        guard let crumb = await sessionState.crumbToken,
               var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
             return url
         }
@@ -224,6 +285,70 @@ extension YFSession {
     
     /// 현재 인증 상태 확인
     public var isCSRFAuthenticated: Bool {
-        return isAuthenticated && crumbToken != nil
+        get async {
+            await sessionState.isCSRFAuthenticated
+        }
     }
+    
+    /// API 요청을 Rate Limiting과 자동 재인증과 함께 실행
+    /// Python yfinance의 _make_request() 메서드와 동일한 로직
+    public func makeAuthenticatedRequest(url: URL, method: HTTPMethod = .GET, body: Data? = nil) async throws -> (Data, URLResponse) {
+        return try await YFRateLimiter.shared.executeRequest {
+            return try await self.performRequestWithAuth(url: url, method: method, body: body)
+        }
+    }
+    
+    /// 인증이 포함된 요청 수행 (재시도 로직 포함)
+    private func performRequestWithAuth(url: URL, method: HTTPMethod, body: Data?) async throws -> (Data, URLResponse) {
+        // 인증되지 않았다면 먼저 인증 시도
+        let authenticated = await sessionState.isAuthenticated
+        if !authenticated {
+            try await authenticateCSRF()
+        }
+        
+        // crumb이 필요한 URL에 자동 추가
+        let urlWithCrumb = await addCrumbIfNeeded(to: url)
+        
+        // 첫 번째 요청 시도
+        let result = try await executeHTTPRequest(url: urlWithCrumb, method: method, body: body)
+        
+        // 응답 상태 확인
+        if let httpResponse = result.1 as? HTTPURLResponse {
+            if httpResponse.statusCode >= 400 {
+                // 실패 시 전략 전환 후 재시도 (Python yfinance와 동일)
+                await sessionState.toggleCookieStrategy()
+                try await authenticateCSRF()
+                
+                let urlWithNewCrumb = await addCrumbIfNeeded(to: url)
+                return try await executeHTTPRequest(url: urlWithNewCrumb, method: method, body: body)
+            }
+        }
+        
+        return result
+    }
+    
+    /// 실제 HTTP 요청 실행
+    private func executeHTTPRequest(url: URL, method: HTTPMethod, body: Data?) async throws -> (Data, URLResponse) {
+        var request = URLRequest(url: url, timeoutInterval: timeout)
+        request.httpMethod = method.rawValue
+        
+        // 기본 헤더 설정
+        for (key, value) in defaultHeaders {
+            request.setValue(value, forHTTPHeaderField: key)
+        }
+        
+        // POST 요청에 body 추가
+        if let body = body {
+            request.httpBody = body
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
+        
+        return try await urlSession.data(for: request)
+    }
+}
+
+/// HTTP 메서드 열거형
+public enum HTTPMethod: String, Sendable {
+    case GET = "GET"
+    case POST = "POST"
 }

@@ -26,7 +26,7 @@ public enum CookieStrategy: Sendable {
 /// let url = session.addCrumbIfNeeded(to: someURL)
 /// // 네트워크 요청 수행...
 /// ```
-public class YFSession {
+public final class YFSession: @unchecked Sendable {
     // MARK: - Public Properties
     public let urlSession: URLSession
     public let baseURL: URL
@@ -36,13 +36,11 @@ public class YFSession {
     // MARK: - Private Properties
     private let additionalHeaders: [String: String]
     
-    // CSRF 인증 관련 프로퍼티
-    internal var cookieStrategy: CookieStrategy = .basic
-    internal var crumbToken: String?
-    internal let htmlParser = YFHTMLParser()
-    internal var isAuthenticated = false
+    // 상태 관리 (Thread-safe actor)
+    internal let sessionState = YFSessionState()
     
-    // 브라우저 모방 기능
+    // Immutable components
+    internal let htmlParser = YFHTMLParser()
     internal let browserImpersonator = YFBrowserImpersonator()
     
     // MARK: - Computed Properties
@@ -57,6 +55,27 @@ public class YFSession {
         }
         
         return headers
+    }
+    
+    /// 현재 쿠키 전략 (async)
+    var cookieStrategy: CookieStrategy {
+        get async {
+            await sessionState.cookieStrategy
+        }
+    }
+    
+    /// Crumb 토큰 (async)
+    var crumbToken: String? {
+        get async {
+            await sessionState.crumbToken
+        }
+    }
+    
+    /// 인증 상태 (async)  
+    var isAuthenticated: Bool {
+        get async {
+            await sessionState.isAuthenticated
+        }
     }
     
     // MARK: - Initialization

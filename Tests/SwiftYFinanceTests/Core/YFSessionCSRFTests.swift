@@ -12,11 +12,12 @@ struct YFSessionCSRFTests {
         try await session.authenticateCSRF()
         
         // 인증 상태 확인
-        #expect(session.isCSRFAuthenticated == true)
+        let isAuthenticated = await session.isCSRFAuthenticated
+        #expect(isAuthenticated == true)
     }
     
     @Test
-    func testCrumbTokenAddition() throws {
+    func testCrumbTokenAddition() async throws {
         let session = YFSession()
         
         // Mock crumb 토큰 설정 (테스트용 private 접근)
@@ -24,7 +25,7 @@ struct YFSessionCSRFTests {
         let testURL = URL(string: "https://query2.finance.yahoo.com/v10/finance/quoteSummary/AAPL?modules=price")!
         
         // Crumb이 없는 상태에서는 URL이 변경되지 않음
-        let urlWithoutCrumb = session.addCrumbIfNeeded(to: testURL)
+        let urlWithoutCrumb = await session.addCrumbIfNeeded(to: testURL)
         #expect(urlWithoutCrumb == testURL)
     }
     
@@ -38,7 +39,8 @@ struct YFSessionCSRFTests {
         do {
             try await session.authenticateCSRF()
             // 성공하면 인증 상태 확인
-            #expect(session.isCSRFAuthenticated == true)
+            let isAuthenticated = await session.isCSRFAuthenticated
+            #expect(isAuthenticated == true)
         } catch {
             // 실패해도 에러가 적절히 처리되는지 확인
             #expect(error is YFError)
@@ -114,7 +116,8 @@ struct YFSessionCSRFTests {
         do {
             try await session.authenticateCSRF()
             // 성공 케이스
-            #expect(session.isCSRFAuthenticated == true)
+            let isAuthenticated = await session.isCSRFAuthenticated
+            #expect(isAuthenticated == true)
         } catch let error as YFError {
             // 예상된 에러 케이스
             switch error {

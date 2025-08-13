@@ -195,7 +195,8 @@ struct QuoteSummaryTests {
         }
         
         // quoteSummary API 요청 구성
-        let baseURL = session.isCSRFAuthenticated ? 
+        let isAuthenticated = await session.isCSRFAuthenticated
+        let baseURL = isAuthenticated ? 
             "https://query2.finance.yahoo.com" : 
             "https://query1.finance.yahoo.com"
         
@@ -209,8 +210,8 @@ struct QuoteSummaryTests {
         requestURL = components.url!
         
         // CSRF가 인증된 경우 crumb 추가
-        if session.isCSRFAuthenticated {
-            requestURL = session.addCrumbIfNeeded(to: requestURL)
+        if isAuthenticated {
+            requestURL = await session.addCrumbIfNeeded(to: requestURL)
         }
         
         var request = URLRequest(url: requestURL, timeoutInterval: session.timeout)

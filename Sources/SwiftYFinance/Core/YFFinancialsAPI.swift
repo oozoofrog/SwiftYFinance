@@ -33,7 +33,8 @@ extension YFClient {
         
         // CSRF 인증 시도 (실패해도 기본 요청으로 진행)
         var authenticationAttempted = false
-        if !session.isCSRFAuthenticated {
+        let isAuthenticated = await session.isCSRFAuthenticated
+        if !isAuthenticated {
             do {
                 try await session.authenticateCSRF()
                 authenticationAttempted = true
@@ -48,7 +49,7 @@ extension YFClient {
         for attempt in 0..<2 {
             do {
                 // 요청 URL 구성 (financialData + incomeStatementHistory 모듈)
-                let requestURL = try buildFinancialsURL(ticker: ticker)
+                let requestURL = try await buildFinancialsURL(ticker: ticker)
                 var request = URLRequest(url: requestURL, timeoutInterval: session.timeout)
                 
                 // 기본 헤더 설정
@@ -130,9 +131,10 @@ extension YFClient {
 extension YFClient {
     
     /// financials API URL 구성 헬퍼
-    internal func buildFinancialsURL(ticker: YFTicker) throws -> URL {
+    internal func buildFinancialsURL(ticker: YFTicker) async throws -> URL {
         // CSRF 인증 상태에 따라 base URL 선택
-        let baseURL = session.isCSRFAuthenticated ? 
+        let isAuthenticated = await session.isCSRFAuthenticated
+        let baseURL = isAuthenticated ? 
             session.baseURL.absoluteString : 
             "https://query1.finance.yahoo.com"
         
@@ -148,7 +150,7 @@ extension YFClient {
         }
         
         // CSRF 인증된 경우 crumb 추가
-        return session.isCSRFAuthenticated ? session.addCrumbIfNeeded(to: url) : url
+        return isAuthenticated ? await session.addCrumbIfNeeded(to: url) : url
     }
     
 }

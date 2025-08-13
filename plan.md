@@ -8,6 +8,11 @@
 - ✅ **한 번에 하나의 테스트만 작업**
 - ✅ **테스트 통과를 위한 최소 코드만 구현**
 
+### 테스트 프레임워크 원칙
+- ✅ **Swift Testing 필수**: 모든 테스트는 반드시 Swift Testing(`import Testing`, `@Test`, `#expect`) 사용
+- ❌ **XCTest 금지**: 새로운 테스트에서 XCTest(`import XCTest`, `XCTestCase`, `XCTAssert`) 사용 금지
+- ✅ **기존 XCTest → Swift Testing 마이그레이션**: 기존 XCTest 테스트들을 점진적으로 Swift Testing으로 전환
+
 ### 문서화 및 커밋 규칙
 - ✅ **문서 먼저 업데이트**: 작업 완료 후 바로 커밋하지 말고 **반드시 문서부터 업데이트**
 - ✅ **각 테스트 완료시 서브플랜 업데이트 및 필요시 plan.md도 업데이트 후 git commit 실행**
@@ -49,9 +54,10 @@ Python yfinance 라이브러리를 Swift로 TDD 방식으로 포팅
 **상세 계획**: [파일 구조 정리 가이드](docs/plans/file-organization.md)
 
 ### 2. ⏳ Phase 4.5: curl_cffi Swift 포팅 (현재 진행 중)
-- **목표**: Yahoo Finance API 인증 문제 해결 (13개 실패 테스트 → 0개)
-- **접근법**: Python yfinance의 Chrome 모방 기능을 Swift로 포팅
-- **현재 단계**: Chrome 136 헤더 개선 (Phase 4.5.1)
+- **목표**: Yahoo Finance API 인증 문제 해결 (인증 성공률 향상)
+- **접근법**: Python yfinance의 Chrome 모방 + Swift Concurrency 기반 Rate Limiting
+- **현재 단계**: Phase 4.5.2 완료, Phase 4.5.3 네트워크 계층 최적화 준비
+- **Phase 4.5.2 성과**: Swift Concurrency 완전 대응, XCTest → Swift Testing 마이그레이션 완료
 
 **상세 계획**: [Phase 4.5 curl_cffi Swift 포팅](docs/plans/phase4.5-curl-cffi-porting.md)
 

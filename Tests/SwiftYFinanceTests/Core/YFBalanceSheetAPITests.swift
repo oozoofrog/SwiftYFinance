@@ -1,8 +1,9 @@
-import XCTest
+import Testing
 @testable import SwiftYFinance
 
-final class YFBalanceSheetAPITests: XCTestCase {
+struct YFBalanceSheetAPITests {
     
+    @Test("YFBalanceSheetAPI file exists")
     func testYFBalanceSheetAPIFileExists() async throws {
         // TDD Red: YFBalanceSheetAPI.swift 파일이 존재하고 fetchBalanceSheet 메서드가 분리되어 있는지 테스트
         let client = YFClient()
@@ -12,11 +13,11 @@ final class YFBalanceSheetAPITests: XCTestCase {
         
         do {
             _ = try await client.fetchBalanceSheet(ticker: invalidTicker)
-            XCTFail("Should have thrown invalidSymbol error")
+            Issue.record("Should have thrown invalidSymbol error")
         } catch YFError.invalidSymbol {
-            XCTAssertTrue(true, "fetchBalanceSheet method works from YFBalanceSheetAPI extension")
+            #expect(Bool(true)) // fetchBalanceSheet method works from YFBalanceSheetAPI extension
         } catch {
-            XCTFail("Unexpected error: \(error)")
+            Issue.record("Unexpected error: \(error)")
         }
     }
 }
