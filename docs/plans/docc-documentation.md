@@ -636,6 +636,62 @@ echo "3️⃣ 문서 내 예시 코드 검증"
 echo "🎉 모든 문서 검증 통과!"
 ```
 
+## 🔧 DocC 컴파일 및 빌드 방법
+
+### 필수 사전 조건
+- **Swift 6.1 이상**: DocC 지원을 위해 필요
+- **Xcode**: `xcrun docc` 명령어 사용을 위해 필요
+
+### 컴파일 검증 단계
+
+#### 1단계: 프로젝트 컴파일 확인
+```bash
+swift build
+```
+- 모든 소스 파일이 오류 없이 컴파일되는지 확인
+- DocC 주석 구문 오류도 이 단계에서 감지됨
+
+#### 2단계: 심볼 그래프 생성
+```bash
+swift package dump-symbol-graph --pretty-print --minimum-access-level public
+```
+- 생성된 파일 위치: `.build/arm64-apple-macosx/symbolgraph/`
+- SwiftYFinance.symbols.json 파일 확인
+
+#### 3단계: DocC 문서 생성
+```bash
+xcrun docc convert \
+  --additional-symbol-graph-dir .build/arm64-apple-macosx/symbolgraph \
+  --output-dir ./docs-output \
+  --fallback-display-name "SwiftYFinance" \
+  --fallback-bundle-identifier "com.swiftyfinance.library"
+```
+
+#### 4단계: 생성된 문서 확인
+```bash
+# HTML 문서 구조 확인
+ls ./docs-output/documentation/swiftyfinance/
+
+# 브라우저에서 문서 열기 (macOS)
+open ./docs-output/documentation/swiftyfinance/index.html
+
+# 임시 파일 정리
+rm -rf ./docs-output
+```
+
+### 문서 생성 성공 지표
+- ✅ 컴파일 오류 없음
+- ✅ 심볼 그래프 생성 성공
+- ✅ HTML 문서 파일 생성 확인
+- ✅ 경고 메시지 최소화 (다른 파일의 경고 제외)
+
+### 문제 해결
+- **컴파일 오류**: DocC 주석 구문 확인
+- **심볼 그래프 실패**: Swift 버전 및 프로젝트 구조 확인  
+- **DocC 변환 실패**: 필수 파라미터 및 경로 확인
+
+---
+
 ## 🎨 DocC 스타일 가이드
 
 ### 필수 포함 요소
@@ -663,19 +719,51 @@ echo "🎉 모든 문서 검증 통과!"
 - 에러 처리 포함
 - 결과값 활용 방법 제시
 
+## ⚠️ 작업 진행 주의사항
+
+### 테스트 케이스 생성 금지
+- **DocC 문서화 작업에서는 테스트 케이스를 생성하지 않습니다**
+- 문서화는 소스 코드에 직접 DocC 주석을 추가하는 작업입니다
+- 문서화 완료 여부는 실제 소스 파일 검토로 확인합니다
+- 불필요한 테스트 파일 생성으로 프로젝트 복잡도를 증가시키지 않습니다
+
+### Phase 완료시 필수 절차
+각 Phase 완료 후 반드시 다음 절차를 수행합니다:
+
+1. **DocC 빌드 검증**: 컴파일 및 문서 생성 테스트
+2. **문서 업데이트**: 체크리스트 및 진행 상황 업데이트  
+3. **Git 커밋**: 변경사항을 적절한 커밋 메시지와 함께 커밋
+
+#### 커밋 메시지 형식
+```
+docs: Complete Phase X DocC documentation
+
+- Add complete DocC comments to [파일명들]
+- Verify compilation and DocC build success
+- Update documentation checklist
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+---
+
 ## 📋 작업 체크리스트
 
 ### Phase 1: 핵심 API (최우선) 🚨
-- [ ] YFClient.swift 완전 문서화
-- [ ] YFTicker.swift 완전 문서화  
-- [ ] YFError.swift 완전 문서화
-- [ ] 컴파일 및 DocC 빌드 검증
+- [x] YFClient.swift 완전 문서화 ✅
+- [x] YFTicker.swift 완전 문서화 ✅
+- [x] YFError.swift 완전 문서화 ✅
+- [x] 컴파일 및 DocC 빌드 검증 ✅
+
+**Phase 1 완료!** 🎉
 
 ### Phase 2: 핵심 데이터 모델
-- [ ] YFQuote.swift 완전 문서화
-- [ ] YFPrice.swift 완전 문서화
-- [ ] YFHistoricalData.swift 완전 문서화
-- [ ] 컴파일 및 DocC 빌드 검증
+- [x] YFQuote.swift 완전 문서화 ✅
+- [x] YFPrice.swift 완전 문서화 ✅
+- [x] YFHistoricalData.swift 완전 문서화 ✅
+- [x] 컴파일 및 DocC 빌드 검증 ✅
+
+**Phase 2 완료!** 🎉
 
 ### Phase 3: 네트워크 레이어  
 - [ ] YFSession.swift 문서 보완
