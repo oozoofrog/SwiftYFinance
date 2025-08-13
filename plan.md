@@ -26,7 +26,7 @@ Sources/SwiftYFinance/
 - ✅ **Tidy First**: 구조 변경과 동작 변경 분리
 - ✅ **한 번에 하나의 테스트만 작업**
 - ✅ **테스트 통과를 위한 최소 코드만 구현**
-- ✅ **각 단계 완료시 서브플랜 업데이트 후 git commit 실행**
+- ✅ **각 단계 완료시 서브플랜 업데이트 및 필요시 plan.md도 업데이트 후 git commit 실행**
 - ✅ **참조 기반 학습**: 각 테스트 작성 전 yfinance-reference/ 폴더의 Python 코드 참조
 - ✅ **실제 데이터 구조 확인**: Python yfinance로 실제 API 응답 구조 파악 후 Swift 모델 설계
 

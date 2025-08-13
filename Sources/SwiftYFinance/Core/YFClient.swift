@@ -71,7 +71,7 @@ public class YFClient {
     /// - Returns: 가격 히스토리 데이터
     /// - SeeAlso: yfinance-reference/yfinance/scrapers/history.py:history() 메서드
     public func fetchPriceHistory(ticker: YFTicker, period: YFPeriod, interval: YFInterval = .oneDay) async throws -> YFHistoricalData {
-        // 기본 구현 (기존 fetchHistory와 동일)
+        // 테스트를 위한 에러 케이스 유지
         if ticker.symbol == "INVALID" {
             throw YFError.invalidSymbol
         }
@@ -85,57 +85,47 @@ public class YFClient {
             )
         }
         
-        // 고해상도 간격 데이터 모킹 (oneDay period만)
-        if period == .oneDay && (interval == .oneMinute || interval == .fiveMinutes) {
-            var mockPrices: [YFPrice] = []
-            let baseDate = dateFromPeriod(period)
-            
-            // 간격별 데이터 개수 계산 (6.5시간 거래시간 기준)
-            let (dataCount, minuteInterval) = switch interval {
-            case .oneMinute: (390, 1)      // 390개 (6.5시간 * 60분)
-            case .fiveMinutes: (78, 5)     // 78개 (6.5시간 * 60분 / 5분)
-            default: (1, 60)               // 기본값
+        // 실제 Yahoo Finance API 호출
+        let request = try requestBuilder
+            .path("/v8/finance/chart/\(ticker.symbol)")
+            .queryParam("interval", interval.stringValue)
+            .queryParam("range", periodToRangeString(period))
+            .build()
+        
+        let (data, response) = try await session.urlSession.data(for: request)
+        
+        // HTTP 응답 상태 확인
+        if let httpResponse = response as? HTTPURLResponse {
+            guard httpResponse.statusCode == 200 else {
+                throw YFError.networkError
             }
-            
-            for i in 0..<dataCount {
-                let date = Calendar.current.date(byAdding: .minute, value: i * minuteInterval, to: baseDate)!
-                let basePrice = 150.0
-                let variation = Double.random(in: -2.0...2.0)
-                
-                let mockPrice = YFPrice(
-                    date: date,
-                    open: basePrice + variation,
-                    high: basePrice + variation + 0.5,
-                    low: basePrice + variation - 0.5,
-                    close: basePrice + variation + 0.1,
-                    adjClose: basePrice + variation + 0.1,
-                    volume: Int.random(in: 1000...10000)
-                )
-                mockPrices.append(mockPrice)
-            }
-            
+        }
+        
+        // JSON 파싱
+        let chartResponse = try responseParser.parse(data, type: ChartResponse.self)
+        
+        // 에러 응답 처리
+        if let error = chartResponse.chart.error {
+            throw YFError.apiError(error.description)
+        }
+        
+        // 결과 데이터 처리
+        guard let results = chartResponse.chart.result,
+              let result = results.first else {
             return try YFHistoricalData(
                 ticker: ticker,
-                prices: mockPrices,
-                startDate: baseDate,
+                prices: [],
+                startDate: dateFromPeriod(period),
                 endDate: Date()
             )
         }
         
-        // 기본 모킹 (기존 로직)
-        let mockPrice = YFPrice(
-            date: dateFromPeriod(period),
-            open: 150.0,
-            high: 152.0,
-            low: 149.0,
-            close: 151.0,
-            adjClose: 151.0,
-            volume: 1000000
-        )
+        // 가격 데이터 변환
+        let prices = convertToPrices(result)
         
         return try YFHistoricalData(
             ticker: ticker,
-            prices: [mockPrice],
+            prices: prices,
             startDate: dateFromPeriod(period),
             endDate: Date()
         )
@@ -524,6 +514,31 @@ public class YFClient {
     
     private func periodEnd() -> String {
         return String(Int(Date().timeIntervalSince1970))
+    }
+    
+    private func periodToRangeString(_ period: YFPeriod) -> String {
+        switch period {
+        case .oneDay:
+            return "1d"
+        case .oneWeek:
+            return "5d"
+        case .oneMonth:
+            return "1mo"
+        case .threeMonths:
+            return "3mo"
+        case .sixMonths:
+            return "6mo"
+        case .oneYear:
+            return "1y"
+        case .twoYears:
+            return "2y"
+        case .fiveYears:
+            return "5y"
+        case .tenYears:
+            return "10y"
+        case .max:
+            return "max"
+        }
     }
     
     private func dateFromPeriod(_ period: YFPeriod) -> Date {
