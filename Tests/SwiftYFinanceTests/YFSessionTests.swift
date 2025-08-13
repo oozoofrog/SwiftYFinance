@@ -8,7 +8,7 @@ struct YFSessionTests {
         let session = YFSession()
         
         #expect(session.baseURL.absoluteString == "https://query2.finance.yahoo.com")
-        #expect(session.timeout == 30.0)
+        #expect(session.timeout == 15.0)  // Phase 4.5.3에서 15초로 단축
         
         let customSession = YFSession(
             baseURL: URL(string: "https://custom.yahoo.com")!,

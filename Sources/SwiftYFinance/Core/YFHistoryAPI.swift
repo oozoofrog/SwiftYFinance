@@ -94,6 +94,16 @@ extension YFClient {
             )
         }
         
+        // 미래 날짜 요청시 빈 결과 반환
+        if startDate > Date() {
+            return try YFHistoricalData(
+                ticker: ticker,
+                prices: [],
+                startDate: startDate,
+                endDate: endDate
+            )
+        }
+        
         let mockPrice = YFPrice(
             date: startDate,
             open: 200.0,

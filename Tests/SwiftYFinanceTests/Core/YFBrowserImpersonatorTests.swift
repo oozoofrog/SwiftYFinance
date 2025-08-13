@@ -48,7 +48,7 @@ struct YFBrowserImpersonatorTests {
         let urlSession = impersonator.createConfiguredURLSession()
         
         // HTTP/2 지원 확인
-        #expect(urlSession.configuration.httpMaximumConnectionsPerHost >= 6)
+        #expect(urlSession.configuration.httpMaximumConnectionsPerHost == 4)  // Yahoo Finance 서버 부하 고려
         #expect(urlSession.configuration.timeoutIntervalForRequest > 0)
         #expect(urlSession.configuration.httpCookieAcceptPolicy == .always)
     }
