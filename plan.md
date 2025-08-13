@@ -11,8 +11,7 @@
 ### 문서화 및 커밋 규칙
 - ✅ **문서 먼저 업데이트**: 작업 완료 후 바로 커밋하지 말고 **반드시 문서부터 업데이트**
 - ✅ **각 테스트 완료시 서브플랜 업데이트 및 필요시 plan.md도 업데이트 후 git commit 실행**
-  - "단계"는 개별 테스트 케이스 또는 기능적으로 완결된 작업 단위를 의미
-  - 예시: testFetchPriceHistory1Day 테스트 통과, fetchPriceHistory API 연동 완료 등
+- "단계"는 개별 테스트 케이스 또는 기능적으로 완결된 작업 단위를 의미
 
 ### 개발 방법론
 - ✅ **참조 기반 학습**: 각 테스트 작성 전 yfinance-reference/ 폴더의 Python 코드 참조
@@ -23,180 +22,38 @@
 ## 🎯 프로젝트 개요
 Python yfinance 라이브러리를 Swift로 TDD 방식으로 포팅
 
-## 📁 프로젝트 구조
-```
-Sources/SwiftYFinance/
-├── SwiftYFinance.swift     # 메인 패키지 파일
-├── Models/                  # 데이터 모델
-│   ├── YFError.swift       # 에러 타입 정의
-│   ├── YFFinancials.swift  # 재무제표 모델 (Balance Sheet, Cash Flow, Earnings 포함)
-│   ├── YFHistoricalData.swift # 히스토리 데이터 모델
-│   ├── YFPrice.swift       # 가격 데이터 모델
-│   ├── YFQuote.swift       # 실시간 시세 모델
-│   └── YFTicker.swift      # 주식 심볼 모델
-└── Core/                    # 핵심 로직
-    ├── YFClient.swift      # 메인 API 클라이언트
-    ├── YFRequestBuilder.swift # HTTP 요청 빌더
-    ├── YFResponseParser.swift # JSON 응답 파서
-    ├── YFSession.swift     # 네트워크 세션 관리
-    ├── YFCookieManager.swift # 브라우저 쿠키 관리
-    └── YFHTMLParser.swift  # HTML 파싱 (CSRF 토큰)
-```
+---
 
-## 📊 전체 진행 상황
+## 📊 현재 상황 (2025-08-13)
 
-| Phase | 상태 | 진행률 | 상세 계획 |
-|-------|------|--------|-----------|
-| **Phase 1** | ✅ 완료 | 100% | [기본 구조 설정](docs/plans/phase1-setup.md) |
-| **Phase 2** | ✅ 완료 | 100% | [Pure Data Model](docs/plans/phase2-models.md) |
-| **Phase 3** | 🚨 재검토 필요 | 60% | [Network Layer](docs/plans/phase3-network.md) |
-| **Phase 4** | ✅ 완료 | 100% | [API Integration](docs/plans/phase4-api-integration.md) |
-| **Phase 5** | ⏳ 대기 | 0% | [Advanced Features](docs/plans/phase5-advanced.md) |
-| **Phase 6** | ⏳ 대기 | 0% | [WebSocket](docs/plans/phase6-websocket.md) |
-| **Phase 7** | ⏳ 대기 | 0% | [Domain Models](docs/plans/phase7-domain.md) |
-| **Phase 8** | ⏳ 대기 | 0% | [Screener](docs/plans/phase8-screener.md) |
-| **Phase 9** | ⏳ 대기 | 0% | [Utilities](docs/plans/phase9-utilities.md) |
-| **Phase 10** | ⏳ 대기 | 0% | [Performance](docs/plans/phase10-performance.md) |
+### 완료된 Phase
+| Phase | 상태 | 상세 계획 |
+|-------|------|-----------|
+| **Phase 1-4** | ✅ 완료 | [기본 구조, 모델, 네트워크, API 통합](docs/plans/) |
 
-## ✅ 현재 완료 상태
-
-### Phase 4: API Integration (100% 완료)
-- ✅ **Phase 4.1 완료**: Network Layer 실제 구현
-  - YFRequestBuilder, YFSession, YFResponseParser 실제 API 연동 완성
-- ✅ **Phase 4.2 완료**: 모든 API 메서드 실제 전환 (6/6 완료)
-  - fetchPriceHistory, fetchQuote, fetchFinancials, fetchBalanceSheet, fetchCashFlow, fetchEarnings 실제 API 연동
-- ✅ **Phase 4.3 완료**: Yahoo Finance CSRF 인증 시스템
-  - quoteSummary API 접근을 위한 CSRF 토큰/쿠키 관리
-- ✅ **Phase 4.4 완료**: 브라우저 수준 쿠키 관리 시스템
-  - HTTPCookieStorage 자동 관리, User-Agent 로테이션, A3 쿠키 처리
-
-**상세 진행사항**: 
-- [Phase 4 API Integration](docs/plans/phase4-api-integration.md)
-- [Phase 4.3 CSRF 인증 시스템](docs/plans/phase4-csrf-authentication.md)
-- [Phase 4.4 브라우저 쿠키 관리](docs/plans/phase4-cookie-management.md)
-
-## 🏗️ 소스 파일 구조 정리 (진행 중)
-
-### ✅ 완료된 분리 작업 (2025-08-13)
-- **YFClient.swift**: 856줄 → 157줄 (✅ 분리 완료)
-  - YFEnums.swift (52줄): YFPeriod, YFInterval enum ✅
-  - YFQuoteAPI.swift (137줄): 실시간 시세 API 메서드 ✅
-  - YFFinancialsAPI.swift (463줄): 재무 데이터 API 메서드 (🚨 추가 분리 필요)
-  - YFBalanceSheetAPI.swift (149줄): 대차대조표 API 메서드 ✅
-
-### ✅ YFClient.swift 및 API 분리 완료 (2025-08-13)
-- **YFClient.swift**: 856줄 → 157줄 ✅ 완료
-- **YFFinancialsAPI.swift**: 463줄 → 153줄 ✅ 완료
-- **YFCashFlowAPI.swift**: 151줄 ✅ 생성 완료
-- **YFEarningsAPI.swift**: 179줄 ✅ 생성 완료
-- **YFBalanceSheetAPI.swift**: 149줄 ✅ 생성 완료
-
-### 🚨 남은 분리 작업
-- **YFFinancials.swift**: 395줄 (🚨 분리 필요 - 4개 모델 파일로 분리)
-- **YFSession.swift**: 326줄 (🚨 분리 필요 - 3개 파일로 분리)
-
-**상세 계획**:
-- [파일 구조 정리 가이드](docs/plans/file-organization.md)
-- [소스 파일 리팩토링 전략](docs/plans/source-file-refactoring.md)
-- **Phase 1 & 1.5 완료 (2025-08-13)**: YFClient.swift 및 모든 API 파일 분리 완성
-
-## ✅ 최근 완료 작업 (2025-08-13)
-
-### 1. YFFinancials.swift 파일 분리 완료 ✅ **신규 완료 (2025-08-13)**
-- **YFFinancials.swift** (395줄) → 4개 Models 파일로 분리 완성
-- **TDD 방식**: Red → Green 사이클 적용, 모든 테스트 통과
-
-### 2. 이전 완료 작업들 ✅
-- **테스트 파일 분리**: YFResponseParserTests, YFClientTests → 폴더별 분리
-- **소스 파일 분리**: YFClient.swift → 7개 Core 파일로 분리  
-- **실제 API 연동**: 모든 fetch 메서드 Yahoo Finance API 실제 호출
-- **CSRF 인증 시스템**: 브라우저 모방 쿠키 관리 완성
-- **TDD 방식**: 모든 작업에 Red → Green 사이클 적용
-
-## 🚨 긴급 수정 필요 사항
-
-### Yahoo Finance API 인증 문제 (2025-08-13 발견)
-- **문제**: 13개 테스트가 "Authentication failed" 에러로 실패
-- **실패하는 테스트들**:
-  - QuoteDataTests: testFetchQuoteBasic, testFetchQuoteRealtime, testFetchQuoteAfterHours
-  - FinancialDataTests: testFetchFinancials, testFetchBalanceSheet, testFetchCashFlow, testFetchEarnings  
-  - RealAPITests: testFetchEarningsRealAPI, testFetchBalanceSheetRealAPI
-- **원인 추정**: Yahoo Finance CSRF 인증 시스템 변경 또는 User-Agent 차단
+### 🚨 긴급 수정 필요 사항
+- **Yahoo Finance API 인증 문제**: 13개 테스트가 "Authentication failed" 에러로 실패
 - **우선순위**: 파일 분리 작업 완료 후 즉시 수정 필요
 - **상세 계획**: [Phase 4.5 인증 시스템 재검토](docs/plans/phase4-authentication-fix.md) 생성 예정
 
-## 🎯 다음 우선순위 작업
+---
 
-### 1. 소스 파일 구조 정리 ✅ 대부분 완료
-- **~~YFClient.swift 분리~~**: ~~856줄 → 7개 Core 파일~~ ✅ 완료
-- **~~YFFinancials.swift 분리~~**: ~~395줄 → 4개 Models 파일~~ ✅ 완료 (2025-08-13)
-- **YFSession.swift 분리**: 326줄 → 3개 파일로 분리 ⏳ **다음 우선순위**
+## 🎯 다음 작업
+
+### 1. 소스 파일 구조 정리 (현재 진행 중)
+- **~~YFClient.swift 분리~~**: ✅ 완료
+- **~~YFFinancials.swift 분리~~**: ✅ 완료 (2025-08-13)
+- **YFSession.swift 분리**: ⏳ **다음 우선순위**
+
+**상세 계획**: [파일 구조 정리 가이드](docs/plans/file-organization.md)
 
 ### 2. CSRF 인증 시스템 실제 환경 최적화
-- **현재 상태**: 브라우저 쿠키 관리 완성, 기본 CSRF 구조 준비
-- **목표**: 실제 Yahoo Finance 인증 플로우 완전 호환
-- **방법**: 실제 브라우저 네트워크 분석 및 정밀 모방
+**상세 계획**: [CSRF 인증 시스템](docs/plans/phase4-csrf-authentication.md)
 
-**상세 계획**: [Phase 4.3 CSRF 인증 시스템](docs/plans/phase4-csrf-authentication.md)
+### 3. Phase 5: Advanced Features
+**상세 계획**: [Advanced Features](docs/plans/phase5-advanced.md)
 
-## 📈 주요 성과
-
-### 완성된 기능들
-- ✅ **기본 데이터 모델**: YFTicker, YFPrice, YFHistoricalData, YFQuote
-- ✅ **네트워크 레이어**: 실제 Yahoo Finance API 연동 + 브라우저 모방
-- ✅ **브라우저 쿠키 시스템**: HTTPCookieStorage + A3 쿠키 관리 + User-Agent 로테이션
-- ✅ **CSRF 인증 시스템**: 토큰 추출 + 동의 프로세스 + crumb 관리
-- ✅ **실제 API 구현**: fetchPriceHistory, fetchQuote, fetchFinancials, fetchBalanceSheet, fetchCashFlow, fetchEarnings
-- ✅ **JSON 파싱**: Chart, QuoteSummary, OHLCV 데이터, 에러 응답 처리
-
-### 테스트 통계
-```
-총 테스트 파일: 16개 (Parser/, Client/, Integration/ 폴더 구조화 완료)
-총 테스트 케이스: 64개 (RealAPI 테스트 3개 추가)
-실제 API 연동 테스트: ✅ 6개 (fetchPriceHistory, fetchQuote, fetchFinancials, fetchBalanceSheet, fetchCashFlow, fetchEarnings)
-모킹 기반 테스트: ✅ 50개+ (기존 테스트 유지)
-TDD 기반 개발: ✅ Red → Green → Refactor 사이클 적용
-평균 실행 시간: 실제 API 테스트 0.7-1.0초, 모킹 테스트 0.01초
-
-테스트 구조:
-- Parser/ (4개 파일): JSON 파싱 테스트
-- Client/ (3개 파일): API 클라이언트 테스트
-- Core/ (4개 파일): 핵심 로직 테스트
-- Integration/ (1개 파일): 실제 API 통합 테스트
-- Models/ (3개 파일): 데이터 모델 테스트
-```
-
-## 🎯 다음 작업 계획
-
-### 🚨 즉시 실행 (최우선순위)
-1. **소스 파일 구조 정리** - 유지보수성 향상을 위한 필수 작업
-   - **Phase 1**: YFClient.swift (1151줄) → 7개 파일로 분리
-     - YFEnums.swift (60줄): YFPeriod, YFInterval enum
-     - YFChartModels.swift (100줄): Chart API 응답 구조체
-     - YFQuoteModels.swift (140줄): Quote API 응답 구조체
-     - YFHistoryAPI.swift (150줄): 가격 이력 API 메서드
-     - YFQuoteAPI.swift (100줄): 실시간 시세 API 메서드
-     - YFFinancialsAPI.swift (350줄): 재무 데이터 API 메서드
-     - YFClient.swift (200줄): 메인 클래스만 유지
-   - **Phase 2**: YFFinancials.swift (395줄) → 4개 파일로 분리
-     - YFFinancials.swift (90줄): 기본 재무제표
-     - YFBalanceSheet.swift (90줄): 대차대조표
-     - YFCashFlow.swift (130줄): 현금흐름표
-     - YFEarnings.swift (185줄): 손익계산서
-   - **Phase 3**: YFSession.swift (326줄) → 3개 파일로 분리
-     - YFSession.swift (150줄): 메인 세션 클래스
-     - YFSessionAuth.swift (100줄): CSRF 인증
-     - YFSessionCookie.swift (76줄): 쿠키 관리
-
-2. **~~fetchEarnings 실제 API 연동~~** ✅ 완료
-   - ~~testFetchEarningsRealAPI 테스트 실행 및 구현~~ ✅ 완료
-   - ~~TDD Red → Green → Refactor 사이클 완료~~ ✅ 완료
-
-### 중기 계획 (다음 주)
-- **~~Phase 4 완료~~**: ~~모든 API 메서드 실제 구현 전환 완료~~ ✅ 완료
-- **Phase 5 시작**: Advanced Features (Multiple Tickers, Download, Search)
-- **소스 파일 구조 정리**: YFClient.swift, YFFinancials.swift, YFSession.swift 분리
-- **실제 API 구조 파싱**: 현재 HTTP 검증 → 실제 데이터 파싱으로 업그레이드
+---
 
 ## 🔗 작업 절차
 
