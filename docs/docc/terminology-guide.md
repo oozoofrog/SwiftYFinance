@@ -12,15 +12,5 @@
 - 실행 가능한 예시 코드 제공
 - 매개변수와 반환값 명확히 설명
 
-## 아키텍처 원칙
-- **모델**: 순수한 데이터 구조 (API 호출 금지)
-- **클라이언트**: 모든 API 호출은 YFClient를 통해
-
-```swift
-// ✅ 올바른 패턴
-let client = YFClient()
-let quote = try await client.fetchQuote(ticker: ticker)
-
-// ❌ 잘못된 패턴  
-let quote = try await YFTicker.fetchQuote() // 모델에 API 로직 금지
-```
+## 참고
+자세한 아키텍처 원칙과 개발 가이드라인은 [개발 원칙](../development-principles.md)을 참조하세요.

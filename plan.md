@@ -32,15 +32,10 @@ Python yfinance 라이브러리를 Swift로 포팅한 종합 금융 데이터 �
 - 검색 자동완성
 - 고급 필터링
 
-## 개발 원칙
-- **TDD**: Red → Green → Refactor 사이클
-- **Swift 6.1**: 최신 언어 기능 활용
-- **Async/Await**: 현대적 동시성 프로그래밍
-- **모듈화 설계**: 30+ 개 전문화된 파일
-
 ## 문서 구조
 
 ### 개발 문서
+- **[개발 원칙](docs/development-principles.md)**
 - **[Phase 6 검색 기능 계획](docs/plans/company-name-search-feature-plan.md)**
 
 ### 참조 문서
