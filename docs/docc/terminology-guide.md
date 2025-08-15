@@ -105,6 +105,53 @@ let quote = try await client.fetchQuote(symbol: symbol)  // ❌ 타입 혼동
 - 한국 주식: 예시 목적으로만 사용
 - 가상 데이터 사용 시 명확히 표기
 
+## 아키텍처 원칙
+
+### 관심사 분리 (Separation of Concerns)
+
+SwiftYFinance는 명확한 아키텍처 원칙을 따릅니다:
+
+#### 모델 (Models)
+- **목적**: 순수한 데이터 표현
+- **허용**: 계산 속성, 편의 초기화, 형변환 메서드
+- **금지**: API 호출, 네트워크 로직, 비동기 작업
+
+```swift
+// ✅ 올바른 모델 확장
+extension YFTicker {
+    var displayName: String { symbol }
+    func toSearchQuery() -> YFSearchQuery { ... }
+}
+
+// ❌ 잘못된 모델 확장  
+extension YFTicker {
+    static func search(companyName: String) async throws -> [YFSearchResult] { ... } // 금지!
+    func fetchQuote() async throws -> YFQuote { ... } // 금지!
+}
+```
+
+#### 클라이언트 (YFClient)
+- **목적**: 모든 API 호출 및 네트워크 로직 담당
+- **패턴**: 확장으로 기능별 API 그룹화
+
+```swift
+// ✅ 올바른 클라이언트 패턴
+extension YFClient {
+    public func search(companyName: String) async throws -> [YFSearchResult]
+    public func fetchQuote(ticker: YFTicker) async throws -> YFQuote
+}
+```
+
+### 일관성 보장
+모든 API는 동일한 호출 패턴을 사용합니다:
+
+```swift
+let client = YFClient()
+let quote = try await client.fetchQuote(ticker: ticker)
+let financials = try await client.fetchFinancials(ticker: ticker)  
+let searchResults = try await client.search(companyName: "Apple")
+```
+
 ## 일관성 체크리스트
 
 ### 문서 작성 시 확인사항
@@ -114,6 +161,7 @@ let quote = try await client.fetchQuote(symbol: symbol)  // ❌ 타입 혼동
 - [ ] 코드 예시 실행 가능성
 - [ ] 매개변수 설명 완전성
 - [ ] 반환값 설명 구체성
+- [ ] 아키텍처 원칙 준수 (모델에 API 로직 금지)
 
 ### 코드 리뷰 시 확인사항
 - [ ] 네이밍 컨벤션 준수
@@ -121,6 +169,8 @@ let quote = try await client.fetchQuote(symbol: symbol)  // ❌ 타입 혼동
 - [ ] 예시 코드 정확성
 - [ ] 용어 사용 일관성
 - [ ] 한글 번역 자연스러움
+- [ ] 관심사 분리 원칙 준수
+- [ ] 기존 API 패턴과의 일관성
 
 ---
 
