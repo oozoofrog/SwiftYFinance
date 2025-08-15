@@ -1,10 +1,10 @@
 # ``SwiftYFinance``
 
-Yahoo Finance API를 위한 완전한 Swift 네이티브 라이브러리
+Yahoo Finance API를 위한 Swift 네이티브 라이브러리
 
 ## Overview
 
-SwiftYFinance는 Python의 yfinance 라이브러리를 Swift로 완전히 포팅한 금융 데이터 라이브러리입니다. Yahoo Finance API를 통해 주식, ETF, 암호화폐, 통화 등 다양한 금융 상품의 데이터를 실시간으로 가져올 수 있습니다.
+SwiftYFinance는 Python의 yfinance 라이브러리를 Swift로 포팅한 금융 데이터 라이브러리입니다. Yahoo Finance API를 통해 주식, ETF, 암호화폐, 통화 등 다양한 금융 상품의 데이터를 실시간으로 가져올 수 있습니다.
 
 ### 주요 기능
 

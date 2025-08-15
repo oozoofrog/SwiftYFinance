@@ -8,7 +8,7 @@ SwiftYFinance는 Yahoo Finance API에 안정적으로 접근하기 위해 고급
 
 ## Browser Impersonation
 
-SwiftYFinance는 Chrome 136 브라우저를 완벽하게 모방하여 Yahoo Finance의 차단을 우회합니다:
+SwiftYFinance는 Chrome 136 브라우저를 모방하여 Yahoo Finance의 차단을 우회합니다:
 
 ### 자동 브라우저 모방
 
