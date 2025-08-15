@@ -26,41 +26,73 @@ SwiftYFinance는 Python의 yfinance 라이브러리를 Swift로 완전히 포팅
 
 ## Topics
 
-### Getting Started
+### Essentials
+
+라이브러리를 시작하고 기본 기능을 익히기 위한 필수 가이드입니다.
 
 - <doc:GettingStarted>
 - <doc:BasicUsage>
 - <doc:Authentication>
 
-### 핵심 API
+### Core API
+
+SwiftYFinance의 핵심 클래스와 인터페이스입니다.
 
 - ``YFClient``
 - ``YFTicker``
 - ``YFError``
 
-### 데이터 모델
+### Data Models
 
+금융 데이터를 표현하는 모든 모델 타입들입니다.
+
+#### Quote Data
 - ``YFQuote``
 - ``YFPrice``
 - ``YFHistoricalData``
+
+#### Financial Statements
 - ``YFFinancials``
 - ``YFBalanceSheet``
 - ``YFCashFlow``
 - ``YFEarnings``
 
-### 고급 기능
-
-- ``YFOptionsChain``
+#### Chart & Technical Data
+- ``ChartResponse``
+- ``ChartResult``
 - ``YFTechnicalIndicators``
+
+#### Options & Advanced
+- ``YFOptionsChain``
+- ``YFFinancialsAdvanced``
 - ``YFNewsArticle``
+
+### Advanced Features
+
+고급 기능과 특화된 도구들입니다.
+
+- <doc:AdvancedFeatures>
+- <doc:TechnicalAnalysis>
+- <doc:OptionsTrading>
 - ``YFScreener``
 
-### 네트워크 & 인증
+### Network & Authentication
+
+네트워크 통신과 인증을 담당하는 내부 구조입니다.
 
 - ``YFSession``
 - ``YFRequestBuilder``
 - ``YFResponseParser``
 - ``YFBrowserImpersonator``
+
+### Best Practices
+
+효율적이고 안전한 사용을 위한 가이드입니다.
+
+- <doc:BestPractices>
+- <doc:PerformanceOptimization>
+- <doc:ErrorHandling>
+- <doc:FAQ>
 
 ## 시작하기
 
