@@ -459,4 +459,4 @@ print("• 변동성 1% 변화 시 포트폴리오 변화: $\(String(format: "%.
 - <doc:AdvancedFeatures> - 추가 옵션 분석 도구들
 - <doc:TechnicalAnalysis> - 기술적 분석과 옵션 조합
 - <doc:BestPractices> - 옵션 백테스팅 및 리스크 관리
-- <doc:RiskManagement> - 포트폴리오 리스크 관리 심화
+- <doc:ErrorHandling> - 포트폴리오 리스크 관리 심화

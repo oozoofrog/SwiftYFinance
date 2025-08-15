@@ -345,4 +345,4 @@ if await checkNetworkConnectivity() {
 
 - <doc:AdvancedFeatures> - 고급 기능 활용
 - <doc:BestPractices> - 성능 최적화 및 모범 사례
-- <doc:Troubleshooting> - 문제 해결 가이드
+- <doc:FAQ> - 문제 해결 가이드
