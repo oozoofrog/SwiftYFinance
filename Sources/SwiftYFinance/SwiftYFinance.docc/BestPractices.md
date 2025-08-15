@@ -4,7 +4,7 @@ SwiftYFinance를 효율적이고 안전하게 사용하기 위한 모범 사례
 
 ## Overview
 
-SwiftYFinance를 사용할 때 성능, 안정성, 그리고 Yahoo Finance API 정책을 고려한 모범 사례들을 소개합니다. 이 가이드를 따르면 더 나은 성능과 안정적인 서비스를 제공할 수 있습니다.
+SwiftYFinance를 사용할 때 성능, 안정성, 그리고 Yahoo Finance API 정책을 고려한 모범 사례들을 소개합니다. 이 가이드를 따르면 더 나은 성능과 안정적인 동작을 얻을 수 있습니다.
 
 ## Rate Limiting & API Usage
 
