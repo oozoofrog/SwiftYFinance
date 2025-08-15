@@ -1,32 +1,78 @@
 import Foundation
 
 /// Yahoo Finance API 요청의 rate limiting을 관리하는 싱글톤 actor
-/// Python yfinance의 rate limiting 전략을 Swift Concurrency로 포팅
-/// Phase 4.5.3: 네트워크 계층 최적화로 재시도 전략 강화
+/// 
+/// Yahoo Finance 서버의 부하를 줄이고 API 차단을 방지하기 위해 동시 요청 수와 요청 간격을 제어합니다.
+/// Python yfinance의 rate limiting 전략을 Swift Concurrency로 포팅하였습니다.
+///
+/// ## 주요 기능
+/// - **동시 요청 제한**: 최대 3개의 동시 요청으로 제한
+/// - **요청 간격 제어**: 최소 0.3초 간격으로 요청 발송
+/// - **지수 백오프**: 재시도 시 점진적으로 대기 시간 증가
+/// - **Actor 기반**: Swift Concurrency를 활용한 안전한 비동기 처리
+///
+/// ## 사용 예시
+/// ```swift
+/// // 기본 사용 (자동 rate limiting)
+/// let result = await YFRateLimiter.shared.executeRequest {
+///     try await client.fetchQuote(ticker: ticker)
+/// }
+///
+/// // 재시도가 포함된 실행
+/// let result = try await YFRateLimiter.shared.executeWithRetry(maxRetries: 3) {
+///     try await client.fetchFinancials(ticker: ticker)
+/// }
+/// ```
+///
+/// - Note: 이 클래스는 내부적으로 YFClient에서 자동 사용되므로 직접 호출할 필요는 없습니다.
 actor YFRateLimiter {
     
     /// 싱글톤 인스턴스
+    /// 
+    /// 애플리케이션 전체에서 단일 rate limiter 인스턴스를 공유하여 
+    /// 모든 Yahoo Finance API 호출을 통합 관리합니다.
     static let shared = YFRateLimiter()
     
-    /// 최대 동시 요청 수 (Phase 4.5.3: Yahoo Finance 서버 안정성 고려)
-    private let maxConcurrentRequests = 3  // 2 → 3으로 증가 (네트워크 최적화로 인한 여유)
+    /// 최대 동시 요청 수
+    /// 
+    /// Yahoo Finance 서버의 안정성을 고려하여 설정된 값입니다.
+    /// 너무 높으면 서버에서 차단될 수 있고, 너무 낮으면 성능이 저하됩니다.
+    private let maxConcurrentRequests = 3
     
-    /// 최소 요청 간격 (초) - Phase 4.5.3: 응답 속도 향상으로 간격 단축
-    private let minimumInterval: TimeInterval = 0.3  // 0.5 → 0.3초로 단축
+    /// 최소 요청 간격 (초)
+    /// 
+    /// 연속된 요청 사이의 최소 대기 시간입니다.
+    /// 이 간격을 통해 서버 부하를 줄이고 안정적인 API 접근을 보장합니다.
+    private let minimumInterval: TimeInterval = 0.3
     
     /// 현재 실행 중인 요청 수
+    /// 
+    /// 동시 요청 제한을 관리하기 위해 추적되는 값입니다.
     private var activeRequests = 0
     
-    /// 마지막 요청 시간 추적
+    /// 마지막 요청 시간
+    /// 
+    /// 최소 요청 간격을 계산하기 위해 사용됩니다.
     private var lastRequestTime: Date = Date.distantPast
     
     /// 대기 중인 요청들을 위한 continuation 배열
+    /// 
+    /// 동시 요청 수 제한에 걸린 요청들을 순서대로 처리하기 위한 큐입니다.
     private var waitingContinuations: [CheckedContinuation<Void, Never>] = []
     
+    /// Rate Limiter 초기화
+    /// 
+    /// private으로 설정되어 싱글톤 패턴을 강제합니다.
     private init() {}
     
-    /// 요청을 rate limiting과 함께 실행
-    /// - Parameter operation: 실행할 비동기 작업
+    /// 주어진 작업을 rate limiting 제약 하에서 실행합니다
+    /// 
+    /// 이 메서드는 동시 요청 수 제한과 최소 요청 간격을 자동으로 관리하며,
+    /// 필요시 작업을 대기열에 추가하여 순차적으로 처리합니다.
+    /// 
+    /// - Parameter operation: 실행할 비동기 작업 (반환값 있음)
+    /// - Returns: 작업의 실행 결과
+    /// - Throws: 작업 실행 중 발생한 모든 에러를 전파
     func executeRequest<T: Sendable>(_ operation: @escaping @Sendable () async throws -> T) async rethrows -> T {
         // 요청 실행 권한 획득 대기
         await acquirePermission()
@@ -45,8 +91,12 @@ actor YFRateLimiter {
         }
     }
     
-    /// 요청을 rate limiting과 함께 실행 (반환값 없음)
-    /// - Parameter operation: 실행할 비동기 작업
+    /// 주어진 작업을 rate limiting 제약 하에서 실행합니다 (반환값 없음)
+    /// 
+    /// 반환값이 없는 작업을 위한 오버로드 메서드입니다.
+    /// 동시 요청 수 제한과 최소 요청 간격을 자동으로 관리합니다.
+    /// 
+    /// - Parameter operation: 실행할 비동기 작업 (반환값 없음)
     func executeRequest(_ operation: @escaping @Sendable () async -> Void) async {
         // 요청 실행 권한 획득 대기
         await acquirePermission()

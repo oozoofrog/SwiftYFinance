@@ -1,12 +1,40 @@
 import Foundation
 
-/// Yahoo Finance HTML 응답에서 필요한 데이터를 추출하는 파서
-/// yfinance-reference/yfinance/data.py의 BeautifulSoup 로직을 Swift로 구현
+/// Yahoo Finance HTML 응답에서 인증 토큰을 추출하는 파서
+/// 
+/// Yahoo Finance 웹페이지의 HTML 응답에서 CSRF 토큰, 세션 ID 등 
+/// 인증에 필요한 데이터를 정규표현식으로 추출합니다.
+/// Python yfinance의 BeautifulSoup 로직을 Swift NSRegularExpression으로 포팅하였습니다.
+///
+/// ## 주요 기능
+/// - **CSRF 토큰 추출**: Yahoo Finance 인증에 필요한 CSRF 토큰 파싱
+/// - **세션 ID 추출**: 세션 관리를 위한 세션 ID 파싱
+/// - **정규표현식 기반**: BeautifulSoup 대신 Swift 네이티브 정규표현식 사용
+/// - **에러 처리**: 파싱 실패 시 안전한 nil 반환
+///
+/// ## 사용 예시
+/// ```swift
+/// let parser = YFHTMLParser()
+/// let html = "<!-- Yahoo Finance HTML 응답 -->"
+/// 
+/// if let csrfToken = parser.extractCSRFToken(from: html) {
+///     print("CSRF 토큰: \(csrfToken)")
+/// }
+/// 
+/// let tokens = parser.extractConsentTokens(from: html)
+/// print("추출된 토큰들: \(tokens)")
+/// ```
+///
+/// - SeeAlso: yfinance-reference/yfinance/data.py의 BeautifulSoup 로직
 class YFHTMLParser {
     
-    /// HTML에서 CSRF 토큰을 추출
-    /// - Parameter html: HTML 문자열
-    /// - Returns: CSRF 토큰 값 또는 nil
+    /// HTML에서 CSRF 토큰을 추출합니다
+    /// 
+    /// Yahoo Finance 웹페이지의 HTML 소스에서 `<input name="csrfToken" value="...">` 형태의
+    /// 히든 필드를 찾아 CSRF 토큰 값을 추출합니다.
+    /// 
+    /// - Parameter html: 파싱할 HTML 문자열
+    /// - Returns: 추출된 CSRF 토큰 값, 없으면 nil
     /// - SeeAlso: yfinance-reference/yfinance/data.py:_get_cookie_csrf() BeautifulSoup 파싱
     func extractCSRFToken(from html: String) -> String? {
         // <input name="csrfToken" value="TOKEN_VALUE"> 패턴 검색

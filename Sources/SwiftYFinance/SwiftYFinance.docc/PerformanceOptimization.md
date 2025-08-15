@@ -883,10 +883,173 @@ Task {
 }
 ```
 
+## 비용 및 리소스 관리
+
+### 1. 네트워크 비용 최적화
+
+SwiftYFinance는 무료 API를 사용하지만, 네트워크 데이터 사용량을 고려해야 합니다:
+
+```swift
+class NetworkCostManager {
+    private var dailyRequestCount = 0
+    private var dailyDataTransfer: Int64 = 0
+    private let maxDailyRequests = 1000
+    private let maxDailyDataMB = 100
+    
+    func trackRequest(responseSize: Int64) {
+        dailyRequestCount += 1
+        dailyDataTransfer += responseSize
+        
+        if dailyRequestCount > maxDailyRequests {
+            print("⚠️ 일일 요청 한도 (\(maxDailyRequests)) 초과")
+        }
+        
+        let dailyDataMB = dailyDataTransfer / (1024 * 1024)
+        if dailyDataMB > maxDailyDataMB {
+            print("⚠️ 일일 데이터 사용량 (\(maxDailyDataMB)MB) 초과")
+        }
+    }
+    
+    func getDailyUsage() -> (requests: Int, dataMB: Int64) {
+        return (dailyRequestCount, dailyDataTransfer / (1024 * 1024))
+    }
+}
+
+let costManager = NetworkCostManager()
+
+// API 호출 시 비용 추적
+let response = try await client.fetchQuote(ticker: ticker)
+let responseSize = MemoryLayout.size(ofValue: response) // 추정치
+costManager.trackRequest(responseSize: Int64(responseSize))
+```
+
+### 2. 배터리 사용량 최적화
+
+모바일 디바이스에서의 배터리 효율성:
+
+```swift
+class BatteryEfficientClient {
+    private let client = YFClient()
+    private var isLowPowerModeEnabled: Bool {
+        ProcessInfo.processInfo.isLowPowerModeEnabled
+    }
+    
+    func adaptiveDataFetch(symbols: [String]) async throws -> [YFQuote] {
+        let batchSize = isLowPowerModeEnabled ? 3 : 10
+        let requestInterval = isLowPowerModeEnabled ? 1.0 : 0.3
+        
+        var results: [YFQuote] = []
+        
+        for batch in symbols.chunked(into: batchSize) {
+            for symbol in batch {
+                let ticker = try YFTicker(symbol: symbol)
+                let quote = try await client.fetchQuote(ticker: ticker)
+                results.append(quote)
+                
+                // 저전력 모드에서는 더 긴 간격
+                try await Task.sleep(nanoseconds: UInt64(requestInterval * 1_000_000_000))
+            }
+        }
+        
+        return results
+    }
+}
+```
+
+### 3. 저장소 비용 관리
+
+```swift
+class StorageCostOptimizer {
+    private let maxCacheSize: Int64 = 50 * 1024 * 1024 // 50MB
+    private var currentCacheSize: Int64 = 0
+    
+    func addToCache<T: Codable>(_ object: T, key: String) throws {
+        let data = try JSONEncoder().encode(object)
+        
+        if currentCacheSize + Int64(data.count) > maxCacheSize {
+            clearOldestCacheEntries()
+        }
+        
+        // 캐시에 저장
+        UserDefaults.standard.set(data, forKey: key)
+        currentCacheSize += Int64(data.count)
+    }
+    
+    private func clearOldestCacheEntries() {
+        // 오래된 캐시 항목 제거
+        // 실제 구현에서는 LRU 알고리즘 사용
+        currentCacheSize = 0
+        print("💾 캐시 정리 완료 - 저장 공간 확보")
+    }
+}
+```
+
+### 4. 비용 모니터링 대시보드
+
+```swift
+struct CostReport {
+    let networkRequests: Int
+    let dataUsageMB: Double
+    let cacheHitRate: Double
+    let averageResponseTime: TimeInterval
+    let batteryImpactScore: Double // 0-100
+    
+    func printCostSummary() {
+        print("💰 일일 비용 리포트")
+        print("├─ 네트워크 요청: \(networkRequests)회")
+        print("├─ 데이터 사용량: \(String(format: "%.1f", dataUsageMB))MB")
+        print("├─ 캐시 적중률: \(String(format: "%.1f", cacheHitRate * 100))%")
+        print("├─ 평균 응답시간: \(String(format: "%.2f", averageResponseTime))초")
+        print("└─ 배터리 영향도: \(String(format: "%.0f", batteryImpactScore))/100")
+        
+        // 개선 제안
+        if cacheHitRate < 0.7 {
+            print("📈 제안: 캐시 적중률 개선 필요")
+        }
+        if averageResponseTime > 2.0 {
+            print("⚡ 제안: 응답 속도 최적화 필요")
+        }
+        if batteryImpactScore > 70 {
+            print("🔋 제안: 배터리 사용량 최적화 필요")
+        }
+    }
+}
+```
+
+### 5. 스마트 백그라운드 작업
+
+```swift
+import BackgroundTasks
+
+class SmartBackgroundUpdater {
+    private let identifier = "com.yourapp.dataupdate"
+    
+    func scheduleIntelligentUpdate() {
+        let request = BGAppRefreshTaskRequest(identifier: identifier)
+        
+        // 사용자 활동 패턴 기반 스케줄링
+        let userActiveHours = getUserActiveHours()
+        request.earliestBeginDate = Calendar.current.date(
+            byAdding: .hour, 
+            value: userActiveHours.contains(Date().hour) ? 1 : 6,
+            to: Date()
+        )
+        
+        try? BGTaskScheduler.shared.submit(request)
+    }
+    
+    private func getUserActiveHours() -> Set<Int> {
+        // 사용자 활동 패턴 분석 (예: 9시~18시)
+        return Set(9...18)
+    }
+}
+```
+
 ## Next Steps
 
 성능 최적화를 마스터했다면:
 
+- <doc:ImportantNotices> - 비용 및 제약사항 상세 정보
 - <doc:BestPractices> - 전반적인 모범 사례
 - <doc:TechnicalAnalysis> - 최적화된 기술적 분석
 - <doc:AdvancedFeatures> - 고급 기능과 성능
