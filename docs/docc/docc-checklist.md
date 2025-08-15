@@ -44,10 +44,15 @@
 ### Phase 5: DocC 문서 생성 및 배포 🚀
 
 #### 5.1 DocC 카탈로그 설정
-- [ ] Package.swift에 DocC 카탈로그 설정 추가
-- [ ] SwiftYFinance.docc 디렉토리 생성
-- [ ] SwiftYFinance.md (루트 문서) 작성
-- [ ] Info.plist 설정 (카탈로그 메타데이터)
+- [x] Package.swift에 DocC 카탈로그 설정 추가 ✅ (기본 설정 완료)
+- [x] SwiftYFinance.docc 디렉토리 생성 ✅
+- [x] SwiftYFinance.md (루트 문서) 작성 ✅
+- [x] GettingStarted.md 가이드 작성 ✅
+- [x] BasicUsage.md 가이드 작성 ✅
+- [x] Authentication.md 가이드 작성 ✅
+- [x] DocC 빌드 테스트 완료 ✅
+
+**Phase 5.1 완료!** 🎉
 
 #### 5.2 문서 구조 설계
 - [ ] 카탈로그 네비게이션 구조 설계
@@ -56,12 +61,11 @@
 - [ ] 상위-하위 페이지 관계 정의
 
 #### 5.3 콘텐츠 작성
-- [ ] 시작하기 가이드 (Getting Started)
-- [ ] 기본 사용법 튜토리얼
+- [x] 시작하기 가이드 (Getting Started) ✅
+- [x] 기본 사용법 튜토리얼 ✅
 - [ ] 고급 기능 가이드 (Options, Technical Analysis)
 - [ ] 모범 사례 (Best Practices)
-- [ ] 공통 뉔질문제 (FAQ)
-- [ ] 마이그레이션 가이드 (Python yfinance에서)
+- [ ] 공통 질문문제 (FAQ)
 
 #### 5.4 빌드 및 배포
 - [ ] 로컬 DocC 빌드 테스트
