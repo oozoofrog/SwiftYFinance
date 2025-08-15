@@ -20,8 +20,8 @@
 
 ### Phase 3: 네트워크 레이어  
 - [x] YFSession.swift 문서 보완 ✅
-- [ ] YFEnums.swift 문서 보완
-- [ ] YFRequestBuilder.swift 문서 보완
+- [x] YFEnums.swift 문서 보완 ✅
+- [x] YFRequestBuilder.swift 문서 보완 ✅
 - [ ] YFResponseParser.swift 문서 보완
 
 ### Phase 4: 고급 모델
