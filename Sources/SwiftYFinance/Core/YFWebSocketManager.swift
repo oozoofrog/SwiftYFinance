@@ -58,6 +58,52 @@ public class YFWebSocketManager: @unchecked Sendable {
     /// 메시지 디코더
     private let messageDecoder = YFWebSocketMessageDecoder()
     
+    // MARK: - Auto-Reconnection Properties
+    
+    /// 자동 재연결 활성화 여부
+    private var autoReconnectionEnabled: Bool = false
+    
+    /// 재연결 시도 횟수
+    private var reconnectionAttempts: Int = 0
+    
+    /// 총 재연결 시도 횟수 (성공 후에도 유지)
+    private var totalReconnectionAttempts: Int = 0
+    
+    /// 최대 재연결 시도 횟수
+    private var maxReconnectionAttempts: Int = 5
+    
+    /// 초기 재연결 지연 시간 (초)
+    private var initialReconnectionDelay: TimeInterval = 0.5 // 첫 번째 재시도는 더 빠르게
+    
+    /// 최대 재연결 지연 시간 (초)
+    private var maxReconnectionDelay: TimeInterval = 30.0
+    
+    /// 재연결 지연 배수
+    private var reconnectionDelayMultiplier: Double = 2.0
+    
+    /// 재연결 지터 최대값 (초) - 동시 재연결 방지
+    private var reconnectionJitterMax: TimeInterval = 1.0
+    
+    /// 재연결 타스크
+    private var reconnectionTask: Task<Void, Never>?
+    
+    /// 마지막 연결 실패 시간
+    private var lastConnectionFailureTime: Date?
+    
+    /// 연속 실패 횟수 (빠른 실패 감지용)
+    private var consecutiveFailures: Int = 0
+    
+    /// 테스트용 잘못된 연결 모드
+    private var testInvalidConnectionMode: Bool = false
+    
+    // MARK: - Timeout Properties
+    
+    /// 연결 타임아웃 (초)
+    private var connectionTimeout: TimeInterval = 10.0
+    
+    /// 메시지 수신 타임아웃 (초)
+    private var messageTimeout: TimeInterval = 30.0
+    
     // MARK: - Initialization
     
     /// YFWebSocketManager 초기화
@@ -96,6 +142,16 @@ public class YFWebSocketManager: @unchecked Sendable {
     /// 활성 WebSocket 연결을 정상적으로 종료합니다.
     public func disconnect() async {
         connectionState = .disconnected
+        autoReconnectionEnabled = false
+        reconnectionAttempts = 0
+        totalReconnectionAttempts = 0
+        consecutiveFailures = 0
+        lastConnectionFailureTime = nil
+        
+        // 재연결 태스크 취소
+        reconnectionTask?.cancel()
+        reconnectionTask = nil
+        
         subscriptions.removeAll()
         messageContinuation?.finish()
         messageContinuation = nil
@@ -231,7 +287,13 @@ public class YFWebSocketManager: @unchecked Sendable {
                 // WebSocket 연결 오류 처리
                 if connectionState == .connected {
                     connectionState = .disconnected
-                    messageContinuation?.finish()
+                    
+                    // 자동 재연결이 활성화된 경우 재연결 시도
+                    if autoReconnectionEnabled {
+                        await attemptReconnection()
+                    } else {
+                        messageContinuation?.finish()
+                    }
                 }
                 break
             }
@@ -298,10 +360,49 @@ public class YFWebSocketManager: @unchecked Sendable {
     private func connectToURL(_ url: URL) async throws {
         connectionState = .connecting
         
+        #if DEBUG
+        // 테스트용 잘못된 연결 모드
+        if testInvalidConnectionMode {
+            connectionState = .disconnected
+            throw YFError.webSocketError(.connectionFailed("Test invalid connection mode enabled"))
+        }
+        #endif
+        
         do {
-            webSocketTask = urlSession.webSocketTask(with: url)
-            webSocketTask?.resume()
+            // 타임아웃과 함께 연결 시도
+            let timeoutTask = Task {
+                try await Task.sleep(nanoseconds: UInt64(connectionTimeout * 1_000_000_000))
+                throw YFError.webSocketError(.connectionTimeout("Connection timeout after \(connectionTimeout) seconds"))
+            }
+            
+            let connectionTask = Task {
+                webSocketTask = urlSession.webSocketTask(with: url)
+                webSocketTask?.resume()
+                
+                // WebSocket 연결 확인을 위한 간단한 핑 테스트
+                // URLSessionWebSocketTask의 경우 resume() 호출만으로는 실제 연결이 보장되지 않음
+                if let task = webSocketTask {
+                    // 연결 테스트를 위한 핑 메시지 (비어있는 문자열)
+                    let testMessage = URLSessionWebSocketTask.Message.string("")
+                    try await task.send(testMessage)
+                }
+            }
+            
+            // 연결과 타임아웃 중 먼저 완료되는 것을 기다림
+            do {
+                try await connectionTask.value
+                timeoutTask.cancel()
+            } catch {
+                connectionTask.cancel()
+                timeoutTask.cancel()
+                throw error
+            }
+            
             connectionState = .connected
+            
+            // 연결 성공 시 실패 카운터 초기화
+            consecutiveFailures = 0
+            lastConnectionFailureTime = nil
             
             // 메시지 스트림이 활성화되어 있다면 메시지 수신 시작
             if messageContinuation != nil {
@@ -309,8 +410,19 @@ public class YFWebSocketManager: @unchecked Sendable {
                     await startMessageListening()
                 }
             }
+        } catch let error as YFError {
+            connectionState = .disconnected
+            consecutiveFailures += 1
+            lastConnectionFailureTime = Date()
+            webSocketTask?.cancel()
+            webSocketTask = nil
+            throw error
         } catch {
             connectionState = .disconnected
+            consecutiveFailures += 1
+            lastConnectionFailureTime = Date()
+            webSocketTask?.cancel()
+            webSocketTask = nil
             throw YFError.webSocketError(.connectionFailed("Failed to connect to \(url.absoluteString): \(error.localizedDescription)"))
         }
     }
@@ -391,5 +503,274 @@ public class YFWebSocketManager: @unchecked Sendable {
     public func testGetSubscriptions() -> Set<String> {
         return subscriptions
     }
+    
+    /// 자동 재연결 활성화 (테스트용)
+    ///
+    /// DEBUG 빌드에서만 사용할 수 있는 자동 재연결 설정 메서드입니다.
+    ///
+    /// - Parameters:
+    ///   - maxAttempts: 최대 재연결 시도 횟수
+    ///   - initialDelay: 초기 재연결 지연 시간 (초)
+    public func testEnableAutoReconnection(maxAttempts: Int, initialDelay: TimeInterval) {
+        autoReconnectionEnabled = true
+        maxReconnectionAttempts = maxAttempts
+        initialReconnectionDelay = initialDelay
+        reconnectionAttempts = 0
+        totalReconnectionAttempts = 0
+        consecutiveFailures = 0
+        lastConnectionFailureTime = nil
+    }
+    
+    /// 연결 손실 시뮬레이션 (테스트용)
+    ///
+    /// DEBUG 빌드에서만 사용할 수 있는 연결 손실 시뮬레이션 메서드입니다.
+    public func testSimulateConnectionLoss() async {
+        if connectionState == .connected {
+            webSocketTask?.cancel()
+            connectionState = .disconnected
+            
+            if autoReconnectionEnabled {
+                await attemptReconnection()
+            }
+        }
+    }
+    
+    /// 재연결 시도 횟수 조회 (테스트용)
+    ///
+    /// DEBUG 빌드에서만 사용할 수 있는 재연결 시도 횟수 조회 메서드입니다.
+    ///
+    /// - Returns: 현재까지의 총 재연결 시도 횟수
+    public func testGetReconnectionAttempts() -> Int {
+        return totalReconnectionAttempts
+    }
+    
+    /// 재연결 파라미터 설정 (테스트용)
+    ///
+    /// DEBUG 빌드에서만 사용할 수 있는 재연결 파라미터 설정 메서드입니다.
+    ///
+    /// - Parameters:
+    ///   - initialDelay: 초기 지연 시간 (초)
+    ///   - maxDelay: 최대 지연 시간 (초)
+    ///   - multiplier: 지연 시간 배수
+    public func testSetReconnectionParams(
+        initialDelay: TimeInterval,
+        maxDelay: TimeInterval,
+        multiplier: Double
+    ) {
+        initialReconnectionDelay = initialDelay
+        maxReconnectionDelay = maxDelay
+        reconnectionDelayMultiplier = multiplier
+    }
+    
+    /// 재연결 지연 시간 계산 (테스트용)
+    ///
+    /// DEBUG 빌드에서만 사용할 수 있는 지연 시간 계산 메서드입니다.
+    ///
+    /// - Parameter attempt: 재연결 시도 횟수
+    /// - Returns: 계산된 지연 시간 (초)
+    public func testCalculateReconnectionDelay(attempt: Int) -> TimeInterval {
+        return calculateReconnectionDelay(attempt: attempt)
+    }
+    
+    /// 잘못된 연결 모드 설정 (테스트용)
+    ///
+    /// DEBUG 빌드에서만 사용할 수 있는 잘못된 연결 모드 설정 메서드입니다.
+    ///
+    /// - Parameter enabled: 잘못된 연결 모드 활성화 여부
+    public func testSetInvalidConnectionMode(_ enabled: Bool) {
+        testInvalidConnectionMode = enabled
+    }
+    
+    /// 타임아웃 설정 (테스트용)
+    ///
+    /// DEBUG 빌드에서만 사용할 수 있는 타임아웃 설정 메서드입니다.
+    ///
+    /// - Parameters:
+    ///   - connectionTimeout: 연결 타임아웃 (초)
+    ///   - messageTimeout: 메시지 수신 타임아웃 (초)
+    public func testSetTimeouts(connectionTimeout: TimeInterval, messageTimeout: TimeInterval) {
+        self.connectionTimeout = connectionTimeout
+        self.messageTimeout = messageTimeout
+    }
+    
+    /// 연속 실패 횟수 조회 (테스트용)
+    ///
+    /// DEBUG 빌드에서만 사용할 수 있는 연속 실패 횟수 조회 메서드입니다.
+    ///
+    /// - Returns: 현재 연속 실패 횟수
+    public func testGetConsecutiveFailures() -> Int {
+        return consecutiveFailures
+    }
+    
+    /// 마지막 연결 실패 시간 조회 (테스트용)
+    ///
+    /// DEBUG 빌드에서만 사용할 수 있는 마지막 실패 시간 조회 메서드입니다.
+    ///
+    /// - Returns: 마지막 연결 실패 시간
+    public func testGetLastConnectionFailureTime() -> Date? {
+        return lastConnectionFailureTime
+    }
+    
+    /// 최적화된 재연결 지연 시간 계산 (테스트용)
+    ///
+    /// DEBUG 빌드에서만 사용할 수 있는 최적화된 지연 시간 계산 메서드입니다.
+    ///
+    /// - Parameter attempt: 재연결 시도 횟수
+    /// - Returns: 계산된 지연 시간 (초)
+    public func testCalculateOptimizedReconnectionDelay(attempt: Int) -> TimeInterval {
+        return calculateOptimizedReconnectionDelay(attempt: attempt)
+    }
     #endif
+    
+    // MARK: - Auto-Reconnection Implementation
+    
+    /// 자동 재연결 시도
+    ///
+    /// 최적화된 exponential backoff + jitter 알고리즘을 사용하여 재연결을 시도합니다.
+    private func attemptReconnection() async {
+        guard autoReconnectionEnabled else { return }
+        guard reconnectionAttempts < maxReconnectionAttempts else {
+            print("⚠️ Max reconnection attempts (\(maxReconnectionAttempts)) reached")
+            messageContinuation?.finish()
+            return
+        }
+        
+        // 빠른 실패 감지: 연속 실패가 많으면 재연결 간격 늘리기
+        if shouldSkipReconnectionAttempt() {
+            print("⏭️ Skipping reconnection attempt due to recent failures")
+            await scheduleDelayedReconnection()
+            return
+        }
+        
+        reconnectionAttempts += 1
+        totalReconnectionAttempts += 1
+        consecutiveFailures += 1
+        lastConnectionFailureTime = Date()
+        
+        // 최적화된 지연 시간 계산 (exponential backoff + jitter)
+        let delay = calculateOptimizedReconnectionDelay(attempt: reconnectionAttempts)
+        
+        print("🔄 Reconnection attempt \(reconnectionAttempts)/\(maxReconnectionAttempts) in \(String(format: "%.1f", delay))s")
+        
+        reconnectionTask = Task {
+            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            
+            // 취소되지 않았고 여전히 재연결이 필요한 경우
+            if !Task.isCancelled && connectionState == .disconnected && autoReconnectionEnabled {
+                do {
+                    try await connect()
+                    
+                    // 연결 성공 시 상태 초기화
+                    reconnectionAttempts = 0
+                    consecutiveFailures = 0
+                    lastConnectionFailureTime = nil
+                    print("✅ Reconnection successful after \(totalReconnectionAttempts) total attempts")
+                    
+                    // 재구독 (기존 구독 유지)
+                    if !subscriptions.isEmpty {
+                        try await subscribe(to: Array(subscriptions))
+                    }
+                    
+                    // 메시지 리스닝 재시작
+                    Task {
+                        await startMessageListening()
+                    }
+                    
+                } catch {
+                    print("❌ Reconnection attempt \(reconnectionAttempts) failed: \(error)")
+                    
+                    // 에러 타입에 따른 재시도 결정
+                    if shouldRetryAfterError(error) && reconnectionAttempts < maxReconnectionAttempts {
+                        await attemptReconnection()
+                    } else {
+                        print("⚠️ All reconnection attempts failed or permanent error detected")
+                        messageContinuation?.finish()
+                    }
+                }
+            }
+        }
+    }
+    
+    /// 최적화된 재연결 지연 시간 계산 (exponential backoff + jitter)
+    ///
+    /// - Parameter attempt: 재연결 시도 횟수 (1부터 시작)
+    /// - Returns: 계산된 지연 시간 (초)
+    private func calculateOptimizedReconnectionDelay(attempt: Int) -> TimeInterval {
+        // 기본 exponential backoff
+        let baseDelay = initialReconnectionDelay * pow(reconnectionDelayMultiplier, Double(attempt - 1))
+        let cappedDelay = min(baseDelay, maxReconnectionDelay)
+        
+        // 지터 추가 (동시 재연결 방지)
+        let jitter = Double.random(in: 0...reconnectionJitterMax)
+        
+        return cappedDelay + jitter
+    }
+    
+    /// 재연결 시도를 건너뛸지 결정
+    ///
+    /// 연속 실패가 많거나 최근에 실패한 경우 재연결을 건너뜁니다.
+    ///
+    /// - Returns: 재연결을 건너뛸지 여부
+    private func shouldSkipReconnectionAttempt() -> Bool {
+        // 연속 실패가 많은 경우
+        if consecutiveFailures >= 3 {
+            // 마지막 실패 후 충분한 시간이 지나지 않았다면 건너뛰기
+            if let lastFailure = lastConnectionFailureTime,
+               Date().timeIntervalSince(lastFailure) < 5.0 {
+                return true
+            }
+        }
+        
+        return false
+    }
+    
+    /// 지연된 재연결 스케줄링
+    ///
+    /// 빈번한 실패 시 더 긴 간격으로 재연결을 시도합니다.
+    private func scheduleDelayedReconnection() async {
+        let extendedDelay = min(30.0, Double(consecutiveFailures) * 5.0) // 5초씩 늘려서 최대 30초
+        
+        reconnectionTask = Task {
+            try? await Task.sleep(nanoseconds: UInt64(extendedDelay * 1_000_000_000))
+            
+            if !Task.isCancelled && connectionState == .disconnected && autoReconnectionEnabled {
+                await attemptReconnection()
+            }
+        }
+    }
+    
+    /// 에러 타입에 따른 재시도 결정
+    ///
+    /// 특정 에러 타입에 대해서는 재시도를 하지 않습니다.
+    ///
+    /// - Parameter error: 발생한 에러
+    /// - Returns: 재시도 여부
+    private func shouldRetryAfterError(_ error: Error) -> Bool {
+        if let yfError = error as? YFError {
+            switch yfError {
+            case .webSocketError(.invalidURL):
+                // 잘못된 URL은 재시도해도 의미없음
+                return false
+            case .webSocketError(.connectionTimeout):
+                // 타임아웃은 재시도 가능
+                return true
+            case .webSocketError(.connectionFailed):
+                // 연결 실패는 재시도 가능
+                return true
+            default:
+                return true
+            }
+        }
+        
+        // 알 수 없는 에러는 재시도
+        return true
+    }
+    
+    /// Exponential backoff 지연 시간 계산 (기존 호환성)
+    ///
+    /// - Parameter attempt: 재연결 시도 횟수 (1부터 시작)
+    /// - Returns: 계산된 지연 시간 (초)
+    private func calculateReconnectionDelay(attempt: Int) -> TimeInterval {
+        return calculateOptimizedReconnectionDelay(attempt: attempt)
+    }
 }
