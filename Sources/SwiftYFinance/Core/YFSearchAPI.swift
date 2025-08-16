@@ -30,6 +30,7 @@ extension YFClient {
     /// 
     /// YFSearchQuery를 사용하여 상세한 검색 조건을 지정할 수 있습니다.
     /// 결과 개수 제한, 종목 유형 필터링 등이 가능합니다.
+    /// 검색 결과는 1분간 캐시되어 동일한 검색에 대한 성능을 최적화합니다.
     ///
     /// ## 사용 예시
     /// ```swift
@@ -45,7 +46,19 @@ extension YFClient {
     /// - Returns: 검색 결과 배열
     /// - Throws: 검색 실패 시 YFError
     public func search(query: YFSearchQuery) async throws -> [YFSearchResult] {
-        return try await performSearch(query: query)
+        // 캐시에서 먼저 확인
+        let cacheKey = query.term
+        if let cachedResults = YFSearchCache.shared.get(for: cacheKey) {
+            return cachedResults
+        }
+        
+        // Rate limiting과 함께 API 호출
+        let results = try await performSearch(query: query)
+        
+        // 결과를 캐시에 저장
+        YFSearchCache.shared.set(results, for: cacheKey)
+        
+        return results
     }
     
     /// 검색어 자동완성 제안을 반환합니다
@@ -76,7 +89,7 @@ extension YFClient {
 
 extension YFClient {
     
-    /// 실제 검색 API 호출을 수행합니다
+    /// 실제 검색 API 호출을 수행합니다 (인증된 세션 사용)
     /// - Parameter query: 검색 쿼리
     /// - Returns: 검색 결과 배열
     /// - Throws: 네트워크 또는 파싱 에러
@@ -85,13 +98,20 @@ extension YFClient {
             throw YFError.invalidParameter("검색어가 유효하지 않습니다")
         }
         
-        // 검색 URL 구성
+        let url = try buildSearchURL(for: query)
+        let (data, response) = try await session.makeAuthenticatedRequest(url: url)
+        
+        try validateHTTPResponse(response)
+        return try parseSearchResponse(data)
+    }
+    
+    /// 검색 URL 구성
+    private func buildSearchURL(for query: YFSearchQuery) throws -> URL {
         let baseURL = "https://query2.finance.yahoo.com/v1/finance/search"
         guard var urlComponents = URLComponents(string: baseURL) else {
             throw YFError.invalidURL
         }
         
-        // URL 파라미터 설정
         let parameters = query.toURLParameters()
         urlComponents.queryItems = parameters.map { key, value in
             URLQueryItem(name: key, value: value)
@@ -101,20 +121,11 @@ extension YFClient {
             throw YFError.invalidURL
         }
         
-        // HTTP 요청 생성
-        var request = URLRequest(url: url, timeoutInterval: session.timeout)
-        request.httpMethod = "GET"
-        
-        // User-Agent 설정 (브라우저 모방)
-        request.setValue(
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
-            forHTTPHeaderField: "User-Agent"
-        )
-        
-        // API 호출
-        let (data, response) = try await session.urlSession.data(for: request)
-        
-        // HTTP 응답 검증
+        return url
+    }
+    
+    /// HTTP 응답 검증
+    private func validateHTTPResponse(_ response: URLResponse) throws {
         guard let httpResponse = response as? HTTPURLResponse else {
             throw YFError.networkErrorWithMessage("Invalid response type")
         }
@@ -122,8 +133,10 @@ extension YFClient {
         guard httpResponse.statusCode == 200 else {
             throw YFError.networkErrorWithMessage("HTTP \(httpResponse.statusCode)")
         }
-        
-        // JSON 파싱
+    }
+    
+    /// 검색 응답 JSON 파싱
+    private func parseSearchResponse(_ data: Data) throws -> [YFSearchResult] {
         do {
             let searchResponse = try JSONDecoder().decode(YFSearchResponse.self, from: data)
             return searchResponse.quotes ?? []
