@@ -25,21 +25,8 @@ import Foundation
 /// - SeeAlso: `YFStreamingQuote` 실시간 스트리밍 쿼트
 public class YFWebSocketManager: @unchecked Sendable {
     
-    /// WebSocket 연결 상태
-    public enum ConnectionState: Equatable, Sendable {
-        /// 연결 해제됨
-        case disconnected
-        /// 연결 중
-        case connecting
-        /// 연결됨
-        case connected
-        /// 재연결 중
-        case reconnecting
-        /// 영구적 실패 (복구 불가)
-        case failed
-        /// 일시 중단됨 (사용자 요청)
-        case suspended
-    }
+    /// WebSocket 연결 상태 (분리된 타입 별칭)
+    public typealias ConnectionState = YFWebSocketConnectionState
     
     // MARK: - Private Properties
     
@@ -47,7 +34,7 @@ public class YFWebSocketManager: @unchecked Sendable {
     private var _connectionState: ConnectionState = .disconnected
     
     /// 상태 전환 로그
-    private var stateTransitionLog: [StateTransition] = []
+    private var stateTransitionLog: [YFWebSocketStateTransition] = []
     private let maxStateTransitionEntries = 20
     
     /// 현재 연결 상태 (읽기 전용)
@@ -114,10 +101,10 @@ public class YFWebSocketManager: @unchecked Sendable {
     // MARK: - Connection Quality Monitoring
     
     /// 연결 품질 메트릭
-    private var connectionQuality: ConnectionQuality = ConnectionQuality()
+    private var connectionQuality = YFWebSocketConnectionQuality()
     
     /// 에러 로그
-    private var errorLog: [ErrorLogEntry] = []
+    private var errorLog: [YFWebSocketErrorLogEntry] = []
     private let maxErrorLogEntries = 50
     
     // MARK: - Timeout Properties
@@ -167,10 +154,6 @@ public class YFWebSocketManager: @unchecked Sendable {
     public func disconnect() async {
         changeConnectionState(to: .disconnected, reason: "User requested disconnect")
         autoReconnectionEnabled = false
-        reconnectionAttempts = 0
-        totalReconnectionAttempts = 0
-        consecutiveFailures = 0
-        lastConnectionFailureTime = nil
         
         // 재연결 태스크 취소
         reconnectionTask?.cancel()
@@ -949,7 +932,7 @@ public class YFWebSocketManager: @unchecked Sendable {
     ///   - error: 발생한 에러
     ///   - context: 에러 발생 컨텍스트
     private func logError(_ error: Error, context: String) {
-        let entry = ErrorLogEntry(
+        let entry = YFWebSocketErrorLogEntry(
             timestamp: Date(),
             error: error,
             context: context,
@@ -1009,7 +992,7 @@ public class YFWebSocketManager: @unchecked Sendable {
         _connectionState = newState
         
         // 상태 전환 로그 기록
-        let transition = StateTransition(
+        let transition = YFWebSocketStateTransition(
             fromState: oldState,
             toState: newState,
             timestamp: Date(),
@@ -1131,73 +1114,3 @@ public class YFWebSocketManager: @unchecked Sendable {
     }
 }
 
-// MARK: - Supporting Types
-
-/// 연결 품질 메트릭
-private struct ConnectionQuality {
-    private(set) var totalConnections: Int = 0
-    private(set) var successfulConnections: Int = 0
-    private(set) var totalErrors: Int = 0
-    private(set) var messagesReceived: Int = 0
-    private(set) var lastSuccessTime: Date?
-    private(set) var lastErrorTime: Date?
-    
-    /// 연결 성공률
-    var successRate: Double {
-        guard totalConnections > 0 else { return 0.0 }
-        return Double(successfulConnections) / Double(totalConnections)
-    }
-    
-    /// 에러율
-    var errorRate: Double {
-        let totalAttempts = totalConnections + totalErrors
-        guard totalAttempts > 0 else { return 0.0 }
-        return Double(totalErrors) / Double(totalAttempts)
-    }
-    
-    /// 연결 성공 기록
-    mutating func recordSuccess() {
-        totalConnections += 1
-        successfulConnections += 1
-        lastSuccessTime = Date()
-    }
-    
-    /// 에러 발생 기록
-    mutating func recordError() {
-        totalErrors += 1
-        lastErrorTime = Date()
-    }
-    
-    /// 메시지 수신 기록
-    mutating func recordMessageReceived() {
-        messagesReceived += 1
-    }
-}
-
-/// 에러 로그 엔트리
-private struct ErrorLogEntry {
-    let timestamp: Date
-    let error: Error
-    let context: String
-    let connectionState: YFWebSocketManager.ConnectionState
-    let reconnectionAttempts: Int
-    let consecutiveFailures: Int
-    
-    /// 로그 문자열 표현
-    var description: String {
-        return "\(timestamp): [\(context)] \(error) (state: \(connectionState), attempts: \(reconnectionAttempts), failures: \(consecutiveFailures))"
-    }
-}
-
-/// 상태 전환 로그 엔트리
-private struct StateTransition {
-    let fromState: YFWebSocketManager.ConnectionState
-    let toState: YFWebSocketManager.ConnectionState
-    let timestamp: Date
-    let reason: String
-    
-    /// 로그 문자열 표현
-    var description: String {
-        return "\(timestamp): \(fromState) -> \(toState) (\(reason))"
-    }
-}
