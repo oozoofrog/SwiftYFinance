@@ -3,8 +3,8 @@
 [![Swift](https://img.shields.io/badge/Swift-6.1-orange.svg)](https://swift.org)
 [![Platform](https://img.shields.io/badge/Platform-macOS%2013%2B%20%7C%20iOS%2016%2B%20%7C%20tvOS%2016%2B%20%7C%20watchOS%209%2B-blue.svg)](https://developer.apple.com)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE.md)
-[![Tests](https://img.shields.io/badge/Tests-144%20tests-brightgreen.svg)](https://github.com/yourusername/SwiftYFinance/actions)
-[![Success Rate](https://img.shields.io/badge/Success%20Rate-96.5%25-brightgreen.svg)](https://github.com/yourusername/SwiftYFinance/actions)
+[![Tests](https://img.shields.io/badge/Tests-255%20tests-brightgreen.svg)](https://github.com/yourusername/SwiftYFinance/actions)
+[![Success Rate](https://img.shields.io/badge/Success%20Rate-100%25-brightgreen.svg)](https://github.com/yourusername/SwiftYFinance/actions)
 
 SwiftYFinance is a **complete Swift port** of the Python [yfinance](https://github.com/ranaroussi/yfinance) library with advanced browser impersonation capabilities. It provides comprehensive access to Yahoo Finance data through Chrome-level browser emulation, featuring complete financial analysis capabilities including options trading, technical indicators, news analysis, and advanced fundamentals.
 
@@ -19,6 +19,7 @@ SwiftYFinance is a **complete Swift port** of the Python [yfinance](https://gith
 ### 📊 Complete Financial Data Suite
 - **Historical Data**: OHLCV data with custom date ranges and intervals
 - **Real-time Quotes**: Live price data and after-hours trading information
+- **WebSocket Streaming**: Real-time price data streaming (Python yfinance `live` equivalent)
 - **Financial Statements**: Income statements, balance sheets, cash flow statements
 - **Earnings Data**: Quarterly and annual earnings with estimates
 - **Options Trading**: Complete options chains, Greeks, expiration dates
@@ -29,7 +30,7 @@ SwiftYFinance is a **complete Swift port** of the Python [yfinance](https://gith
 
 ### 🏗️ Robust Architecture
 - **Modular Design**: Clean separation of concerns with focused components
-- **TDD-Driven**: 144 tests with 96.5% success rate, Test-Driven Development methodology
+- **TDD-Driven**: 255 tests with 100% success rate, Test-Driven Development methodology
 - **Error Resilience**: Comprehensive error handling and recovery strategies
 - **Performance Optimized**: Efficient HTTP/2 connections, concurrent processing, intelligent caching
 
@@ -79,6 +80,12 @@ let history = try await client.fetchHistory(ticker: ticker, period: .oneMonth)
 // Get real-time quote
 let quote = try await client.fetchQuote(ticker: ticker)
 print("Current price: \(quote.price)")
+
+// WebSocket real-time streaming (NEW!)
+let stream = try await client.startRealTimeStreaming(symbols: ["AAPL", "TSLA"])
+for await quote in stream {
+    print("\(quote.symbol): $\(quote.price)")
+}
 
 // Fetch financial data
 let financials = try await client.fetchFinancials(ticker: ticker)

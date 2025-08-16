@@ -8,6 +8,7 @@ import Foundation
 /// ## 주요 기능
 /// - **과거 가격 데이터**: 일간/분간 OHLCV 데이터
 /// - **실시간 시세**: 현재 가격 및 시장 정보
+/// - **WebSocket 스트리밍**: 실시간 가격 데이터 스트리밍 (Python yfinance의 `live` 기능)
 /// - **재무제표**: 손익계산서, 대차대조표, 현금흐름표
 /// - **실적 데이터**: 분기별/연간 실적 정보
 ///
@@ -24,6 +25,12 @@ import Foundation
 /// // 실시간 시세 조회
 /// let quote = try await client.fetchQuote(symbol: "AAPL")
 /// print("현재가: \(quote.regularMarketPrice)")
+/// 
+/// // WebSocket 실시간 스트리밍
+/// let stream = try await client.startRealTimeStreaming(symbols: ["AAPL", "TSLA"])
+/// for await quote in stream {
+///     print("\(quote.symbol): $\(quote.price)")
+/// }
 /// ```
 public class YFClient {
     /// 네트워크 세션 관리자
