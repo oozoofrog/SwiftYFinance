@@ -35,6 +35,17 @@ public enum YFError: Error, Equatable {
     /// URL 구성이나 요청 파라미터 오류시 발생
     case invalidRequest
     
+    /// 유효하지 않은 URL
+    ///
+    /// URL 구성 실패시 발생
+    case invalidURL
+    
+    /// 유효하지 않은 파라미터
+    ///
+    /// API 호출 시 전달된 파라미터가 유효하지 않은 경우
+    /// - Parameter message: 파라미터 오류 상세 메시지
+    case invalidParameter(String)
+    
     /// API 응답 파싱 오류
     ///
     /// Yahoo Finance API 응답을 Swift 모델로 변환 중 오류
@@ -44,6 +55,18 @@ public enum YFError: Error, Equatable {
     /// 
     /// Yahoo Finance API와의 통신 중 발생하는 오류
     case networkError
+    
+    /// API 응답 파싱 오류 (상세 메시지 포함)
+    ///
+    /// Yahoo Finance API 응답을 Swift 모델로 변환 중 오류
+    /// - Parameter message: 파싱 오류 상세 메시지
+    case parsingErrorWithMessage(String)
+    
+    /// 네트워크 통신 오류 (상세 메시지 포함)
+    /// 
+    /// Yahoo Finance API와의 통신 중 발생하는 오류
+    /// - Parameter message: 네트워크 오류 상세 메시지
+    case networkErrorWithMessage(String)
     
     /// API 서버 오류
     ///

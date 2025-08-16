@@ -9,28 +9,28 @@
 - [x] YFSearchQuery 커스텀 값 테스트
 
 ### API 테스트
-- [ ] search(companyName:) 기본 검색 테스트
-- [ ] search(query:) 고급 검색 테스트
-- [ ] searchSuggestions(prefix:) 자동완성 테스트
+- [x] search(companyName:) 기본 검색 테스트
+- [x] search(query:) 고급 검색 테스트
+- [x] searchSuggestions(prefix:) 자동완성 테스트
 
 ### 에러 테스트
-- [ ] 빈 검색어 에러 테스트
-- [ ] 검색 결과 없음 테스트
-- [ ] 네트워크 에러 테스트
+- [x] 빈 검색어 에러 테스트
+- [x] 검색 결과 없음 테스트
+- [x] 네트워크 에러 테스트
 
 ## 🟢 Green: 구현
 
 ### 모델 구현
-- [ ] YFSearchResult.swift 생성
-- [ ] YFSearchQuery.swift 생성
-- [ ] YFQuoteType 열거형 확장
-- [ ] YFError 검색 관련 케이스 추가
+- [x] YFSearchResult.swift 생성
+- [x] YFSearchQuery.swift 생성
+- [x] YFQuoteType 열거형 확장
+- [x] YFError 검색 관련 케이스 추가
 
 ### API 구현
-- [ ] YFSearchAPI.swift 생성
-- [ ] YFClient 검색 메서드 추가
-- [ ] URL 빌드 로직 구현
-- [ ] 응답 파싱 로직 구현
+- [x] YFSearchAPI.swift 생성
+- [x] YFClient 검색 메서드 추가
+- [x] URL 빌드 로직 구현
+- [x] 응답 파싱 로직 구현
 
 ## 🔵 Refactor: 개선
 

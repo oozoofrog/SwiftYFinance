@@ -89,3 +89,46 @@ extension YFSearchResult: Hashable {
         hasher.combine(score)
     }
 }
+
+// MARK: - Yahoo Finance API Codable Support
+extension YFSearchResult {
+    
+    /// Yahoo Finance API 응답 필드명 매핑
+    private enum CodingKeys: String, CodingKey {
+        case symbol
+        case shortName = "shortname"
+        case longName = "longname"
+        case exchange = "exchDisp"
+        case quoteType = "quoteType"
+        case score
+    }
+    
+    /// Yahoo Finance API 응답에서 디코딩
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        symbol = try container.decode(String.self, forKey: .symbol)
+        shortName = try container.decode(String.self, forKey: .shortName)
+        longName = try container.decodeIfPresent(String.self, forKey: .longName)
+        exchange = try container.decode(String.self, forKey: .exchange)
+        
+        // quoteType을 문자열로 받아서 enum으로 변환
+        let quoteTypeString = try container.decode(String.self, forKey: .quoteType)
+        quoteType = YFQuoteType(rawValue: quoteTypeString) ?? .equity
+        
+        // score는 API에서 제공되지 않을 수 있으므로 기본값 사용
+        score = try container.decodeIfPresent(Double.self, forKey: .score) ?? 1.0
+    }
+    
+    /// Yahoo Finance API 요청을 위한 인코딩
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(symbol, forKey: .symbol)
+        try container.encode(shortName, forKey: .shortName)
+        try container.encodeIfPresent(longName, forKey: .longName)
+        try container.encode(exchange, forKey: .exchange)
+        try container.encode(quoteType.rawValue, forKey: .quoteType)
+        try container.encode(score, forKey: .score)
+    }
+}
