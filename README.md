@@ -194,16 +194,21 @@ SwiftYFinance/
 │   │   ├── YFClient.swift           # Main client API (157 lines)
 │   │   ├── YFSession.swift          # Network session (117 lines)
 │   │   ├── YFSessionAuth.swift      # CSRF authentication (189 lines)
-│   │   ├── YFSessionCookie.swift    # User-Agent rotation (19 lines)
+│   │   ├── YFSessionCookie.swift    # User-Agent rotation (43 lines)
 │   │   ├── YFBrowserImpersonator.swift # Chrome 136 emulation
 │   │   ├── YF*API.swift            # 12 specialized API endpoints
 │   │   │   ├── YFHistoryAPI.swift   # Historical data
 │   │   │   ├── YFQuoteAPI.swift     # Real-time quotes  
 │   │   │   ├── YFFinancialsAPI.swift # Financial statements
-│   │   │   ├── YFOptionsAPI.swift   # Options trading (NEW!)
-│   │   │   ├── YFNewsAPI.swift      # News & sentiment (NEW!)
-│   │   │   ├── YFScreeningAPI.swift # Stock screening (NEW!)
-│   │   │   └── YFTechnicalIndicatorsAPI.swift # Technical analysis (NEW!)
+│   │   │   ├── YFFinancialsAdvancedAPI.swift # Advanced financials
+│   │   │   ├── YFBalanceSheetAPI.swift # Balance sheet data
+│   │   │   ├── YFCashFlowAPI.swift  # Cash flow statements
+│   │   │   ├── YFEarningsAPI.swift  # Earnings data
+│   │   │   ├── YFOptionsAPI.swift   # Options trading
+│   │   │   ├── YFNewsAPI.swift      # News & sentiment
+│   │   │   ├── YFScreeningAPI.swift # Stock screening
+│   │   │   ├── YFSearchAPI.swift    # Search functionality
+│   │   │   └── YFTechnicalIndicatorsAPI.swift # Technical analysis
 │   │   └── YFEnums.swift           # Core enumerations
 │   ├── Models/                     # Complete data models
 │   │   ├── Core Models/            # Basic data structures
@@ -279,7 +284,7 @@ SwiftYFinance includes advanced browser impersonation capabilities ported from P
 ### Chrome 136 Fingerprint Emulation
 - **Complete Header Matching**: User-Agent, Accept, Sec-CH-UA client hints
 - **HTTP/2 Settings**: Chrome-identical network behavior
-- **Cookie Management**: Browser-level session handling
+- **Session Management**: Browser-level authentication and state handling
 - **Anti-Detection**: Header rotation and request timing
 
 ### Why Browser Impersonation?
