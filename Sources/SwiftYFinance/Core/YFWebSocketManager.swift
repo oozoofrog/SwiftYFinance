@@ -23,7 +23,7 @@ import Foundation
 ///
 /// - SeeAlso: `YFWebSocketMessage` WebSocket 메시지 데이터
 /// - SeeAlso: `YFStreamingQuote` 실시간 스트리밍 쿼트
-public class YFWebSocketManager {
+public class YFWebSocketManager: @unchecked Sendable {
     
     /// WebSocket 연결 상태
     public enum ConnectionState: Equatable, Sendable {
@@ -51,6 +51,12 @@ public class YFWebSocketManager {
     
     /// 현재 구독 중인 심볼들
     private var subscriptions: Set<String> = []
+    
+    /// 메시지 스트림 컨티뉴에이션
+    private var messageContinuation: AsyncStream<YFWebSocketMessage>.Continuation?
+    
+    /// 메시지 디코더
+    private let messageDecoder = YFWebSocketMessageDecoder()
     
     // MARK: - Initialization
     
@@ -91,6 +97,8 @@ public class YFWebSocketManager {
     public func disconnect() async {
         connectionState = .disconnected
         subscriptions.removeAll()
+        messageContinuation?.finish()
+        messageContinuation = nil
         webSocketTask?.cancel(with: .goingAway, reason: nil)
         webSocketTask = nil
     }
@@ -153,6 +161,43 @@ public class YFWebSocketManager {
         try await sendMessage(message)
     }
     
+    // MARK: - Message Streaming
+    
+    /// 실시간 메시지 스트림 제공
+    ///
+    /// AsyncStream을 통해 WebSocket으로부터 수신되는 실시간 메시지를 스트리밍합니다.
+    /// 백그라운드에서 지속적으로 메시지를 수신하고 Protobuf 디코딩을 수행합니다.
+    ///
+    /// - Returns: YFWebSocketMessage의 AsyncStream
+    ///
+    /// ## 사용 예시
+    /// ```swift
+    /// let manager = YFWebSocketManager()
+    /// try await manager.connect()
+    /// try await manager.subscribe(to: ["AAPL", "TSLA"])
+    /// 
+    /// let messageStream = await manager.messageStream()
+    /// for await message in messageStream {
+    ///     print("Received: \(message.symbol) - \(message.price)")
+    /// }
+    /// ```
+    public func messageStream() async -> AsyncStream<YFWebSocketMessage> {
+        return AsyncStream { continuation in
+            self.messageContinuation = continuation
+            
+            // Start background message listening if connected
+            if connectionState == .connected {
+                Task {
+                    await startMessageListening()
+                }
+            }
+            
+            continuation.onTermination = { _ in
+                self.messageContinuation = nil
+            }
+        }
+    }
+    
     // MARK: - Private Methods
     
     /// WebSocket으로 메시지 전송
@@ -172,6 +217,80 @@ public class YFWebSocketManager {
         }
     }
     
+    /// 백그라운드에서 WebSocket 메시지 수신 시작
+    ///
+    /// 연속적으로 WebSocket 메시지를 수신하고 Protobuf 디코딩하여 AsyncStream으로 전달합니다.
+    private func startMessageListening() async {
+        guard let webSocketTask = webSocketTask else { return }
+        
+        while connectionState == .connected {
+            do {
+                let message = try await webSocketTask.receive()
+                await handleWebSocketMessage(message)
+            } catch {
+                // WebSocket 연결 오류 처리
+                if connectionState == .connected {
+                    connectionState = .disconnected
+                    messageContinuation?.finish()
+                }
+                break
+            }
+        }
+    }
+    
+    /// WebSocket 메시지 처리
+    ///
+    /// 수신된 WebSocket 메시지를 파싱하고 Protobuf 디코딩하여 스트림으로 전달합니다.
+    ///
+    /// - Parameter message: URLSessionWebSocketTask.Message
+    private func handleWebSocketMessage(_ message: URLSessionWebSocketTask.Message) async {
+        switch message {
+        case .string(let text):
+            await handleStringMessage(text)
+        case .data(let data):
+            await handleDataMessage(data)
+        @unknown default:
+            break
+        }
+    }
+    
+    /// 문자열 WebSocket 메시지 처리
+    ///
+    /// Yahoo Finance WebSocket은 JSON 형태로 메시지를 전송합니다.
+    /// 형식: {"message": "base64_encoded_protobuf_data"}
+    ///
+    /// - Parameter text: JSON 형태의 문자열 메시지
+    private func handleStringMessage(_ text: String) async {
+        do {
+            // JSON 파싱
+            guard let jsonData = text.data(using: .utf8),
+                  let jsonObject = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
+                  let encodedMessage = jsonObject["message"] as? String else {
+                return
+            }
+            
+            // Protobuf 메시지 디코딩
+            let webSocketMessage = try messageDecoder.decode(encodedMessage)
+            
+            // AsyncStream으로 메시지 전달
+            messageContinuation?.yield(webSocketMessage)
+            
+        } catch {
+            // 디코딩 오류는 로그로만 처리 (스트림 중단하지 않음)
+            print("Message decoding error: \(error)")
+        }
+    }
+    
+    /// 바이너리 WebSocket 메시지 처리
+    ///
+    /// 바이너리 메시지가 수신된 경우의 처리 (현재 Yahoo Finance는 문자열 전송)
+    ///
+    /// - Parameter data: 바이너리 데이터
+    private func handleDataMessage(_ data: Data) async {
+        // Yahoo Finance WebSocket은 주로 문자열 기반이므로 기본 구현만 제공
+        print("Received binary message: \(data.count) bytes")
+    }
+    
     /// 지정된 URL로 WebSocket 연결 시도
     ///
     /// - Parameter url: 연결할 WebSocket URL
@@ -183,6 +302,13 @@ public class YFWebSocketManager {
             webSocketTask = urlSession.webSocketTask(with: url)
             webSocketTask?.resume()
             connectionState = .connected
+            
+            // 메시지 스트림이 활성화되어 있다면 메시지 수신 시작
+            if messageContinuation != nil {
+                Task {
+                    await startMessageListening()
+                }
+            }
         } catch {
             connectionState = .disconnected
             throw YFError.webSocketError(.connectionFailed("Failed to connect to \(url.absoluteString): \(error.localizedDescription)"))
