@@ -150,34 +150,22 @@ for batch in symbols.chunked(into: batchSize) {
 
 ## Cookie Management
 
-SwiftYFinance는 고급 쿠키 관리 시스템을 제공합니다:
+SwiftYFinance는 시스템 쿠키 저장소를 활용한 자동 쿠키 관리를 제공합니다:
 
 ### 자동 쿠키 관리
 
 ```swift
-let cookieManager = YFCookieManager()
-
 // Yahoo Finance 쿠키 자동 추출 및 관리
 let session = YFSession()
 try await session.authenticateCSRF()
 
-// 쿠키 상태 확인
-if cookieManager.hasValidCookies() {
-    print("✅ 유효한 쿠키 보유")
+// 세션 인증 상태 확인
+let isAuthenticated = await session.isCSRFAuthenticated
+if isAuthenticated {
+    print("✅ 유효한 인증 상태")
 } else {
-    print("❌ 쿠키 갱신 필요")
+    print("❌ 인증 갱신 필요")
 }
-```
-
-### 쿠키 캐시 관리
-
-```swift
-// 쿠키 캐시 정리
-cookieManager.clearExpiredCookies()
-
-// 모든 쿠키 삭제 (문제 해결 시)
-cookieManager.clearAllCookies()
-print("쿠키 캐시가 정리되었습니다.")
 ```
 
 ## Network Configuration
@@ -305,10 +293,7 @@ do {
 
 **Authentication Failed**
 ```swift
-// 해결 방법 1: 쿠키 캐시 정리
-YFCookieManager().clearAllCookies()
-
-// 해결 방법 2: 새로운 세션으로 재시도
+// 해결 방법: 새로운 세션으로 재시도
 let newSession = YFSession()
 try await newSession.authenticateCSRF()
 ```
