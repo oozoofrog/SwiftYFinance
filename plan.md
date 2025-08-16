@@ -51,6 +51,16 @@ Python yfinance 라이브러리를 Swift로 포팅한 종합 금융 데이터 �
 - 개발 원칙 문서화
 - **총 185개 테스트** (100% 성공률)
 
+### 계획된 개발 (Phase 8)
+
+#### Phase 8: WebSocket 실시간 스트리밍 🚀
+- **실시간 데이터 스트리밍**: `wss://streamer.finance.yahoo.com` 연동
+- **동기/비동기 지원**: URLSessionWebSocketTask + Swift Concurrency
+- **Protobuf 디코딩**: Yahoo Finance PricingData 메시지 파싱
+- **구독 관리**: 심볼별 실시간 가격 업데이트 구독/해제
+- **스트림 모니터링**: 연결 상태, 메시지 통계, 오류 복구
+- **기존 구조 통합**: YFClient 확장, 캐싱, Rate Limiting 활용
+
 ## 주요 기능
 
 ### 기본 데이터
@@ -67,10 +77,19 @@ Python yfinance 라이브러리를 Swift로 포팅한 종합 금융 데이터 �
 - **검색 자동완성** (prefix 기반)
 - **성능 최적화 캐싱** (1분 TTL)
 
+### 예정 기능 (Phase 8)
+- **실시간 스트리밍** (WebSocket 기반)
+- **라이브 가격 업데이트** (50ms 지연시간)
+- **구독 관리** (심볼별 스트리밍 제어)
+
 ## 문서 구조
 
 ### 개발 문서
 - **[개발 원칙](docs/development-principles.md)**
+- **[Phase 8 WebSocket 체크리스트](docs/plans/websocket-streaming-checklist.md)** 🚀 통합 가이드
+- **[Phase 8 Step 1-3: 기초 구현](docs/plans/phase8-step1-3-foundation.md)** ⭐️ 시작점
+- **[Phase 8 Step 4-5: 핵심 기능](docs/plans/phase8-step4-5-core.md)** 🔧 핵심
+- **[Phase 8 Step 6-7: 고급 기능](docs/plans/phase8-step6-7-advanced.md)** 🚀 완성
 
 ### 참조 문서
 - **[용어 통일성 가이드](docs/docc/terminology-guide.md)**
@@ -79,5 +98,5 @@ Python yfinance 라이브러리를 Swift로 포팅한 종합 금융 데이터 �
 
 ---
 
-**현재 상태**: 모든 Phase 완료 (Phase 1-7) ✅  
-**다음 단계**: 프로덕션 준비 → 배포 및 유지보수
+**현재 상태**: Phase 1-7 완료 ✅, Phase 8 계획 수립  
+**다음 단계**: Phase 8 WebSocket 실시간 스트리밍 구현
