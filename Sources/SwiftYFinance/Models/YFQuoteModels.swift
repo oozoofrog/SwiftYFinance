@@ -126,47 +126,47 @@ struct PriceData: Codable {
     /// 종목 약칭
     let shortName: String?
     
-    /// 정규 시장 현재 가격
-    let regularMarketPrice: ValueContainer<Double>?
+    /// 정규 시장 현재 가격 (실제 API는 단순 숫자로 반환)
+    let regularMarketPrice: Double?
     
-    /// 정규 시장 거래량
-    let regularMarketVolume: ValueContainer<Int>?
+    /// 정규 시장 거래량 (실제 API는 단순 숫자로 반환)
+    let regularMarketVolume: Int?
     
-    /// 시가총액
-    let marketCap: ValueContainer<Double>?
+    /// 시가총액 (실제 API는 단순 숫자로 반환)
+    let marketCap: Double?
     
-    /// 정규 시장 마감 시간 (Unix 타임스탬프)
-    let regularMarketTime: ValueContainer<Int>?
+    /// 정규 시장 마감 시간 (Unix 타임스탬프, 실제 API는 단순 숫자로 반환)
+    let regularMarketTime: Int?
     
-    /// 정규 시장 시가
-    let regularMarketOpen: ValueContainer<Double>?
+    /// 정규 시장 시가 (실제 API는 단순 숫자로 반환)
+    let regularMarketOpen: Double?
     
-    /// 정규 시장 당일 최고가
-    let regularMarketDayHigh: ValueContainer<Double>?
+    /// 정규 시장 당일 최고가 (실제 API는 단순 숫자로 반환)
+    let regularMarketDayHigh: Double?
     
-    /// 정규 시장 당일 최저가
-    let regularMarketDayLow: ValueContainer<Double>?
+    /// 정규 시장 당일 최저가 (실제 API는 단순 숫자로 반환)
+    let regularMarketDayLow: Double?
     
-    /// 정규 시장 전일 종가
-    let regularMarketPreviousClose: ValueContainer<Double>?
+    /// 정규 시장 전일 종가 (실제 API는 단순 숫자로 반환)
+    let regularMarketPreviousClose: Double?
     
-    /// 시간외 거래 가격 (장후)
-    let postMarketPrice: ValueContainer<Double>?
+    /// 시간외 거래 가격 (장후, 실제 API는 단순 숫자로 반환)
+    let postMarketPrice: Double?
     
-    /// 시간외 거래 시간 (장후, Unix 타임스탬프)
-    let postMarketTime: ValueContainer<Int>?
+    /// 시간외 거래 시간 (장후, Unix 타임스탬프, 실제 API는 단순 숫자로 반환)
+    let postMarketTime: Int?
     
-    /// 시간외 거래 변동률 (장후, %)
-    let postMarketChangePercent: ValueContainer<Double>?
+    /// 시간외 거래 변동률 (장후, %, 실제 API는 단순 숫자로 반환)
+    let postMarketChangePercent: Double?
     
-    /// 시간외 거래 가격 (장전)
-    let preMarketPrice: ValueContainer<Double>?
+    /// 시간외 거래 가격 (장전, 실제 API는 단순 숫자로 반환)
+    let preMarketPrice: Double?
     
-    /// 시간외 거래 시간 (장전, Unix 타임스탬프)
-    let preMarketTime: ValueContainer<Int>?
+    /// 시간외 거래 시간 (장전, Unix 타임스탬프, 실제 API는 단순 숫자로 반환)
+    let preMarketTime: Int?
     
-    /// 시간외 거래 변동률 (장전, %)
-    let preMarketChangePercent: ValueContainer<Double>?
+    /// 시간외 거래 변동률 (장전, %, 실제 API는 단순 숫자로 반환)
+    let preMarketChangePercent: Double?
 }
 
 /// 종목 요약 상세 정보
@@ -181,39 +181,3 @@ struct SummaryDetail: Codable {
     // 필요시 추가 필드들
 }
 
-/// 값과 포맷된 문자열을 함께 보관하는 제네릭 컨테이너
-///
-/// Yahoo Finance API는 숫자 데이터를 원시값과 함께
-/// 사람이 읽기 쉬운 포맷된 문자열로도 제공합니다.
-/// 이 컨테이너는 두 값을 모두 보존합니다.
-///
-/// ## Type Parameters
-/// - `T`: 원시 데이터의 타입 (Double, Int 등)
-///
-/// ## Topics
-///
-/// ### 속성
-/// - ``raw``
-/// - ``fmt``
-///
-/// ## Example
-/// ```swift
-/// // API 응답에서 가격 데이터
-/// let priceContainer = ValueContainer<Double>(
-///     raw: 150.25,
-///     fmt: "$150.25"
-/// )
-///
-/// // 계산에는 raw 값 사용
-/// let change = priceContainer.raw - previousPrice
-///
-/// // 표시에는 포맷된 값 사용
-/// print("현재 가격: \(priceContainer.fmt ?? "N/A")")
-/// ```
-struct ValueContainer<T: Codable>: Codable {
-    /// 원시 데이터 값 (계산에 사용)
-    let raw: T
-    
-    /// 포맷된 문자열 (표시용, 옵셔널)
-    let fmt: String?
-}

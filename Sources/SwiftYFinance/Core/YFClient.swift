@@ -213,6 +213,41 @@ public class YFClient {
 // 실제 Yahoo Finance Chart API 응답 구조에 맞춘 구조체들
 
 
+// MARK: - Debug Methods
+/// YFClient의 디버깅을 위한 공개 메서드들
+extension YFClient {
+    
+    /// 현재 CSRF 인증 상태를 확인합니다
+    /// - Returns: 인증 여부
+    public var isCSRFAuthenticated: Bool {
+        get async {
+            await session.isCSRFAuthenticated
+        }
+    }
+    
+    /// CSRF 인증을 수행합니다
+    /// - Throws: 인증 실패 시 YFError
+    public func authenticateCSRF() async throws {
+        try await session.authenticateCSRF()
+    }
+    
+    /// 현재 crumb 토큰 상태를 확인합니다
+    /// - Returns: crumb 토큰 (옵셔널)
+    public var crumbToken: String? {
+        get async {
+            await session.crumbToken
+        }
+    }
+    
+    /// 현재 쿠키 전략을 확인합니다
+    /// - Returns: 현재 사용 중인 쿠키 전략
+    public var cookieStrategy: CookieStrategy {
+        get async {
+            await session.cookieStrategy
+        }
+    }
+}
+
 // MARK: - Private Helper Methods
 /// YFClient의 내부 헬퍼 메서드들을 위한 확장
 extension YFClient {

@@ -53,7 +53,14 @@ extension YFClient {
                     }
                 }
                 
-                // JSON 파싱
+                // JSON 파싱 (디버깅 로그 추가)
+                print("📋 [DEBUG] Quote API 응답 데이터 크기: \(data.count) bytes")
+                if let responseString = String(data: data, encoding: .utf8) {
+                    print("📋 [DEBUG] Quote API 응답 내용 (처음 500자): \(responseString.prefix(500))")
+                } else {
+                    print("❌ [DEBUG] Quote API 응답을 UTF-8로 디코딩 실패")
+                }
+                
                 let quoteSummaryResponse = try responseParser.parse(data, type: QuoteSummaryResponse.self)
                 
                 // 에러 응답 처리
@@ -71,22 +78,22 @@ extension YFClient {
         // YFQuote 객체 생성
         let quote = YFQuote(
             ticker: ticker,
-            regularMarketPrice: priceData.regularMarketPrice?.raw ?? 0.0,
-            regularMarketVolume: priceData.regularMarketVolume?.raw ?? 0,
-            marketCap: priceData.marketCap?.raw ?? 0.0,
+            regularMarketPrice: priceData.regularMarketPrice ?? 0.0,
+            regularMarketVolume: priceData.regularMarketVolume ?? 0,
+            marketCap: priceData.marketCap ?? 0.0,
             shortName: priceData.shortName ?? ticker.symbol,
-            regularMarketTime: Date(timeIntervalSince1970: TimeInterval(priceData.regularMarketTime?.raw ?? 0)),
-            regularMarketOpen: priceData.regularMarketOpen?.raw ?? 0.0,
-            regularMarketHigh: priceData.regularMarketDayHigh?.raw ?? 0.0,
-            regularMarketLow: priceData.regularMarketDayLow?.raw ?? 0.0,
-            regularMarketPreviousClose: priceData.regularMarketPreviousClose?.raw ?? 0.0,
+            regularMarketTime: Date(timeIntervalSince1970: TimeInterval(priceData.regularMarketTime ?? 0)),
+            regularMarketOpen: priceData.regularMarketOpen ?? 0.0,
+            regularMarketHigh: priceData.regularMarketDayHigh ?? 0.0,
+            regularMarketLow: priceData.regularMarketDayLow ?? 0.0,
+            regularMarketPreviousClose: priceData.regularMarketPreviousClose ?? 0.0,
             isRealtime: false,
-            postMarketPrice: priceData.postMarketPrice?.raw,
-            postMarketTime: priceData.postMarketTime?.raw != nil ? Date(timeIntervalSince1970: TimeInterval(priceData.postMarketTime!.raw)) : nil,
-            postMarketChangePercent: priceData.postMarketChangePercent?.raw,
-            preMarketPrice: priceData.preMarketPrice?.raw,
-            preMarketTime: priceData.preMarketTime?.raw != nil ? Date(timeIntervalSince1970: TimeInterval(priceData.preMarketTime!.raw)) : nil,
-            preMarketChangePercent: priceData.preMarketChangePercent?.raw
+            postMarketPrice: priceData.postMarketPrice,
+            postMarketTime: priceData.postMarketTime != nil ? Date(timeIntervalSince1970: TimeInterval(priceData.postMarketTime!)) : nil,
+            postMarketChangePercent: priceData.postMarketChangePercent,
+            preMarketPrice: priceData.preMarketPrice,
+            preMarketTime: priceData.preMarketTime != nil ? Date(timeIntervalSince1970: TimeInterval(priceData.preMarketTime!)) : nil,
+            preMarketChangePercent: priceData.preMarketChangePercent
         )
                 
                 return quote

@@ -30,21 +30,32 @@ extension YFSession {
     /// Python yfinance의 전략 전환 로직과 동일
     private func performAuthenticationWithRetry() async throws {
         // 1차 시도: 현재 전략으로 인증
+        let currentStrategy = await sessionState.cookieStrategy
+        print("🔄 [DEBUG] 1차 인증 시도 - \(currentStrategy) 전략")
         let success = await attemptAuthenticationWithCurrentStrategy()
         
         if success {
+            print("✅ [DEBUG] 1차 인증 성공 - \(currentStrategy) 전략")
             await sessionState.setAuthenticated(true)
             return
         }
+        
+        print("❌ [DEBUG] 1차 인증 실패 - \(currentStrategy) 전략")
         
         // 1차 실패 시 전략 전환 후 재시도
         await sessionState.toggleCookieStrategy()
+        let newStrategy = await sessionState.cookieStrategy
+        print("🔄 [DEBUG] 전략 전환: \(currentStrategy) → \(newStrategy)")
+        
         let retrySuccess = await attemptAuthenticationWithCurrentStrategy()
         
         if retrySuccess {
+            print("✅ [DEBUG] 2차 인증 성공 - \(newStrategy) 전략")
             await sessionState.setAuthenticated(true)
             return
         }
+        
+        print("❌ [DEBUG] 2차 인증 실패 - \(newStrategy) 전략")
         
         // 두 전략 모두 실패 시 예외 발생
         throw YFError.apiError("Failed to authenticate with both basic and csrf strategies")
@@ -102,18 +113,30 @@ extension YFSession {
                 request.setValue(value, forHTTPHeaderField: key)
             }
             
+            print("🌐 [DEBUG] Basic 쿠키 요청: \(url)")
+            
             let (_, response) = try await urlSession.data(for: request)
             
             guard let httpResponse = response as? HTTPURLResponse else {
+                print("❌ [DEBUG] Basic 쿠키: 응답이 HTTPURLResponse가 아님")
                 return false
             }
             
-            // 200-299 범위의 응답이면 성공
-            return (200...299).contains(httpResponse.statusCode)
+            print("📊 [DEBUG] Basic 쿠키 응답: \(httpResponse.statusCode)")
             
-        } catch {
-            // DNS 에러 등 네트워크 오류도 허용 (Python 구현과 동일)
+            // Python 구현과 동일: HTTP 상태 코드와 관계없이 성공으로 처리
+            // DNSError만 실패로 처리하고 나머지는 쿠키 설정으로 간주
+            print("✅ [DEBUG] Basic 쿠키 결과: true (Python 호환)")
+            return true
+            
+        } catch let error as URLError where error.code == .cannotFindHost {
+            // DNS 에러만 실패로 처리 (Python의 DNSError와 동일)
+            print("❌ [DEBUG] Basic 쿠키 DNS 에러: \(error)")
             return false
+        } catch {
+            // 기타 네트워크 에러는 성공으로 처리 (Python 구현과 동일)
+            print("⚠️ [DEBUG] Basic 쿠키 기타 에러, 계속 진행: \(error)")
+            return true
         }
     }
     
@@ -213,32 +236,43 @@ extension YFSession {
                 request.setValue(value, forHTTPHeaderField: key)
             }
             
+            print("🔑 [DEBUG] Crumb 토큰 요청 (\(strategy)): \(url)")
+            
             let (data, response) = try await urlSession.data(for: request)
             
             guard let httpResponse = response as? HTTPURLResponse else {
+                print("❌ [DEBUG] Crumb: 응답이 HTTPURLResponse가 아님")
                 return false
             }
             
+            print("📊 [DEBUG] Crumb 응답 상태: \(httpResponse.statusCode)")
+            
             // Rate limiting 체크 (Python yfinance와 동일)
             if httpResponse.statusCode == 429 {
+                print("⚠️ [DEBUG] Crumb: Rate limited (429)")
                 return false  // 429 에러 시 false 반환하여 전략 전환 유도
             }
             
             guard httpResponse.statusCode == 200 else {
+                print("❌ [DEBUG] Crumb: 상태 코드 \(httpResponse.statusCode)")
                 return false
             }
             
             let crumb = String(data: data, encoding: .utf8) ?? ""
+            print("🔑 [DEBUG] Crumb 데이터: '\(crumb.prefix(20))...' (길이: \(crumb.count))")
             
             // 유효한 crumb인지 확인 (Python yfinance와 동일)
             if crumb.isEmpty || crumb.contains("<html>") || crumb.contains("Too Many Requests") {
+                print("❌ [DEBUG] Crumb: 유효하지 않은 토큰 (empty: \(crumb.isEmpty), html: \(crumb.contains("<html>")), too many: \(crumb.contains("Too Many Requests")))")
                 return false
             }
             
             await sessionState.setCrumbToken(crumb)
+            print("✅ [DEBUG] Crumb 토큰 저장 완료")
             return true
             
         } catch {
+            print("❌ [DEBUG] Crumb 에러: \(error)")
             return false
         }
     }
