@@ -3,7 +3,7 @@
 ## 🔴 Red: 테스트 작성
 
 ### 모델 테스트
-- [ ] YFSearchResult 초기화 테스트
+- [x] YFSearchResult 초기화 테스트
 - [ ] YFSearchResult.toTicker() 변환 테스트
 - [ ] YFSearchQuery 기본값 테스트
 - [ ] YFSearchQuery 커스텀 값 테스트

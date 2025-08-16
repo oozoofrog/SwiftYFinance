@@ -174,9 +174,15 @@ public extension YFScreener {
 // MARK: - Supporting Types
 
 /// 스크리닝 대상 유형
-public enum YFQuoteType: String {
+public enum YFQuoteType: String, Codable, Sendable {
     case equity = "EQUITY"
     case mutualFund = "MUTUALFUND"
+    case etf = "ETF"
+    case index = "INDEX"
+    case option = "OPTION"
+    case currency = "CURRENCY"
+    case future = "FUTURE"
+    case cryptocurrency = "CRYPTOCURRENCY"
 }
 
 /// 스크리닝 필터 조건
