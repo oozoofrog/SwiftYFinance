@@ -134,6 +134,12 @@ public enum YFWebSocketError: Error, Equatable {
     /// - Parameter message: 타임아웃 상세 메시지
     case timeout(String)
     
+    /// 연결 타임아웃
+    ///
+    /// WebSocket 연결 시도 시간 초과 (구체적인 타임아웃)
+    /// - Parameter message: 연결 타임아웃 상세 메시지
+    case connectionTimeout(String)
+    
     /// 예기치 않은 연결 끊김
     ///
     /// WebSocket 연결이 예기치 않게 끊어진 경우
@@ -157,4 +163,120 @@ public enum YFWebSocketError: Error, Equatable {
     /// 빈 심볼 목록이나 잘못된 형식의 구독 요청
     /// - Parameter message: 잘못된 구독 요청 상세 메시지
     case invalidSubscription(String)
+}
+
+// MARK: - Error Recovery Support
+extension YFWebSocketError {
+    
+    /// 에러 복구 가능성
+    ///
+    /// 에러 타입별로 재시도 및 복구 가능성을 나타냅니다.
+    public enum RecoverabilityLevel {
+        /// 즉시 재시도 가능한 일시적 에러
+        case immediateRetry
+        /// 짧은 지연 후 재시도 가능한 에러
+        case delayedRetry
+        /// 긴 지연 후 재시도 가능한 에러 
+        case extendedDelayRetry
+        /// 복구 불가능한 영구적 에러
+        case permanent
+    }
+    
+    /// 권장 복구 전략
+    ///
+    /// 에러 타입별 권장 복구 방법을 제공합니다.
+    public enum RecoveryStrategy {
+        /// 즉시 재연결 시도
+        case immediateReconnect
+        /// 지수 백오프로 재연결
+        case exponentialBackoffReconnect
+        /// 네트워크 상태 확인 후 재연결
+        case networkCheckReconnect
+        /// 사용자 개입 필요
+        case userIntervention
+        /// 복구 시도 중단
+        case abort
+    }
+    
+    /// 에러의 복구 가능성 수준
+    ///
+    /// - Returns: 복구 가능성 수준
+    public var recoverabilityLevel: RecoverabilityLevel {
+        switch self {
+        case .connectionTimeout, .timeout:
+            return .delayedRetry
+        case .connectionFailed, .unexpectedDisconnection:
+            return .immediateRetry
+        case .protocolError, .messageDecodingFailed:
+            return .extendedDelayRetry
+        case .invalidURL, .invalidSubscription:
+            return .permanent
+        case .authenticationFailed:
+            return .permanent
+        case .notConnected:
+            return .immediateRetry
+        case .reconnectionFailed:
+            return .extendedDelayRetry
+        case .subscriptionFailed:
+            return .delayedRetry
+        }
+    }
+    
+    /// 권장 복구 전략
+    ///
+    /// - Returns: 권장 복구 전략
+    public var recommendedRecoveryStrategy: RecoveryStrategy {
+        switch self {
+        case .connectionTimeout, .timeout:
+            return .exponentialBackoffReconnect
+        case .connectionFailed:
+            return .networkCheckReconnect
+        case .unexpectedDisconnection:
+            return .immediateReconnect
+        case .protocolError, .messageDecodingFailed:
+            return .exponentialBackoffReconnect
+        case .invalidURL, .invalidSubscription:
+            return .abort
+        case .authenticationFailed:
+            return .userIntervention
+        case .notConnected:
+            return .immediateReconnect
+        case .reconnectionFailed:
+            return .abort
+        case .subscriptionFailed:
+            return .exponentialBackoffReconnect
+        }
+    }
+    
+    /// 복구 가능 여부
+    ///
+    /// - Returns: 복구 가능한 에러인지 여부
+    public var isRecoverable: Bool {
+        return recoverabilityLevel != .permanent
+    }
+    
+    /// 즉시 재시도 가능 여부
+    ///
+    /// - Returns: 즉시 재시도 가능한 에러인지 여부
+    public var canRetryImmediately: Bool {
+        return recoverabilityLevel == .immediateRetry
+    }
+    
+    /// 권장 지연 시간 (초)
+    ///
+    /// 에러 타입별 권장 재시도 지연 시간을 제공합니다.
+    ///
+    /// - Returns: 권장 지연 시간 (초)
+    public var recommendedDelaySeconds: Double {
+        switch recoverabilityLevel {
+        case .immediateRetry:
+            return 0.1
+        case .delayedRetry:
+            return 1.0
+        case .extendedDelayRetry:
+            return 5.0
+        case .permanent:
+            return Double.infinity
+        }
+    }
 }

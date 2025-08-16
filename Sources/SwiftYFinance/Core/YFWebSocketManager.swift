@@ -96,6 +96,15 @@ public class YFWebSocketManager: @unchecked Sendable {
     /// 테스트용 잘못된 연결 모드
     private var testInvalidConnectionMode: Bool = false
     
+    // MARK: - Connection Quality Monitoring
+    
+    /// 연결 품질 메트릭
+    private var connectionQuality: ConnectionQuality = ConnectionQuality()
+    
+    /// 에러 로그
+    private var errorLog: [ErrorLogEntry] = []
+    private let maxErrorLogEntries = 50
+    
     // MARK: - Timeout Properties
     
     /// 연결 타임아웃 (초)
@@ -334,12 +343,16 @@ public class YFWebSocketManager: @unchecked Sendable {
             // Protobuf 메시지 디코딩
             let webSocketMessage = try messageDecoder.decode(encodedMessage)
             
+            // 메시지 수신 기록
+            recordMessageReceived()
+            
             // AsyncStream으로 메시지 전달
             messageContinuation?.yield(webSocketMessage)
             
         } catch {
             // 디코딩 오류는 로그로만 처리 (스트림 중단하지 않음)
-            print("Message decoding error: \(error)")
+            let yfError = YFError.webSocketError(.messageDecodingFailed("Failed to decode message: \(error.localizedDescription)"))
+            logError(yfError, context: "Message decoding")
         }
     }
     
@@ -404,6 +417,9 @@ public class YFWebSocketManager: @unchecked Sendable {
             consecutiveFailures = 0
             lastConnectionFailureTime = nil
             
+            // 연결 성공 기록
+            recordConnectionSuccess()
+            
             // 메시지 스트림이 활성화되어 있다면 메시지 수신 시작
             if messageContinuation != nil {
                 Task {
@@ -416,6 +432,9 @@ public class YFWebSocketManager: @unchecked Sendable {
             lastConnectionFailureTime = Date()
             webSocketTask?.cancel()
             webSocketTask = nil
+            
+            // 에러 로깅
+            logError(error, context: "WebSocket connection to \(url.absoluteString)")
             throw error
         } catch {
             connectionState = .disconnected
@@ -423,7 +442,11 @@ public class YFWebSocketManager: @unchecked Sendable {
             lastConnectionFailureTime = Date()
             webSocketTask?.cancel()
             webSocketTask = nil
-            throw YFError.webSocketError(.connectionFailed("Failed to connect to \(url.absoluteString): \(error.localizedDescription)"))
+            
+            let yfError = YFError.webSocketError(.connectionFailed("Failed to connect to \(url.absoluteString): \(error.localizedDescription)"))
+            // 에러 로깅
+            logError(yfError, context: "WebSocket connection to \(url.absoluteString)")
+            throw yfError
         }
     }
     
@@ -620,6 +643,58 @@ public class YFWebSocketManager: @unchecked Sendable {
     public func testCalculateOptimizedReconnectionDelay(attempt: Int) -> TimeInterval {
         return calculateOptimizedReconnectionDelay(attempt: attempt)
     }
+    
+    /// 연결 품질 메트릭 조회 (테스트용)
+    ///
+    /// DEBUG 빌드에서만 사용할 수 있는 연결 품질 정보 조회 메서드입니다.
+    ///
+    /// - Returns: 연결 품질 정보 딕셔너리
+    public func testGetConnectionQuality() -> [String: Any] {
+        return [
+            "totalConnections": connectionQuality.totalConnections,
+            "successfulConnections": connectionQuality.successfulConnections,
+            "totalErrors": connectionQuality.totalErrors,
+            "messagesReceived": connectionQuality.messagesReceived,
+            "successRate": connectionQuality.successRate,
+            "errorRate": connectionQuality.errorRate,
+            "lastSuccessTime": connectionQuality.lastSuccessTime?.timeIntervalSince1970 ?? 0,
+            "lastErrorTime": connectionQuality.lastErrorTime?.timeIntervalSince1970 ?? 0
+        ]
+    }
+    
+    /// 에러 로그 조회 (테스트용)
+    ///
+    /// DEBUG 빌드에서만 사용할 수 있는 에러 로그 조회 메서드입니다.
+    ///
+    /// - Returns: 에러 로그 문자열 배열
+    public func testGetErrorLog() -> [String] {
+        return errorLog.map { $0.description }
+    }
+    
+    /// 진단 정보 조회 (테스트용)
+    ///
+    /// DEBUG 빌드에서만 사용할 수 있는 종합 진단 정보 조회 메서드입니다.
+    ///
+    /// - Returns: 진단 정보 딕셔너리
+    public func testGetDiagnostics() -> [String: Any] {
+        var diagnostics: [String: Any] = [:]
+        
+        // 기본 상태 정보
+        diagnostics["connectionState"] = "\(connectionState)"
+        diagnostics["subscriptions"] = Array(subscriptions)
+        diagnostics["reconnectionAttempts"] = reconnectionAttempts
+        diagnostics["totalReconnectionAttempts"] = totalReconnectionAttempts
+        diagnostics["consecutiveFailures"] = consecutiveFailures
+        
+        // 연결 품질 정보
+        diagnostics["connectionQuality"] = testGetConnectionQuality()
+        
+        // 최근 에러 로그 (최대 5개)
+        let recentErrors = Array(errorLog.suffix(5)).map { $0.description }
+        diagnostics["recentErrors"] = recentErrors
+        
+        return diagnostics
+    }
     #endif
     
     // MARK: - Auto-Reconnection Implementation
@@ -678,6 +753,9 @@ public class YFWebSocketManager: @unchecked Sendable {
                     
                 } catch {
                     print("❌ Reconnection attempt \(reconnectionAttempts) failed: \(error)")
+                    
+                    // 재연결 실패 로깅
+                    logError(error, context: "Reconnection attempt \(reconnectionAttempts)")
                     
                     // 에러 타입에 따른 재시도 결정
                     if shouldRetryAfterError(error) && reconnectionAttempts < maxReconnectionAttempts {
@@ -739,24 +817,17 @@ public class YFWebSocketManager: @unchecked Sendable {
         }
     }
     
-    /// 에러 타입에 따른 재시도 결정
+    /// 에러 타입에 따른 재시도 결정 및 복구 전략 적용
     ///
-    /// 특정 에러 타입에 대해서는 재시도를 하지 않습니다.
+    /// 개선된 에러 복구 메커니즘을 사용하여 재시도 결정과 복구 전략을 적용합니다.
     ///
     /// - Parameter error: 발생한 에러
     /// - Returns: 재시도 여부
     private func shouldRetryAfterError(_ error: Error) -> Bool {
         if let yfError = error as? YFError {
             switch yfError {
-            case .webSocketError(.invalidURL):
-                // 잘못된 URL은 재시도해도 의미없음
-                return false
-            case .webSocketError(.connectionTimeout):
-                // 타임아웃은 재시도 가능
-                return true
-            case .webSocketError(.connectionFailed):
-                // 연결 실패는 재시도 가능
-                return true
+            case .webSocketError(let webSocketError):
+                return handleWebSocketErrorRecovery(webSocketError)
             default:
                 return true
             }
@@ -766,11 +837,155 @@ public class YFWebSocketManager: @unchecked Sendable {
         return true
     }
     
+    /// WebSocket 에러에 대한 복구 처리
+    ///
+    /// 에러 타입별 복구 전략을 적용하여 재시도 여부를 결정합니다.
+    ///
+    /// - Parameter error: WebSocket 에러
+    /// - Returns: 재시도 여부
+    private func handleWebSocketErrorRecovery(_ error: YFWebSocketError) -> Bool {
+        // 복구 가능성 확인
+        guard error.isRecoverable else {
+            print("🚫 Permanent error detected: \(error)")
+            return false
+        }
+        
+        // 복구 전략 적용
+        switch error.recommendedRecoveryStrategy {
+        case .immediateReconnect:
+            print("🔄 Immediate reconnection strategy for: \(error)")
+            return true
+            
+        case .exponentialBackoffReconnect:
+            print("⏳ Exponential backoff strategy for: \(error)")
+            // 이미 exponential backoff를 사용하고 있으므로 재시도
+            return true
+            
+        case .networkCheckReconnect:
+            print("🌐 Network check strategy for: \(error)")
+            // 향후 네트워크 상태 확인 로직 추가 가능
+            return true
+            
+        case .userIntervention:
+            print("👤 User intervention required for: \(error)")
+            return false
+            
+        case .abort:
+            print("❌ Aborting reconnection for: \(error)")
+            return false
+        }
+    }
+    
     /// Exponential backoff 지연 시간 계산 (기존 호환성)
     ///
     /// - Parameter attempt: 재연결 시도 횟수 (1부터 시작)
     /// - Returns: 계산된 지연 시간 (초)
     private func calculateReconnectionDelay(attempt: Int) -> TimeInterval {
         return calculateOptimizedReconnectionDelay(attempt: attempt)
+    }
+    
+    // MARK: - Error Logging and Diagnostics
+    
+    /// 에러 로그 추가
+    ///
+    /// 진단을 위해 에러 정보를 기록합니다.
+    ///
+    /// - Parameters:
+    ///   - error: 발생한 에러
+    ///   - context: 에러 발생 컨텍스트
+    private func logError(_ error: Error, context: String) {
+        let entry = ErrorLogEntry(
+            timestamp: Date(),
+            error: error,
+            context: context,
+            connectionState: connectionState,
+            reconnectionAttempts: reconnectionAttempts,
+            consecutiveFailures: consecutiveFailures
+        )
+        
+        errorLog.append(entry)
+        
+        // 로그 크기 제한
+        if errorLog.count > maxErrorLogEntries {
+            errorLog.removeFirst()
+        }
+        
+        // 연결 품질 업데이트
+        connectionQuality.recordError()
+        
+        print("📝 Error logged: \(error) in \(context)")
+    }
+    
+    /// 연결 성공 기록
+    ///
+    /// 연결 품질 메트릭을 업데이트합니다.
+    private func recordConnectionSuccess() {
+        connectionQuality.recordSuccess()
+        print("✅ Connection success recorded")
+    }
+    
+    /// 메시지 수신 기록
+    ///
+    /// 연결 품질 메트릭을 업데이트합니다.
+    private func recordMessageReceived() {
+        connectionQuality.recordMessageReceived()
+    }
+}
+
+// MARK: - Supporting Types
+
+/// 연결 품질 메트릭
+private struct ConnectionQuality {
+    private(set) var totalConnections: Int = 0
+    private(set) var successfulConnections: Int = 0
+    private(set) var totalErrors: Int = 0
+    private(set) var messagesReceived: Int = 0
+    private(set) var lastSuccessTime: Date?
+    private(set) var lastErrorTime: Date?
+    
+    /// 연결 성공률
+    var successRate: Double {
+        guard totalConnections > 0 else { return 0.0 }
+        return Double(successfulConnections) / Double(totalConnections)
+    }
+    
+    /// 에러율
+    var errorRate: Double {
+        let totalAttempts = totalConnections + totalErrors
+        guard totalAttempts > 0 else { return 0.0 }
+        return Double(totalErrors) / Double(totalAttempts)
+    }
+    
+    /// 연결 성공 기록
+    mutating func recordSuccess() {
+        totalConnections += 1
+        successfulConnections += 1
+        lastSuccessTime = Date()
+    }
+    
+    /// 에러 발생 기록
+    mutating func recordError() {
+        totalErrors += 1
+        lastErrorTime = Date()
+    }
+    
+    /// 메시지 수신 기록
+    mutating func recordMessageReceived() {
+        messagesReceived += 1
+    }
+}
+
+/// 에러 로그 엔트리
+private struct ErrorLogEntry {
+    let timestamp: Date
+    let error: Error
+    let context: String
+    let connectionState: YFWebSocketManager.ConnectionState
+    let reconnectionAttempts: Int
+    let consecutiveFailures: Int
+    
+    /// 로그 문자열 표현
+    var description: String {
+        return "\(timestamp): [\(context)] \(error) (state: \(connectionState), attempts: \(reconnectionAttempts), failures: \(consecutiveFailures))"
     }
 }
