@@ -165,9 +165,11 @@ class YFWebSocketManager {
     private var activeSubscriptions: Set<String> = []
     
     func subscribe(symbols: [String]) async throws {
+        // yfinance/live.py의 subscribe 패턴 참조
         let newSymbols = Set(symbols).subtracting(activeSubscriptions)
         guard !newSymbols.isEmpty else { return } // 중복 방지
         
+        // Yahoo Finance WebSocket 구독 메시지 형식
         let subscribeMessage = [
             "subscribe": Array(newSymbols)
         ]
@@ -180,6 +182,13 @@ class YFWebSocketManager {
     }
 }
 ```
+
+## 📂 yfinance-reference 소스 참조
+
+### Step 4-5에서 참고할 소스 코드
+- **`yfinance/live.py:238-249`** - subscribe() 메서드 구현
+- **`yfinance/live.py:20`** - _subscriptions Set 관리
+- **`yfinance/live.py:39-209`** - AsyncWebSocket 비동기 구현 패턴
 
 ### AsyncStream 구현
 ```swift
@@ -231,6 +240,59 @@ func messageStream() -> AsyncStream<YFWebSocketMessage> {
 - 구독 상태 관리: < 1MB
 - 메시지 버퍼링: < 10MB
 - AsyncStream: < 5MB
+
+---
+
+## 🧪 AsyncStream 테스트 패턴
+
+### Swift Testing 방식
+```swift
+@Test("WebSocket 메시지 스트림 테스트")
+func testWebSocketMessageStream() async {
+    let mockManager = MockWebSocketManager()
+    mockManager.mockMessages = createTestMessages(count: 5)
+    
+    await confirmation(expectedCount: 5) { confirm in
+        for await message in mockManager.messageStream() {
+            #expect(message.symbol != nil)
+            #expect(message.price > 0)
+            confirm()
+        }
+    }
+}
+```
+
+### XCTest 방식
+```swift
+func testWebSocketStream() async {
+    let expectation = XCTestExpectation(description: "Messages")
+    expectation.expectedFulfillmentCount = 5
+    expectation.assertForOverFulfill = true
+    
+    for await message in mockWebSocketStream {
+        XCTAssertNotNil(message.symbol)
+        XCTAssertGreaterThan(message.price, 0)
+        expectation.fulfill()
+    }
+    
+    await fulfillment(of: [expectation], timeout: 10)
+}
+```
+
+### 테스트 데이터 생성 유틸리티
+```swift
+func createTestMessages(count: Int) -> [YFWebSocketMessage] {
+    return (0..<count).map { index in
+        YFWebSocketMessage(
+            symbol: "TEST\(index)",
+            price: Double(100 + index),
+            currency: "USD",
+            exchange: "TEST",
+            timestamp: Date()
+        )
+    }
+}
+```
 
 ---
 

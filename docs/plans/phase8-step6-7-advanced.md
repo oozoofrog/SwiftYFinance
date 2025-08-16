@@ -221,6 +221,7 @@ class YFWebSocketManager {
 // YFWebSocketAPI.swift
 extension YFClient {
     /// 실시간 스트리밍 시작
+    /// yfinance.Ticker.live 메서드와 유사한 API 제공
     public func startRealTimeStreaming(symbols: [String]) async throws -> AsyncStream<YFStreamingQuote> {
         let webSocketManager = YFWebSocketManager(session: session)
         try await webSocketManager.connect()
@@ -240,6 +241,14 @@ extension YFClient {
     }
 }
 ```
+
+## 📂 yfinance-reference 소스 참조
+
+### Step 6-7에서 참고할 소스 코드
+- **`yfinance/base.py:37`** - WebSocket import 및 통합 패턴
+- **`yfinance/tickers.py:27`** - WebSocket 다중 심볼 처리
+- **`yfinance/live.py:15-21`** - 연결 관리 및 URL 설정
+- **`yfinance/__init__.py:28`** - 퍼블릭 API 노출 패턴
 
 ---
 
@@ -278,6 +287,59 @@ extension YFClient {
 - 에러 복구 자동화
 - 상태 불일치 방지
 - 로깅 및 모니터링 강화
+
+---
+
+## 🧪 고급 테스트 패턴
+
+### 에러 처리 및 재연결 테스트
+```swift
+@Test("연결 실패 및 재시도 테스트")
+func testConnectionRetry() async {
+    let mockManager = MockWebSocketManager()
+    mockManager.shouldFailConnection = true
+    
+    // 첫 번째 연결 실패 확인
+    await #expect(throws: YFWebSocketError.connectionFailed) {
+        try await mockManager.connect()
+    }
+    
+    // 재시도 로직 테스트
+    mockManager.shouldFailConnection = false
+    try await mockManager.connect()
+    
+    // 연결 성공 확인
+    #expect(mockManager.isConnected == true)
+}
+```
+
+### 성능 테스트 패턴
+```swift
+@Test("대량 메시지 처리 성능 테스트")
+func testHighVolumeMessageProcessing() async {
+    let mockManager = MockWebSocketManager()
+    mockManager.mockMessages = createTestMessages(count: 1000)
+    
+    let startTime = Date()
+    var messageCount = 0
+    
+    for await message in mockManager.messageStream() {
+        messageCount += 1
+        // 처리 로직 시뮬레이션
+    }
+    
+    let duration = Date().timeIntervalSince(startTime)
+    #expect(messageCount == 1000)
+    #expect(duration < 1.0) // 1초 내 처리 완료
+}
+```
+
+### 🔍 테스트 검증 체크리스트
+- [ ] **단위 테스트**: 각 클래스/메서드 독립적 테스트
+- [ ] **통합 테스트**: Mock 서버를 통한 전체 플로우 테스트  
+- [ ] **성능 테스트**: 메시지 처리 속도, 메모리 사용량
+- [ ] **에러 시나리오**: 모든 실패 케이스 및 복구 로직
+- [ ] **스레드 안전성**: 동시성 환경에서의 안정성
 
 ---
 
