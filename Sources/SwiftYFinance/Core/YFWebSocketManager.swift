@@ -33,12 +33,27 @@ public class YFWebSocketManager: @unchecked Sendable {
         case connecting
         /// 연결됨
         case connected
+        /// 재연결 중
+        case reconnecting
+        /// 영구적 실패 (복구 불가)
+        case failed
+        /// 일시 중단됨 (사용자 요청)
+        case suspended
     }
     
     // MARK: - Private Properties
     
     /// 현재 연결 상태
-    private var connectionState: ConnectionState = .disconnected
+    private var _connectionState: ConnectionState = .disconnected
+    
+    /// 상태 전환 로그
+    private var stateTransitionLog: [StateTransition] = []
+    private let maxStateTransitionEntries = 20
+    
+    /// 현재 연결 상태 (읽기 전용)
+    private var connectionState: ConnectionState {
+        return _connectionState
+    }
     
     /// 기본 Yahoo Finance WebSocket URL
     private let defaultURL = "wss://streamer.finance.yahoo.com/?version=2"
@@ -150,7 +165,7 @@ public class YFWebSocketManager: @unchecked Sendable {
     ///
     /// 활성 WebSocket 연결을 정상적으로 종료합니다.
     public func disconnect() async {
-        connectionState = .disconnected
+        changeConnectionState(to: .disconnected, reason: "User requested disconnect")
         autoReconnectionEnabled = false
         reconnectionAttempts = 0
         totalReconnectionAttempts = 0
@@ -185,8 +200,8 @@ public class YFWebSocketManager: @unchecked Sendable {
     /// try await manager.subscribe(to: ["AAPL", "TSLA"])
     /// ```
     public func subscribe(to symbols: [String]) async throws {
-        guard connectionState == .connected else {
-            throw YFError.webSocketError(.notConnected("Must be connected to WebSocket before subscribing"))
+        guard isUsableState else {
+            throw YFError.webSocketError(.notConnected("Must be connected to WebSocket before subscribing (current state: \(connectionState))"))
         }
         
         guard !symbols.isEmpty else {
@@ -209,8 +224,8 @@ public class YFWebSocketManager: @unchecked Sendable {
     /// - Parameter symbols: 구독 취소할 심볼 배열
     /// - Throws: `YFError.webSocketError` 연결 또는 구독 관련 오류
     public func unsubscribe(from symbols: [String]) async throws {
-        guard connectionState == .connected else {
-            throw YFError.webSocketError(.notConnected("Must be connected to WebSocket before unsubscribing"))
+        guard isUsableState else {
+            throw YFError.webSocketError(.notConnected("Must be connected to WebSocket before unsubscribing (current state: \(connectionState))"))
         }
         
         guard !symbols.isEmpty else {
@@ -251,7 +266,7 @@ public class YFWebSocketManager: @unchecked Sendable {
             self.messageContinuation = continuation
             
             // Start background message listening if connected
-            if connectionState == .connected {
+            if isUsableState {
                 Task {
                     await startMessageListening()
                 }
@@ -288,14 +303,14 @@ public class YFWebSocketManager: @unchecked Sendable {
     private func startMessageListening() async {
         guard let webSocketTask = webSocketTask else { return }
         
-        while connectionState == .connected {
+        while isUsableState {
             do {
                 let message = try await webSocketTask.receive()
                 await handleWebSocketMessage(message)
             } catch {
                 // WebSocket 연결 오류 처리
-                if connectionState == .connected {
-                    connectionState = .disconnected
+                if isUsableState {
+                    changeConnectionState(to: .disconnected, reason: "Message listening error: \(error)")
                     
                     // 자동 재연결이 활성화된 경우 재연결 시도
                     if autoReconnectionEnabled {
@@ -371,12 +386,12 @@ public class YFWebSocketManager: @unchecked Sendable {
     /// - Parameter url: 연결할 WebSocket URL
     /// - Throws: `YFError.webSocketError` WebSocket 연결 관련 오류
     private func connectToURL(_ url: URL) async throws {
-        connectionState = .connecting
+        changeConnectionState(to: .connecting, reason: "Connection attempt to \(url.host ?? "unknown")")
         
         #if DEBUG
         // 테스트용 잘못된 연결 모드
         if testInvalidConnectionMode {
-            connectionState = .disconnected
+            changeConnectionState(to: .failed, reason: "Test invalid connection mode enabled")
             throw YFError.webSocketError(.connectionFailed("Test invalid connection mode enabled"))
         }
         #endif
@@ -411,11 +426,7 @@ public class YFWebSocketManager: @unchecked Sendable {
                 throw error
             }
             
-            connectionState = .connected
-            
-            // 연결 성공 시 실패 카운터 초기화
-            consecutiveFailures = 0
-            lastConnectionFailureTime = nil
+            changeConnectionState(to: .connected, reason: "WebSocket connection established")
             
             // 연결 성공 기록
             recordConnectionSuccess()
@@ -427,7 +438,7 @@ public class YFWebSocketManager: @unchecked Sendable {
                 }
             }
         } catch let error as YFError {
-            connectionState = .disconnected
+            changeConnectionState(to: .disconnected, reason: "Connection failed: \(error)")
             consecutiveFailures += 1
             lastConnectionFailureTime = Date()
             webSocketTask?.cancel()
@@ -437,7 +448,7 @@ public class YFWebSocketManager: @unchecked Sendable {
             logError(error, context: "WebSocket connection to \(url.absoluteString)")
             throw error
         } catch {
-            connectionState = .disconnected
+            changeConnectionState(to: .disconnected, reason: "Connection failed: \(error)")
             consecutiveFailures += 1
             lastConnectionFailureTime = Date()
             webSocketTask?.cancel()
@@ -548,9 +559,9 @@ public class YFWebSocketManager: @unchecked Sendable {
     ///
     /// DEBUG 빌드에서만 사용할 수 있는 연결 손실 시뮬레이션 메서드입니다.
     public func testSimulateConnectionLoss() async {
-        if connectionState == .connected {
+        if isUsableState {
             webSocketTask?.cancel()
-            connectionState = .disconnected
+            changeConnectionState(to: .disconnected, reason: "Test: Simulated connection loss")
             
             if autoReconnectionEnabled {
                 await attemptReconnection()
@@ -695,6 +706,49 @@ public class YFWebSocketManager: @unchecked Sendable {
         
         return diagnostics
     }
+    
+    /// 상태 전환 로그 조회 (테스트용)
+    ///
+    /// DEBUG 빌드에서만 사용할 수 있는 상태 전환 로그 조회 메서드입니다.
+    ///
+    /// - Returns: 상태 전환 로그 문자열 배열
+    public func testGetStateTransitionLog() -> [String] {
+        return stateTransitionLog.map { $0.description }
+    }
+    
+    /// 현재 상태의 활성/사용가능 여부 조회 (테스트용)
+    ///
+    /// DEBUG 빌드에서만 사용할 수 있는 상태 정보 조회 메서드입니다.
+    ///
+    /// - Returns: 상태 정보 딕셔너리
+    public func testGetStateInfo() -> [String: Any] {
+        return [
+            "connectionState": "\(connectionState)",
+            "isActiveState": isActiveState,
+            "isUsableState": isUsableState,
+            "canRetryConnection": canRetryConnection,
+            "autoReconnectionEnabled": autoReconnectionEnabled
+        ]
+    }
+    
+    /// 상태 전환 강제 실행 (테스트용)
+    ///
+    /// DEBUG 빌드에서만 사용할 수 있는 상태 전환 테스트 메서드입니다.
+    /// 주의: 이 메서드는 테스트 목적으로만 사용하세요.
+    ///
+    /// - Parameters:
+    ///   - newState: 전환할 상태
+    ///   - reason: 전환 이유
+    /// - Returns: 전환 성공 여부
+    public func testForceStateTransition(to newState: ConnectionState, reason: String) -> Bool {
+        let oldState = _connectionState
+        if isValidStateTransition(from: oldState, to: newState) {
+            changeConnectionState(to: newState, reason: "Test: \(reason)")
+            return true
+        } else {
+            return false
+        }
+    }
     #endif
     
     // MARK: - Auto-Reconnection Implementation
@@ -731,7 +785,8 @@ public class YFWebSocketManager: @unchecked Sendable {
             try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
             
             // 취소되지 않았고 여전히 재연결이 필요한 경우
-            if !Task.isCancelled && connectionState == .disconnected && autoReconnectionEnabled {
+            if !Task.isCancelled && canRetryConnection && autoReconnectionEnabled {
+                changeConnectionState(to: .reconnecting, reason: "Automatic reconnection attempt \(reconnectionAttempts)")
                 do {
                     try await connect()
                     
@@ -811,7 +866,7 @@ public class YFWebSocketManager: @unchecked Sendable {
         reconnectionTask = Task {
             try? await Task.sleep(nanoseconds: UInt64(extendedDelay * 1_000_000_000))
             
-            if !Task.isCancelled && connectionState == .disconnected && autoReconnectionEnabled {
+            if !Task.isCancelled && canRetryConnection && autoReconnectionEnabled {
                 await attemptReconnection()
             }
         }
@@ -930,6 +985,150 @@ public class YFWebSocketManager: @unchecked Sendable {
     private func recordMessageReceived() {
         connectionQuality.recordMessageReceived()
     }
+    
+    // MARK: - State Management
+    
+    /// 연결 상태 변경 (중앙화된 상태 관리)
+    ///
+    /// 모든 상태 변경은 이 메서드를 통해 수행되며, 
+    /// 상태 전환 로그와 유효성 검사가 자동으로 처리됩니다.
+    ///
+    /// - Parameters:
+    ///   - newState: 변경할 새로운 상태
+    ///   - reason: 상태 변경 이유
+    private func changeConnectionState(to newState: ConnectionState, reason: String) {
+        let oldState = _connectionState
+        
+        // 상태 전환 유효성 검사
+        guard isValidStateTransition(from: oldState, to: newState) else {
+            print("⚠️ Invalid state transition: \(oldState) -> \(newState)")
+            return
+        }
+        
+        // 상태 변경
+        _connectionState = newState
+        
+        // 상태 전환 로그 기록
+        let transition = StateTransition(
+            fromState: oldState,
+            toState: newState,
+            timestamp: Date(),
+            reason: reason
+        )
+        
+        stateTransitionLog.append(transition)
+        
+        // 로그 크기 제한
+        if stateTransitionLog.count > maxStateTransitionEntries {
+            stateTransitionLog.removeFirst()
+        }
+        
+        // 상태 변경 이벤트 처리
+        handleStateChangeEffects(from: oldState, to: newState)
+        
+        print("🔄 State changed: \(oldState) -> \(newState) (\(reason))")
+    }
+    
+    /// 상태 전환 유효성 검사
+    ///
+    /// 특정 상태 전환이 유효한지 확인합니다.
+    ///
+    /// - Parameters:
+    ///   - fromState: 현재 상태
+    ///   - toState: 전환할 상태
+    /// - Returns: 유효한 전환인지 여부
+    private func isValidStateTransition(from fromState: ConnectionState, to toState: ConnectionState) -> Bool {
+        // 동일한 상태로의 전환은 허용 (로그 목적)
+        if fromState == toState {
+            return true
+        }
+        
+        switch fromState {
+        case .disconnected:
+            return [.connecting, .suspended].contains(toState)
+            
+        case .connecting:
+            return [.connected, .disconnected, .failed].contains(toState)
+            
+        case .connected:
+            return [.disconnected, .reconnecting, .suspended].contains(toState)
+            
+        case .reconnecting:
+            return [.connected, .disconnected, .failed].contains(toState)
+            
+        case .failed:
+            return [.disconnected, .connecting].contains(toState)
+            
+        case .suspended:
+            return [.disconnected, .connecting].contains(toState)
+        }
+    }
+    
+    /// 상태 변경 부수 효과 처리
+    ///
+    /// 상태가 변경될 때 필요한 부가 작업을 수행합니다.
+    ///
+    /// - Parameters:
+    ///   - fromState: 이전 상태
+    ///   - toState: 새로운 상태
+    private func handleStateChangeEffects(from fromState: ConnectionState, to toState: ConnectionState) {
+        switch toState {
+        case .disconnected:
+            // 연결 해제 시 정리 작업
+            if fromState != .disconnected {
+                // 자동 재연결이 비활성화된 경우에만 스트림 종료
+                if !autoReconnectionEnabled {
+                    messageContinuation?.finish()
+                }
+            }
+            
+        case .connecting:
+            // 연결 시도 시작
+            break
+            
+        case .connected:
+            // 연결 성공 시 카운터 초기화
+            if fromState != .connected {
+                consecutiveFailures = 0
+                reconnectionAttempts = 0
+                lastConnectionFailureTime = nil
+            }
+            
+        case .reconnecting:
+            // 재연결 시도 시작
+            break
+            
+        case .failed:
+            // 영구적 실패 시 정리
+            messageContinuation?.finish()
+            autoReconnectionEnabled = false
+            
+        case .suspended:
+            // 일시 중단 시 정리
+            webSocketTask?.cancel(with: .goingAway, reason: nil)
+        }
+    }
+    
+    /// 현재 연결 상태가 활성 상태인지 확인
+    ///
+    /// - Returns: 활성 상태 여부
+    private var isActiveState: Bool {
+        return [.connecting, .connected, .reconnecting].contains(connectionState)
+    }
+    
+    /// 현재 연결 상태가 사용 가능한 상태인지 확인
+    ///
+    /// - Returns: 사용 가능한 상태 여부
+    private var isUsableState: Bool {
+        return connectionState == .connected
+    }
+    
+    /// 현재 연결 상태가 재시도 가능한 상태인지 확인
+    ///
+    /// - Returns: 재시도 가능한 상태 여부
+    private var canRetryConnection: Bool {
+        return [.disconnected, .failed].contains(connectionState)
+    }
 }
 
 // MARK: - Supporting Types
@@ -987,5 +1186,18 @@ private struct ErrorLogEntry {
     /// 로그 문자열 표현
     var description: String {
         return "\(timestamp): [\(context)] \(error) (state: \(connectionState), attempts: \(reconnectionAttempts), failures: \(consecutiveFailures))"
+    }
+}
+
+/// 상태 전환 로그 엔트리
+private struct StateTransition {
+    let fromState: YFWebSocketManager.ConnectionState
+    let toState: YFWebSocketManager.ConnectionState
+    let timestamp: Date
+    let reason: String
+    
+    /// 로그 문자열 표현
+    var description: String {
+        return "\(timestamp): \(fromState) -> \(toState) (\(reason))"
     }
 }
