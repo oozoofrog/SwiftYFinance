@@ -6,140 +6,226 @@
 ## 🔴 Step 1: 기본 데이터 모델 테스트 ⭐️
 
 ### 테스트 작성 (RED)
-- [ ] YFWebSocketMessage 초기화 테스트 (기본 프로퍼티)
-- [ ] YFStreamingQuote 모델 테스트 (price, symbol, timestamp)
-- [ ] YFWebSocketError 열거형 테스트 (에러 케이스 정의)
-- [ ] Mock 객체 프로토콜 정의 (WebSocketManagerProtocol)
+- [ ] **Task 1.1**: YFWebSocketMessage 초기화 테스트 (기본 프로퍼티)
+  - 📝 **업데이트**: `Tests/SwiftYFinanceTests/WebSocket/YFWebSocketMessageTests.swift` 생성
+  - 🔄 **커밋**: `[Behavior] Add YFWebSocketMessage basic initialization tests`
+- [ ] **Task 1.2**: YFStreamingQuote 모델 테스트 (price, symbol, timestamp)
+  - 📝 **업데이트**: `Tests/SwiftYFinanceTests/WebSocket/YFStreamingQuoteTests.swift` 생성
+  - 🔄 **커밋**: `[Behavior] Add YFStreamingQuote model tests`
+- [ ] **Task 1.3**: YFWebSocketError 열거형 테스트 (에러 케이스 정의)
+  - 📝 **업데이트**: `Tests/SwiftYFinanceTests/WebSocket/YFWebSocketErrorTests.swift` 생성
+  - 🔄 **커밋**: `[Behavior] Add YFWebSocketError enum tests`
+- [ ] **Task 1.4**: YFWebSocketManager 기본 구조 테스트 (연결 상태 관리)
+  - 📝 **업데이트**: `Tests/SwiftYFinanceTests/WebSocket/YFWebSocketManagerTests.swift` 생성
+  - 🔄 **커밋**: `[Behavior] Add YFWebSocketManager basic structure tests`
 
 ### 구현 (GREEN)
-- [ ] YFWebSocketMessage.swift 생성 (기본 프로퍼티만)
-- [ ] YFStreamingQuote.swift 생성 (price, symbol, timestamp)
-- [ ] YFWebSocketError 케이스 추가 (기본 에러 타입)
-- [ ] WebSocketManagerProtocol 정의 (Mock을 위한 인터페이스)
+- [ ] **Task 1.5**: YFWebSocketMessage.swift 생성 (기본 프로퍼티만)
+  - 📝 **업데이트**: `Sources/SwiftYFinance/Models/YFWebSocketMessage.swift` 생성
+  - 🔄 **커밋**: `[Behavior] Implement YFWebSocketMessage basic model`
+- [ ] **Task 1.6**: YFStreamingQuote.swift 생성 (price, symbol, timestamp)
+  - 📝 **업데이트**: `Sources/SwiftYFinance/Models/YFStreamingQuote.swift` 생성
+  - 🔄 **커밋**: `[Behavior] Implement YFStreamingQuote model`
+- [ ] **Task 1.7**: YFWebSocketError 케이스 추가 (기본 에러 타입)
+  - 📝 **업데이트**: `Sources/SwiftYFinance/Models/YFError.swift` 확장
+  - 🔄 **커밋**: `[Behavior] Add YFWebSocketError cases to YFError`
+- [ ] **Task 1.8**: YFWebSocketManager 기본 클래스 구현 (상태 관리 포함)
+  - 📝 **업데이트**: `Sources/SwiftYFinance/Core/YFWebSocketManager.swift` 생성
+  - 🔄 **커밋**: `[Behavior] Implement YFWebSocketManager basic structure`
 
 ### 리팩터링 (REFACTOR)
-- [ ] 모델 구조 정리 및 최적화
-- [ ] 코드 중복 제거
-- [ ] 네이밍 일관성 확인
+- [ ] **Task 1.9**: 모델 구조 정리 및 최적화
+  - 📝 **업데이트**: 모든 Step 1 파일들 리팩터링
+  - 🔄 **커밋**: `[Tidy] Refactor Step 1 model structures and optimize`
+- [ ] **Task 1.10**: 코드 중복 제거
+  - 📝 **업데이트**: 중복 코드 제거 및 공통 유틸리티 추출
+  - 🔄 **커밋**: `[Tidy] Remove code duplication in Step 1 implementation`
+- [ ] **Task 1.11**: 네이밍 일관성 확인
+  - 📝 **업데이트**: 전체 파일의 네이밍 일관성 검토 및 수정
+  - 🔄 **커밋**: `[Tidy] Ensure naming consistency in Step 1 components`
 
 ---
 
 ## 🔴 Step 2: Protobuf 디코딩 테스트 ⭐️
 
 ### 테스트 작성 (RED)
-- [ ] Base64 디코딩 기본 테스트 (valid input)
-- [ ] 잘못된 Base64 처리 테스트 (invalid input → error)
-- [ ] YFWebSocketMessage Protobuf 디코딩 테스트 (실제 Yahoo Finance 데이터)
-- [ ] Protobuf 파싱 오류 테스트 (corrupted data → error)
+- [ ] **Task 2.1**: Base64 디코딩 기본 테스트 (valid input)
+  - 📝 **업데이트**: `Tests/SwiftYFinanceTests/WebSocket/ProtobufDecodingTests.swift` 생성
+  - 🔄 **커밋**: `[Behavior] Add Base64 decoding basic tests`
+- [ ] **Task 2.2**: 잘못된 Base64 처리 테스트 (invalid input → error)
+  - 📝 **업데이트**: `ProtobufDecodingTests.swift`에 에러 케이스 추가
+  - 🔄 **커밋**: `[Behavior] Add invalid Base64 error handling tests`
+- [ ] **Task 2.3**: YFWebSocketMessage Protobuf 디코딩 테스트 (실제 Yahoo Finance 데이터)
+  - 📝 **업데이트**: `ProtobufDecodingTests.swift`에 실제 데이터 테스트 추가
+  - 🔄 **커밋**: `[Behavior] Add real Yahoo Finance protobuf decoding tests`
+- [ ] **Task 2.4**: Protobuf 파싱 오류 테스트 (corrupted data → error)
+  - 📝 **업데이트**: `ProtobufDecodingTests.swift`에 파싱 에러 테스트 추가
+  - 🔄 **커밋**: `[Behavior] Add protobuf parsing error tests`
 
 ### 구현 (GREEN)
-- [ ] SwiftProtobuf 종속성 추가 (Package.swift)
-- [ ] PricingData.proto 파일 추가 (Yahoo Finance 스키마)
-- [ ] Base64 디코딩 유틸리티 구현 (기본 디코딩만)
-- [ ] YFWebSocketMessageDecoder 구현 (Protobuf → 모델)
+- [ ] **Task 2.5**: SwiftProtobuf 종속성 추가 (Package.swift)
+  - 📝 **업데이트**: `Package.swift`에 SwiftProtobuf 의존성 추가
+  - 🔄 **커밋**: `[Behavior] Add SwiftProtobuf dependency to Package.swift`
+- [ ] **Task 2.6**: PricingData.proto 파일 추가 (Yahoo Finance 스키마)
+  - 📝 **업데이트**: `Sources/SwiftYFinance/Protobuf/PricingData.proto` 생성
+  - 🔄 **커밋**: `[Behavior] Add Yahoo Finance PricingData.proto schema`
+- [ ] **Task 2.7**: Base64 디코딩 유틸리티 구현 (기본 디코딩만)
+  - 📝 **업데이트**: `Sources/SwiftYFinance/Core/YFWebSocketMessageDecoder.swift` 생성
+  - 🔄 **커밋**: `[Behavior] Implement Base64 decoding utility`
+- [ ] **Task 2.8**: YFWebSocketMessageDecoder 구현 (Protobuf → 모델)
+  - 📝 **업데이트**: `YFWebSocketMessageDecoder.swift` 완성
+  - 🔄 **커밋**: `[Behavior] Implement Protobuf to model decoding`
 
 ### 리팩터링 (REFACTOR)
-- [ ] 에러 처리 개선
-- [ ] 디코딩 성능 최적화
-- [ ] 메서드 분리 (20줄 이하)
+- [ ] **Task 2.9**: 에러 처리 개선
+  - 📝 **업데이트**: 디코딩 에러 처리 로직 개선
+  - 🔄 **커밋**: `[Tidy] Improve error handling in protobuf decoding`
+- [ ] **Task 2.10**: 디코딩 성능 최적화
+  - 📝 **업데이트**: 디코딩 성능 최적화 적용
+  - 🔄 **커밋**: `[Tidy] Optimize protobuf decoding performance`
+- [ ] **Task 2.11**: 메서드 분리 (20줄 이하)
+  - 📝 **업데이트**: 긴 메서드 분리 및 가독성 개선
+  - 🔄 **커밋**: `[Tidy] Split long methods in protobuf decoder`
 
 ---
 
 ## 🔴 Step 3: WebSocket 연결 테스트 ⭐️
 
 ### 테스트 작성 (RED)
-- [ ] Mock WebSocket 연결 성공 테스트 (기본 연결)
-- [ ] Mock WebSocket 연결 실패 테스트 (에러 시뮬레이션)
-- [ ] 연결 상태 추적 테스트 (disconnected → connecting → connected)
-- [ ] URLProtocol 비호환성 우회 (Protocol-Oriented Mock)
+- [ ] **Task 3.1**: 실제 WebSocket 연결 성공 테스트 (로컬/원격 서버)
+  - 📝 **업데이트**: `Tests/SwiftYFinanceTests/WebSocket/WebSocketConnectionTests.swift` 생성
+  - 🔄 **커밋**: `[Behavior] Add real WebSocket connection success tests`
+- [ ] **Task 3.2**: WebSocket 연결 실패 테스트 (잘못된 URL)
+  - 📝 **업데이트**: `WebSocketConnectionTests.swift`에 실패 케이스 추가
+  - 🔄 **커밋**: `[Behavior] Add WebSocket connection failure tests`
+- [ ] **Task 3.3**: 연결 상태 추적 테스트 (disconnected → connecting → connected)
+  - 📝 **업데이트**: `WebSocketConnectionTests.swift`에 상태 추적 테스트 추가
+  - 🔄 **커밋**: `[Behavior] Add connection state tracking tests`
+- [ ] **Task 3.4**: 테스트용 API 검증 테스트 (DEBUG 빌드 전용)
+  - 📝 **업데이트**: `WebSocketConnectionTests.swift`에 테스트 API 검증 추가
+  - 🔄 **커밋**: `[Behavior] Add testing API validation tests`
 
 ### 구현 (GREEN)
-- [ ] YFWebSocketManager.swift 생성 (기본 구조)
-- [ ] URLSessionWebSocketTask 기반 연결 (connect/disconnect)
-- [ ] 연결 상태 열거형 (disconnected, connecting, connected)
-- [ ] Mock WebSocket Manager 구현 (테스트용)
+- [ ] **Task 3.5**: YFWebSocketManager 기본 구조 확장 (연결 기능 추가)
+  - 📝 **업데이트**: 기존 `YFWebSocketManager.swift`에 연결 기능 구현
+  - 🔄 **커밋**: `[Behavior] Extend YFWebSocketManager with connection functionality`
+- [ ] **Task 3.6**: URLSessionWebSocketTask 기반 연결 (connect/disconnect)
+  - 📝 **업데이트**: `YFWebSocketManager.swift`에 URLSessionWebSocketTask 구현
+  - 🔄 **커밋**: `[Behavior] Implement URLSessionWebSocketTask based connections`
+- [ ] **Task 3.7**: 연결 상태 열거형 (disconnected, connecting, connected)
+  - 📝 **업데이트**: `YFWebSocketManager.swift`에 ConnectionState enum 추가
+  - 🔄 **커밋**: `[Behavior] Add ConnectionState enum for state management`
+- [ ] **Task 3.8**: 테스트 지원 API 구현 (#if DEBUG)
+  - 📝 **업데이트**: `YFWebSocketManager.swift`에 DEBUG 전용 테스트 API 추가
+  - 🔄 **커밋**: `[Behavior] Implement testing support API with DEBUG guards`
 
 ### 리팩터링 (REFACTOR)
-- [ ] 상태 관리 개선
-- [ ] 에러 처리 통합
-- [ ] Protocol 인터페이스 정리
+- [ ] **Task 3.9**: 상태 관리 개선
+  - 📝 **업데이트**: 연결 상태 관리 로직 개선 및 최적화
+  - 🔄 **커밋**: `[Tidy] Improve connection state management logic`
+- [ ] **Task 3.10**: 에러 처리 통합
+  - 📝 **업데이트**: WebSocket 관련 에러 처리 통합 및 일관성 확보
+  - 🔄 **커밋**: `[Tidy] Integrate and standardize WebSocket error handling`
+- [ ] **Task 3.11**: API 인터페이스 정리
+  - 📝 **업데이트**: public/internal API 정리 및 문서화
+  - 🔄 **커밋**: `[Tidy] Clean up API interfaces and improve documentation`
 
 ---
 
 ## 📝 Step 1-3 완료 기준
 
 ### 기능 검증
-- [ ] 모든 Step 1-3 테스트 통과 (100%)
-- [ ] 기본 모델 초기화 성공
-- [ ] Protobuf 디코딩 성공 (실제 Yahoo Finance 데이터)
-- [ ] Mock WebSocket 연결/해제 성공
+- [ ] **Task C.1**: 모든 Step 1-3 테스트 통과 (100%)
+  - 📝 **업데이트**: 전체 테스트 실행 결과 확인 및 README 업데이트
+  - 🔄 **커밋**: `[Behavior] Verify all Step 1-3 tests pass (100% success rate)`
+- [ ] **Task C.2**: 기본 모델 초기화 성공
+  - 📝 **업데이트**: 모델 초기화 검증 완료 문서화
+  - 🔄 **커밋**: `[Behavior] Confirm basic model initialization success`
+- [ ] **Task C.3**: Protobuf 디코딩 성공 (실제 Yahoo Finance 데이터)
+  - 📝 **업데이트**: 실제 Yahoo Finance 데이터 디코딩 검증 완료
+  - 🔄 **커밋**: `[Behavior] Verify protobuf decoding with real Yahoo Finance data`
+- [ ] **Task C.4**: 실제 WebSocket 연결/해제 성공
+  - 📝 **업데이트**: WebSocket 연결 기능 검증 완료 문서화
+  - 🔄 **커밋**: `[Behavior] Confirm real WebSocket connection/disconnection works`
 
 ### 코드 품질
-- [ ] 메서드 크기 20줄 이하
-- [ ] 파일 크기 200줄 이하 (Step 1-3)
-- [ ] 중복 코드 없음
-- [ ] Protocol-Oriented 설계 완료
+- [ ] **Task Q.1**: 메서드 크기 20줄 이하
+  - 📝 **업데이트**: 모든 메서드 크기 검토 및 분리 완료
+  - 🔄 **커밋**: `[Tidy] Ensure all methods are under 20 lines`
+- [ ] **Task Q.2**: 파일 크기 200줄 이하 (Step 1-3)
+  - 📝 **업데이트**: 파일 크기 검토 및 분리 완료
+  - 🔄 **커밋**: `[Tidy] Keep Step 1-3 files under 200 lines each`
+- [ ] **Task Q.3**: 중복 코드 없음
+  - 📝 **업데이트**: 코드 중복 제거 및 공통 유틸리티 추출 완료
+  - 🔄 **커밋**: `[Tidy] Remove all code duplication in Step 1-3`
+- [ ] **Task Q.4**: 실제 구현 기반 설계 완료
+  - 📝 **업데이트**: 설계 문서 업데이트 및 아키텍처 검토 완료
+  - 🔄 **커밋**: `[Tidy] Complete real implementation-based design`
 
 ### 다음 단계 준비
-- [ ] Step 4-5를 위한 기반 완성
-- [ ] Mock 객체 완전 작동
-- [ ] 에러 처리 기본 구조 완성
+- [ ] **Task P.1**: Step 4-5를 위한 기반 완성
+  - 📝 **업데이트**: Step 4-5 요구사항 기반 구조 준비 완료
+  - 🔄 **커밋**: `[Behavior] Prepare foundation for Step 4-5 implementation`
+- [ ] **Task P.2**: 실제 WebSocket 기본 동작 완료
+  - 📝 **업데이트**: WebSocket 기본 동작 검증 및 문서화
+  - 🔄 **커밋**: `[Behavior] Complete basic WebSocket operations`
+- [ ] **Task P.3**: 에러 처리 기본 구조 완성
+  - 📝 **업데이트**: 에러 처리 패턴 정립 및 문서화
+  - 🔄 **커밋**: `[Behavior] Complete basic error handling structure`
 
 ---
 
-## 🧪 Step 1-3 테스트 예시
+## 🧪 핵심 테스트 API 가이드
 
-### Step 1: 기본 모델 테스트
+> **유연성 원칙**: 아래 예시는 **방향 제시용**입니다. 더 나은 구현 방법이 있다면 자유롭게 개선하세요.
+
+### 필수 API 시그니처
 ```swift
-@Test("YFWebSocketMessage 초기화 테스트")
-func testWebSocketMessageInit() {
-    // yfinance/pricing.proto의 PricingData 필드 참조
-    let message = YFWebSocketMessage(
-        symbol: "AAPL",         // id 필드
-        price: 150.0,           // price 필드
-        currency: "USD",        // currency 필드
-        timestamp: Date()       // time 필드
-    )
+// Step 1: 기본 모델
+struct YFWebSocketMessage {
+    let symbol: String      // yfinance PricingData.id
+    let price: Double       // yfinance PricingData.price  
+    let timestamp: Date     // yfinance PricingData.time
+    let currency: String?   // yfinance PricingData.currency
+}
+
+// Step 2: Protobuf 디코딩
+class YFWebSocketMessageDecoder {
+    func decode(_ base64Message: String) throws -> YFWebSocketMessage
+}
+
+// Step 3: WebSocket 연결 + 테스트 지원
+class YFWebSocketManager {
+    // Production API
+    func connect() async throws
+    func disconnect() async
     
+    // Testing API (#if DEBUG)
+    func testGetConnectionState() -> ConnectionState
+    func testConnectWithCustomURL(_ url: String) async throws
+}
+```
+
+### 핵심 테스트 케이스 (1개씩)
+```swift
+// Step 1: 모델 초기화
+@Test func testWebSocketMessageInit() {
+    let message = YFWebSocketMessage(symbol: "AAPL", price: 150.0, timestamp: Date(), currency: "USD")
     #expect(message.symbol == "AAPL")
-    #expect(message.price == 150.0)
-    #expect(message.currency == "USD")
 }
-```
 
-### Step 2: Protobuf 디코딩 테스트
-```swift
-@Test("Base64 디코딩 테스트")
-func testBase64Decoding() throws {
-    // tests/test_live.py에서 추출한 실제 Yahoo Finance 데이터
-    let base64Message = """
-    CgdCVEMtVVNEFYoMuUcYwLCVgIplIgNVU0QqA0NDQzApOAFFPWrEP0iAgOrxvANVx/25R12csrRHZYD8skR9/
-    7i0R7ABgIDq8bwD2AEE4AGAgOrxvAPoAYCA6vG8A/IBA0JUQ4ECAAAAwPrjckGJAgAA2P5ZT3tC
-    """
-    
+// Step 2: 실제 Yahoo Finance 데이터 디코딩
+@Test func testYFinanceProtobufDecoding() throws {
     let decoder = YFWebSocketMessageDecoder()
-    let message = try decoder.decode(base64Message)
-    
-    // yfinance test_live.py 예상 결과와 일치 확인
-    #expect(message.symbol == "BTC-USD")  // id 필드
-    #expect(message.price == 94745.08)    // price 필드
-    #expect(message.currency == "USD")    // currency 필드
-    #expect(message.exchange == "CCC")    // exchange 필드
+    let message = try decoder.decode("CgdCVEMtVVNE...") // 실제 Base64 데이터
+    #expect(message.symbol == "BTC-USD")
 }
-```
 
-### Step 3: WebSocket 연결 테스트
-```swift
-@Test("Mock WebSocket 연결 테스트")
-func testMockWebSocketConnection() async throws {
-    // yfinance/live.py의 BaseWebSocket 패턴 참조
-    let mockManager = MockWebSocketManager()
-    
-    try await mockManager.connect()
-    #expect(mockManager.connectionState == .connected)
-    
-    await mockManager.disconnect()
-    #expect(mockManager.connectionState == .disconnected)
+// Step 3: 실제 WebSocket 연결
+@Test func testWebSocketConnection() async throws {
+    let manager = YFWebSocketManager()
+    try await manager.connect()
+    #expect(manager.testGetConnectionState() == .connected)
 }
 ```
 
@@ -169,69 +255,38 @@ expected = {
 }
 ```
 
-## 🧪 Protocol-Oriented Testing Pattern
+## 🔧 구현 참고사항
 
-### WebSocket Manager Protocol
+### 테스트 지원 설계 패턴
 ```swift
-protocol WebSocketManagerProtocol {
+class YFWebSocketManager {
+    // Production API - 최소한의 public 인터페이스
     func connect() async throws
     func disconnect() async
-    func subscribe(symbols: [String]) async throws
     func messageStream() -> AsyncStream<YFWebSocketMessage>
-}
-
-// Mock Implementation
-class MockWebSocketManager: WebSocketManagerProtocol {
-    var mockMessages: [YFWebSocketMessage] = []
-    var shouldFailConnection = false
     
-    func connect() async throws {
-        if shouldFailConnection {
-            throw YFWebSocketError.connectionFailed
-        }
-    }
-    
-    func messageStream() -> AsyncStream<YFWebSocketMessage> {
-        AsyncStream { continuation in
-            for message in mockMessages {
-                continuation.yield(message)
-            }
-            continuation.finish()
-        }
-    }
+    // Testing API - DEBUG 빌드에서만 사용
+    #if DEBUG
+    func testGetConnectionState() -> ConnectionState
+    func testForceDisconnect() async
+    func testConnectWithCustomURL(_ url: String) async throws
+    // 기타 테스트 필요한 메서드들...
+    #endif
 }
 ```
 
-### Protobuf 디코딩 테스트 (yfinance 패턴)
+### yfinance 호환 데이터 구조
 ```swift
-@Test("Protobuf 메시지 디코딩 테스트")
-func testProtobufDecoding() throws {
-    // yfinance test_live.py 참조 데이터
-    let base64Message = """
-    CgdCVEMtVVNEFYoMuUcYwLCVgIplIgNVU0QqA0NDQzApOAFFPWrEP0iAgOrxvANVx/25R12csrRHZYD8skR9/
-    7i0R7ABgIDq8bwD2AEE4AGAgOrxvAPoAYCA6vG8A/IBA0JUQ4ECAAAAwPrjckGJAgAA2P5ZT3tC
-    """
-    
-    let decoder = YFWebSocketMessageDecoder()
-    let message = try decoder.decode(base64Message)
-    
-    // 예상 결과 검증
-    #expect(message.symbol == "BTC-USD")
-    #expect(message.price == 94745.08)
-    #expect(message.currency == "USD")
-    #expect(message.exchange == "CCC")
+// yfinance/pricing.proto 기반 필수 필드
+struct YFWebSocketMessage {
+    let symbol: String      // PricingData.id
+    let price: Double       // PricingData.price
+    let timestamp: Date     // PricingData.time
+    let currency: String?   // PricingData.currency
+    let exchange: String?   // PricingData.exchange
+    let change: Double?     // PricingData.change
+    // 필요에 따라 추가 필드들...
 }
-
-@Test("잘못된 Protobuf 데이터 처리")
-func testInvalidProtobufDecoding() {
-    let decoder = YFWebSocketMessageDecoder()
-    let invalidBase64 = "invalid_base64_string"
-    
-    #expect(throws: YFWebSocketError.decodingFailed) {
-        try decoder.decode(invalidBase64)
-    }
-}
-```
 
 ---
 
@@ -253,8 +308,6 @@ Sources/SwiftYFinance/
 ├── Core/
 │   ├── YFWebSocketManager.swift     // Step 3
 │   └── YFWebSocketMessageDecoder.swift // Step 2
-└── Protocols/
-    └── WebSocketManagerProtocol.swift  // Step 1
 
 Tests/SwiftYFinanceTests/
 ├── WebSocket/
@@ -262,8 +315,8 @@ Tests/SwiftYFinanceTests/
 │   ├── YFStreamingQuoteTests.swift
 │   ├── ProtobufDecodingTests.swift
 │   └── WebSocketConnectionTests.swift
-└── Mocks/
-    └── MockWebSocketManager.swift
+└── TestUtilities/
+    └── TestDataProvider.swift
 ```
 
 ---
@@ -294,17 +347,23 @@ Tests/SwiftYFinanceTests/
 
 ## 💡 TDD 성공 포인트
 
-### ✅ DO (해야 할 것)
-- **가장 간단한 테스트**부터 시작 (YFWebSocketMessage 초기화)
-- **Mock 객체** 적극 활용 (Protocol-Oriented)
-- **하나의 기능씩** 단계별 구현
-- **테스트가 실패**하는 것을 확인 후 구현
+> **🎯 핵심 원칙**: 아래는 **가이드라인**입니다. 더 효과적인 방법을 찾으면 **적극 적용**하세요.
 
-### ❌ DON'T (하지 말 것)
+### ✅ DO (권장사항)
+- **가장 간단한 테스트**부터 시작 
+- **실제 구현체** 기반 테스트 (실제 Yahoo Finance 데이터 활용)
+- **하나의 기능씩** 단계별 구현
+- **API 시그니처** 먼저 정의 후 구현
+
+### ❌ DON'T (주의사항)
 - 복잡한 통합부터 시작하지 말 것
-- 테스트 없이 구현하지 말 것
+- 테스트 없이 구현하지 말 것  
 - 여러 기능을 동시에 구현하지 말 것
-- Mock 없이 실제 WebSocket부터 시작하지 말 것
+
+### 🔄 유연성 유지
+- **더 나은 설계**가 떠오르면 주저 없이 변경
+- **yfinance 호환성**은 유지하되 Swift다운 API 설계
+- **테스트용 API**는 필요에 따라 추가/수정
 
 ---
 

@@ -6,42 +6,86 @@
 ## 🔴 Step 6: 고급 기능 테스트
 
 ### 테스트 작성 (RED)
-- [ ] 연결 재시도 로직 테스트 (exponential backoff)
-- [ ] 다중 심볼 구독 테스트 (`{"subscribe": ["AAPL", "TSLA"]}`)
-- [ ] 타임아웃 처리 테스트 (연결 및 메시지 수신)
-- [ ] 네트워크 연결 끊김 테스트 (연결 복구 확인)
+- [ ] **Task 6.1**: 연결 재시도 로직 테스트 (exponential backoff)
+  - 📝 **업데이트**: `Tests/SwiftYFinanceTests/WebSocket/ReconnectionTests.swift` 생성
+  - 🔄 **커밋**: `[Behavior] Add connection retry logic tests with exponential backoff`
+- [ ] **Task 6.2**: 다중 심볼 구독 테스트 (`{"subscribe": ["AAPL", "TSLA"]}`)
+  - 📝 **업데이트**: `SubscriptionManagementTests.swift`에 다중 심볼 테스트 추가
+  - 🔄 **커밋**: `[Behavior] Add multiple symbol subscription tests`
+- [ ] **Task 6.3**: 타임아웃 처리 테스트 (연결 및 메시지 수신)
+  - 📝 **업데이트**: `ReconnectionTests.swift`에 타임아웃 테스트 추가
+  - 🔄 **커밋**: `[Behavior] Add timeout handling tests for connection and messaging`
+- [ ] **Task 6.4**: 네트워크 연결 끊김 테스트 (연결 복구 확인)
+  - 📝 **업데이트**: `ReconnectionTests.swift`에 네트워크 끊김 테스트 추가
+  - 🔄 **커밋**: `[Behavior] Add network disconnection recovery tests`
 
 ### 구현 (GREEN)
-- [ ] 자동 재연결 로직 구현 (exponential backoff)
-- [ ] 다중 심볼 구독 지원
-- [ ] 타임아웃 처리 구현
-- [ ] 연결 상태 모니터링 개선
+- [ ] **Task 6.5**: 자동 재연결 로직 구현 (exponential backoff)
+  - 📝 **업데이트**: `YFWebSocketManager.swift`에 재연결 로직 구현
+  - 🔄 **커밋**: `[Behavior] Implement auto-reconnection with exponential backoff`
+- [ ] **Task 6.6**: 다중 심볼 구독 지원
+  - 📝 **업데이트**: `YFWebSocketManager.swift`에 다중 심볼 구독 기능 확장
+  - 🔄 **커밋**: `[Behavior] Implement multiple symbol subscription support`
+- [ ] **Task 6.7**: 타임아웃 처리 구현
+  - 📝 **업데이트**: `YFWebSocketManager.swift`에 타임아웃 처리 로직 추가
+  - 🔄 **커밋**: `[Behavior] Implement timeout handling for connections and messages`
+- [ ] **Task 6.8**: 연결 상태 모니터링 개선
+  - 📝 **업데이트**: `YFWebSocketManager.swift`에 상태 모니터링 기능 개선
+  - 🔄 **커밋**: `[Behavior] Improve connection state monitoring`
 
 ### 리팩터링 (REFACTOR)
-- [ ] 재연결 로직 최적화
-- [ ] 에러 복구 메커니즘 개선
-- [ ] 상태 관리 통합
+- [ ] **Task 6.9**: 재연결 로직 최적화
+  - 📝 **업데이트**: 재연결 로직 성능 및 안정성 최적화
+  - 🔄 **커밋**: `[Tidy] Optimize reconnection logic for better performance`
+- [ ] **Task 6.10**: 에러 복구 메커니즘 개선
+  - 📝 **업데이트**: 에러 복구 로직 개선 및 안정성 향상
+  - 🔄 **커밋**: `[Tidy] Improve error recovery mechanisms`
+- [ ] **Task 6.11**: 상태 관리 통합
+  - 📝 **업데이트**: 연결 상태 관리 로직 통합 및 일관성 확보
+  - 🔄 **커밋**: `[Tidy] Integrate and standardize state management`
 
 ---
 
 ## 🔴 Step 7: YFClient 통합 테스트
 
 ### 테스트 작성 (RED)
-- [ ] YFClient WebSocket API 통합 테스트
-- [ ] 기존 기능과 호환성 테스트
-- [ ] 인증 세션 연동 테스트
-- [ ] Rate Limiting 통합 테스트
+- [ ] **Task 7.1**: YFClient WebSocket API 통합 테스트
+  - 📝 **업데이트**: `Tests/SwiftYFinanceTests/WebSocket/YFClientIntegrationTests.swift` 생성
+  - 🔄 **커밋**: `[Behavior] Add YFClient WebSocket API integration tests`
+- [ ] **Task 7.2**: 기존 기능과 호환성 테스트
+  - 📝 **업데이트**: `YFClientIntegrationTests.swift`에 호환성 테스트 추가
+  - 🔄 **커밋**: `[Behavior] Add backward compatibility tests for existing features`
+- [ ] **Task 7.3**: 인증 세션 연동 테스트
+  - 📝 **업데이트**: `YFClientIntegrationTests.swift`에 세션 연동 테스트 추가
+  - 🔄 **커밋**: `[Behavior] Add authentication session integration tests`
+- [ ] **Task 7.4**: Rate Limiting 통합 테스트
+  - 📝 **업데이트**: `YFClientIntegrationTests.swift`에 Rate Limiting 테스트 추가
+  - 🔄 **커밋**: `[Behavior] Add Rate Limiting integration tests`
 
 ### 구현 (GREEN)
-- [ ] YFWebSocketAPI.swift 생성 (YFClient 확장)
-- [ ] 실시간 스트리밍 퍼블릭 API 구현
-- [ ] 기존 세션과 통합 (인증, Rate Limiting)
-- [ ] 성능 최적화 및 메모리 관리
+- [ ] **Task 7.5**: YFWebSocketAPI.swift 생성 (YFClient 확장)
+  - 📝 **업데이트**: `Sources/SwiftYFinance/API/YFWebSocketAPI.swift` 생성
+  - 🔄 **커밋**: `[Behavior] Create YFWebSocketAPI as YFClient extension`
+- [ ] **Task 7.6**: 실시간 스트리밍 퍼블릭 API 구현
+  - 📝 **업데이트**: `YFWebSocketAPI.swift`에 public API 구현
+  - 🔄 **커밋**: `[Behavior] Implement public real-time streaming API`
+- [ ] **Task 7.7**: 기존 세션과 통합 (인증, Rate Limiting)
+  - 📝 **업데이트**: `YFWebSocketAPI.swift`에 기존 세션 통합
+  - 🔄 **커밋**: `[Behavior] Integrate with existing session management`
+- [ ] **Task 7.8**: 성능 최적화 및 메모리 관리
+  - 📝 **업데이트**: `YFWebSocketAPI.swift`에 성능 최적화 구현
+  - 🔄 **커밋**: `[Behavior] Implement performance optimization and memory management`
 
 ### 리팩터링 (REFACTOR)
-- [ ] 전체 아키텍처 정리
-- [ ] API 인터페이스 최적화
-- [ ] 문서화 및 예시 추가
+- [ ] **Task 7.9**: 전체 아키텍처 정리
+  - 📝 **업데이트**: 전체 WebSocket 아키텍처 정리 및 일관성 확보
+  - 🔄 **커밋**: `[Tidy] Clean up overall WebSocket architecture`
+- [ ] **Task 7.10**: API 인터페이스 최적화
+  - 📝 **업데이트**: Public API 인터페이스 최적화 및 사용성 개선
+  - 🔄 **커밋**: `[Tidy] Optimize API interfaces for better usability`
+- [ ] **Task 7.11**: 문서화 및 예시 추가
+  - 📝 **업데이트**: API 문서화 및 사용 예시 추가
+  - 🔄 **커밋**: `[Tidy] Add comprehensive documentation and usage examples`
 
 ---
 
@@ -73,57 +117,75 @@
 
 ---
 
-## 🧪 Step 6-7 테스트 예시
+## 🧪 핵심 API 가이드 (Step 6-7)
+
+> **고급 기능 원칙**: 복잡성보다는 **안정성과 사용성**을 우선시하세요.
 
 ### Step 6: 고급 기능 테스트
 ```swift
 @Test("자동 재연결 테스트")
 func testAutoReconnection() async {
-    let mockManager = MockWebSocketManager()
-    mockManager.enableReconnection = true
+    let manager = YFWebSocketManager()
+    manager.testEnableAutoReconnection = true
     
     // 초기 연결
-    try await mockManager.connect()
-    #expect(mockManager.connectionState == .connected)
+    try await manager.connect()
+    #expect(manager.testGetConnectionState() == .connected)
     
-    // 연결 끊김 시뮬레이션
-    mockManager.simulateDisconnection()
-    #expect(mockManager.connectionState == .disconnected)
+    // 테스트용 API로 연결 강제 종료
+    await manager.testForceDisconnect()
+    #expect(manager.testGetConnectionState() == .disconnected)
     
-    // 자동 재연결 확인 (최대 10초 대기)
-    await waitForConnection(mockManager, timeout: 10)
-    #expect(mockManager.connectionState == .connected)
-    #expect(mockManager.reconnectionAttempts > 0)
+    // 자동 재연결 확인 (최대 30초 대기)
+    await manager.testWaitForReconnection(timeout: 30)
+    #expect(manager.testGetConnectionState() == .connected)
+    #expect(manager.testGetReconnectionAttempts() > 0)
 }
 
 @Test("다중 심볼 구독 테스트")
 func testMultipleSymbolSubscription() async throws {
-    let mockManager = MockWebSocketManager()
+    let manager = YFWebSocketManager()
+    try await manager.connect()
+    
     let symbols = ["AAPL", "TSLA", "MSFT", "GOOGL", "AMZN"]
+    try await manager.subscribe(symbols: symbols)
     
-    try await mockManager.subscribe(symbols: symbols)
+    // 테스트용 API로 구독 상태 확인
+    let activeSubscriptions = manager.testGetActiveSubscriptions()
+    #expect(activeSubscriptions.count == 5)
     
-    #expect(mockManager.activeSubscriptions.count == 5)
     for symbol in symbols {
-        #expect(mockManager.activeSubscriptions.contains(symbol))
+        #expect(activeSubscriptions.contains(symbol))
     }
     
-    // 구독 메시지 검증
-    let expectedMessage = #"{"subscribe":["AAPL","TSLA","MSFT","GOOGL","AMZN"]}"#
-    #expect(mockManager.lastSentMessage.contains("subscribe"))
+    // 실제 메시지 수신 확인
+    var receivedSymbols: Set<String> = []
+    
+    for await message in manager.messageStream() {
+        receivedSymbols.insert(message.symbol)
+        
+        if receivedSymbols.count >= 3 { // 최소 3개 심볼에서 메시지 수신
+            break
+        }
+    }
+    
+    #expect(receivedSymbols.count >= 3)
 }
 
 @Test("타임아웃 처리 테스트")
 func testTimeoutHandling() async {
-    let mockManager = MockWebSocketManager()
-    mockManager.connectionTimeout = 5.0 // 5초 타임아웃
-    mockManager.simulateSlowConnection = true
+    let manager = YFWebSocketManager()
+    manager.connectionTimeout = 5.0 // 5초 타임아웃
+    
+    // 잘못된 URL로 연결 시도 (타임아웃 발생)
+    let invalidURL = "wss://invalid-websocket-server.com"
+    manager.serverURL = invalidURL
     
     await #expect(throws: YFWebSocketError.connectionTimeout) {
-        try await mockManager.connect()
+        try await manager.connect()
     }
     
-    #expect(mockManager.connectionState == .disconnected)
+    #expect(manager.connectionState == .disconnected)
 }
 ```
 
@@ -296,20 +358,22 @@ extension YFClient {
 ```swift
 @Test("연결 실패 및 재시도 테스트")
 func testConnectionRetry() async {
-    let mockManager = MockWebSocketManager()
-    mockManager.shouldFailConnection = true
+    let manager = YFWebSocketManager()
+    manager.maxRetryAttempts = 3
     
-    // 첫 번째 연결 실패 확인
+    // 잘못된 URL로 첫 번째 연결 시도
+    manager.serverURL = "wss://invalid-server.com"
+    
     await #expect(throws: YFWebSocketError.connectionFailed) {
-        try await mockManager.connect()
+        try await manager.connect()
     }
     
-    // 재시도 로직 테스트
-    mockManager.shouldFailConnection = false
-    try await mockManager.connect()
+    // 올바른 URL로 재시도
+    manager.serverURL = "wss://streamer.finance.yahoo.com/?version=2"
+    try await manager.connect()
     
     // 연결 성공 확인
-    #expect(mockManager.isConnected == true)
+    #expect(manager.connectionState == .connected)
 }
 ```
 
@@ -317,29 +381,64 @@ func testConnectionRetry() async {
 ```swift
 @Test("대량 메시지 처리 성능 테스트")
 func testHighVolumeMessageProcessing() async {
-    let mockManager = MockWebSocketManager()
-    mockManager.mockMessages = createTestMessages(count: 1000)
+    let manager = YFWebSocketManager()
+    try await manager.connect()
+    
+    // 여러 심볼 구독으로 대량 메시지 생성
+    let symbols = ["AAPL", "TSLA", "MSFT", "GOOGL", "AMZN", "META", "NFLX", "NVDA"]
+    try await manager.subscribe(symbols: symbols)
     
     let startTime = Date()
     var messageCount = 0
     
-    for await message in mockManager.messageStream() {
+    // 30초 동안 대량 메시지 처리
+    for await message in manager.messageStream() {
         messageCount += 1
-        // 처리 로직 시뮬레이션
+        
+        // 메시지 처리 성능 확인
+        #expect(message.price > 0)
+        #expect(message.symbol != nil)
+        
+        if Date().timeIntervalSince(startTime) > 30 || messageCount >= 1000 {
+            break
+        }
     }
     
     let duration = Date().timeIntervalSince(startTime)
-    #expect(messageCount == 1000)
-    #expect(duration < 1.0) // 1초 내 처리 완료
+    let messagesPerSecond = Double(messageCount) / duration
+    
+    #expect(messageCount > 100) // 최소 100개 메시지
+    #expect(messagesPerSecond > 10) // 초당 10개 이상
 }
 ```
 
 ### 🔍 테스트 검증 체크리스트
 - [ ] **단위 테스트**: 각 클래스/메서드 독립적 테스트
-- [ ] **통합 테스트**: Mock 서버를 통한 전체 플로우 테스트  
-- [ ] **성능 테스트**: 메시지 처리 속도, 메모리 사용량
-- [ ] **에러 시나리오**: 모든 실패 케이스 및 복구 로직
+- [ ] **통합 테스트**: 실제 WebSocket 서버를 통한 전체 플로우 테스트  
+- [ ] **성능 테스트**: 실시간 메시지 처리 속도, 메모리 사용량
+- [ ] **에러 시나리오**: 실제 네트워크 실패 케이스 및 복구 로직
 - [ ] **스레드 안전성**: 동시성 환경에서의 안정성
+
+---
+
+## 🔄 유연성 유지 가이드
+
+### 고급 기능 설계 원칙
+- **자동 재연결**: 실제 필요성에 따라 구현 여부 결정
+- **YFClient 통합**: 기존 API와 **일관성** 우선
+- **성능 최적화**: 측정 후 실제 병목점만 해결
+- **테스트 전략**: 실제 환경에서 동작 확인 우선
+
+### 구현 우선순위  
+1. **기본 동작 완성** (Step 1-5 기반)
+2. **실제 사용 시나리오** 검증
+3. **고급 기능 추가** (필요 시)
+4. **성능 및 안정성 개선**
+
+### 설계 개선 권장
+- **더 Simple한 API**가 가능하면 적극 채택
+- **복잡한 기능**은 실제 요구사항 확인 후 구현
+- **테스트 지원**은 실제 개발 과정에서 필요한 것만 추가
 
 ---
 
