@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "AECE3A0E-7B98-4256-89CF-3E825FC072FE",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "SwiftYFinanceTests",
+        "name" : "SwiftYFinanceTests"
+      }
+    }
+  ],
+  "version" : 1
+}

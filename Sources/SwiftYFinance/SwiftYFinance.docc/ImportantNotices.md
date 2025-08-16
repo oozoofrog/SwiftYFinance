@@ -39,7 +39,7 @@ print("참고용 현재가: \(quote.regularMarketPrice)")
 // ✅ 권장: 적절한 간격으로 요청
 let symbols = ["AAPL", "MSFT", "GOOGL"]
 for symbol in symbols {
-    let ticker = try YFTicker(symbol: symbol)
+    let ticker = YFTicker(symbol: symbol)
     let quote = try await client.fetchQuote(ticker: ticker)
     
     // 요청 간 0.3초 대기 (자동 처리됨)
@@ -49,7 +49,7 @@ for symbol in symbols {
 // ❌ 위험: 동시에 대량 요청
 let tasks = symbols.map { symbol in
     Task {
-        let ticker = try YFTicker(symbol: symbol)
+        let ticker = YFTicker(symbol: symbol)
         return try await client.fetchQuote(ticker: ticker)
     }
 }
@@ -61,10 +61,10 @@ let tasks = symbols.map { symbol in
 
 ```swift
 do {
-    let ticker = try YFTicker(symbol: "INVALID")
+    let ticker = YFTicker(symbol: "INVALID")
     let quote = try await client.fetchQuote(ticker: ticker)
-} catch YFError.invalidTicker {
-    print("❌ 잘못된 티커 심볼")
+} catch YFError.noDataAvailable {
+    print("❌ 해당 심볼의 데이터를 찾을 수 없습니다")
 } catch YFError.networkError(let error) {
     print("❌ 네트워크 오류: \(error)")
 } catch YFError.rateLimitExceeded {
@@ -213,8 +213,8 @@ YFNetworkLogger.shared.logLevel = .error
 **문제**: "Invalid ticker" 오류
 ```swift
 // 해결책: 심볼 형식 확인
-let ticker = try YFTicker(symbol: "AAPL")   // ✅ 올바른 형식
-let ticker = try YFTicker(symbol: "Apple")  // ❌ 회사명이 아닌 심볼 사용
+let ticker = YFTicker(symbol: "AAPL")   // ✅ 올바른 형식
+let ticker = YFTicker(symbol: "Apple")  // ❌ 회사명이 아닌 심볼 사용
 ```
 
 **문제**: 응답 속도 저하

@@ -6,7 +6,7 @@ struct FinancialDataTests {
     @Test
     func testFetchFinancials() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "MSFT")
+        let ticker = YFTicker(symbol: "MSFT")
         
         let financials = try await client.fetchFinancials(ticker: ticker)
         
@@ -24,7 +24,7 @@ struct FinancialDataTests {
     @Test
     func testFetchBalanceSheet() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "GOOGL")
+        let ticker = YFTicker(symbol: "GOOGL")
         
         let balanceSheet = try await client.fetchBalanceSheet(ticker: ticker)
         
@@ -42,7 +42,7 @@ struct FinancialDataTests {
     @Test
     func testFetchCashFlow() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "AAPL")
+        let ticker = YFTicker(symbol: "AAPL")
         
         let cashFlow = try await client.fetchCashFlow(ticker: ticker)
         
@@ -77,7 +77,7 @@ struct FinancialDataTests {
     @Test
     func testFetchEarnings() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "MSFT")
+        let ticker = YFTicker(symbol: "MSFT")
         
         let earnings = try await client.fetchEarnings(ticker: ticker)
         

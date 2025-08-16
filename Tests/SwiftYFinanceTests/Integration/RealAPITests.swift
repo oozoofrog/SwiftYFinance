@@ -6,7 +6,7 @@ struct RealAPITests {
     @Test
     func testFetchFinancialsRealAPI() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "AAPL")
+        let ticker = YFTicker(symbol: "AAPL")
         
         let financials = try await client.fetchFinancials(ticker: ticker)
         
@@ -37,7 +37,7 @@ struct RealAPITests {
     @Test
     func testFetchBalanceSheetRealAPI() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "AAPL")
+        let ticker = YFTicker(symbol: "AAPL")
         
         let balanceSheet = try await client.fetchBalanceSheet(ticker: ticker)
         
@@ -72,7 +72,7 @@ struct RealAPITests {
     @Test
     func testFetchCashFlowRealAPI() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "AAPL")
+        let ticker = YFTicker(symbol: "AAPL")
         
         let cashFlow = try await client.fetchCashFlow(ticker: ticker)
         
@@ -111,7 +111,7 @@ struct RealAPITests {
     @Test
     func testFetchEarningsRealAPI() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "AAPL")
+        let ticker = YFTicker(symbol: "AAPL")
         
         let earnings = try await client.fetchEarnings(ticker: ticker)
         

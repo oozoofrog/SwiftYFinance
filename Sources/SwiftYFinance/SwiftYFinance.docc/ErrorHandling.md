@@ -84,7 +84,7 @@ enum YFError: Error, LocalizedError {
 // ✅ 기본적인 에러 처리
 func fetchQuoteBasic(symbol: String) async {
     do {
-        let ticker = try YFTicker(symbol: symbol)
+        let ticker = YFTicker(symbol: symbol)
         let quote = try await client.fetchQuote(ticker: ticker)
         
         print("✅ \(symbol): $\(quote.regularMarketPrice)")
@@ -114,7 +114,7 @@ func fetchQuoteBasic(symbol: String) async {
 // Result 타입을 활용한 안전한 에러 처리
 func fetchQuoteSafe(symbol: String) async -> Result<YFQuote, YFError> {
     do {
-        let ticker = try YFTicker(symbol: symbol)
+        let ticker = YFTicker(symbol: symbol)
         let quote = try await client.fetchQuote(ticker: ticker)
         return .success(quote)
         
@@ -168,7 +168,7 @@ class RobustYFClient {
     
     func fetchQuoteWithRetry(symbol: String) async throws -> YFQuote {
         return try await withRetry(operation: "fetchQuote(\(symbol))") {
-            let ticker = try YFTicker(symbol: symbol)
+            let ticker = YFTicker(symbol: symbol)
             return try await self.client.fetchQuote(ticker: ticker)
         }
     }
@@ -383,7 +383,7 @@ class ReliableYFClient {
     
     func fetchQuote(symbol: String) async throws -> YFQuote {
         return try await circuitBreaker.execute {
-            let ticker = try YFTicker(symbol: symbol)
+            let ticker = YFTicker(symbol: symbol)
             return try await self.client.fetchQuote(ticker: ticker)
         }
     }
@@ -407,7 +407,7 @@ class FallbackDataManager {
     func fetchQuoteWithFallback(symbol: String) async -> YFQuote? {
         // 1단계: 메인 API 시도
         do {
-            let ticker = try YFTicker(symbol: symbol)
+            let ticker = YFTicker(symbol: symbol)
             let quote = try await primaryClient.fetchQuote(ticker: ticker)
             
             // 성공시 캐시에 저장
@@ -530,7 +530,7 @@ class BulkQuoteFetcher {
         
         for symbol in symbols {
             do {
-                let ticker = try YFTicker(symbol: symbol)
+                let ticker = YFTicker(symbol: symbol)
                 let quote = try await client.fetchQuote(ticker: ticker)
                 
                 // 데이터 품질 검증

@@ -45,7 +45,7 @@ class MemoryEfficientProcessor {
         
         for symbol in symbols {
             do {
-                let ticker = try YFTicker(symbol: symbol)
+                let ticker = YFTicker(symbol: symbol)
                 let quote = try await client.fetchQuote(ticker: ticker)
                 batchResults.append(quote)
                 
@@ -190,7 +190,7 @@ func fetchQuoteWithSmartCache(symbol: String) async throws -> YFQuote {
     }
     
     // API 호출
-    let ticker = try YFTicker(symbol: symbol)
+    let ticker = YFTicker(symbol: symbol)
     let quote = try await client.fetchQuote(ticker: ticker)
     
     // 적응형 캐시에 저장
@@ -239,7 +239,7 @@ class OptimizedYFClient {
     }
     
     private func performRequest(symbol: String) async throws -> YFQuote {
-        let ticker = try YFTicker(symbol: symbol)
+        let ticker = YFTicker(symbol: symbol)
         
         // 캐시된 응답 사용 시도
         let request = try buildOptimizedRequest(for: symbol)
@@ -367,7 +367,7 @@ class BatchOptimizedClient {
         
         for symbol in symbols {
             do {
-                let ticker = try YFTicker(symbol: symbol)
+                let ticker = YFTicker(symbol: symbol)
                 let quote = try await client.fetchQuote(ticker: ticker)
                 results[symbol] = quote
                 
@@ -471,7 +471,7 @@ func fetchWithAdaptiveConcurrency(symbols: [String]) async -> [QuoteResult] {
                 }
                 
                 do {
-                    let ticker = try YFTicker(symbol: symbol)
+                    let ticker = YFTicker(symbol: symbol)
                     let quote = try await client.fetchQuote(ticker: ticker)
                     success = true
                     return QuoteResult(symbol: symbol, quote: quote, error: nil)
@@ -527,7 +527,7 @@ class StreamingDataProcessor {
     private func produceData(symbols: [String]) async throws {
         for symbol in symbols {
             do {
-                let ticker = try YFTicker(symbol: symbol)
+                let ticker = YFTicker(symbol: symbol)
                 let quote = try await client.fetchQuote(ticker: ticker)
                 
                 await processingBuffer.add(quote)
@@ -864,7 +864,7 @@ func optimizedDataFetch(symbols: [String]) async throws -> [YFQuote] {
         
         for symbol in symbols {
             let quote = try await performanceMonitor.measure(operation: "single_quote_fetch") {
-                let ticker = try YFTicker(symbol: symbol)
+                let ticker = YFTicker(symbol: symbol)
                 return try await client.fetchQuote(ticker: ticker)
             }
             quotes.append(quote)
@@ -942,7 +942,7 @@ class BatteryEfficientClient {
         
         for batch in symbols.chunked(into: batchSize) {
             for symbol in batch {
-                let ticker = try YFTicker(symbol: symbol)
+                let ticker = YFTicker(symbol: symbol)
                 let quote = try await client.fetchQuote(ticker: ticker)
                 results.append(quote)
                 

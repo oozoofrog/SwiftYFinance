@@ -13,7 +13,7 @@ SwiftYFinance는 기본적인 주식 시세 조회를 넘어서 옵션 거래, �
 ### Options Chain 조회
 
 ```swift
-let ticker = try YFTicker(symbol: "AAPL")
+let ticker = YFTicker(symbol: "AAPL")
 let optionsChain = try await client.fetchOptionsChain(ticker: ticker)
 
 print("만료일: \(optionsChain.expirationDates.count)개")
@@ -243,7 +243,7 @@ let growthStocks = try await screener.screen(criteria: advancedCriteria)
 
 for stock in growthStocks.stocks {
     // 추가 분석을 위해 상세 데이터 조회
-    let ticker = try YFTicker(symbol: stock.symbol)
+    let ticker = YFTicker(symbol: stock.symbol)
     let quote = try await client.fetchQuote(ticker: ticker)
     let financials = try await client.fetchFinancials(ticker: ticker)
     
@@ -309,7 +309,7 @@ func processLargeDataset(symbols: [String]) async {
         
         for symbol in chunk {
             do {
-                let ticker = try YFTicker(symbol: symbol)
+                let ticker = YFTicker(symbol: symbol)
                 let quote = try await client.fetchQuote(ticker: ticker)
                 chunkData.append(quote)
                 

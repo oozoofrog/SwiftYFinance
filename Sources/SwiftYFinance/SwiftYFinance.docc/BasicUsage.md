@@ -14,7 +14,7 @@ SwiftYFinance의 핵심 기능들을 사용하는 방법
 import SwiftYFinance
 
 let client = YFClient()
-let ticker = try YFTicker(symbol: "AAPL")
+let ticker = YFTicker(symbol: "AAPL")
 
 let quote = try await client.fetchQuote(ticker: ticker)
 
@@ -54,7 +54,7 @@ if let postMarketPrice = quote.postMarketPrice,
 ### 기본 사용법
 
 ```swift
-let ticker = try YFTicker(symbol: "AAPL")
+let ticker = YFTicker(symbol: "AAPL")
 
 // 지난 1개월 일별 데이터
 let history = try await client.fetchHistory(ticker: ticker, period: .oneMonth)
@@ -183,7 +183,7 @@ var quotes: [String: YFQuote] = [:]
 
 for symbolString in symbols {
     do {
-        let ticker = try YFTicker(symbol: symbolString)
+        let ticker = YFTicker(symbol: symbolString)
         let quote = try await client.fetchQuote(ticker: ticker)
         quotes[symbolString] = quote
         
@@ -205,7 +205,7 @@ SwiftYFinance는 다양한 자산 타입을 지원합니다:
 ### ETF
 
 ```swift
-let etf = try YFTicker(symbol: "SPY") // S&P 500 ETF
+let etf = YFTicker(symbol: "SPY") // S&P 500 ETF
 let etfQuote = try await client.fetchQuote(ticker: etf)
 
 print("SPY ETF: $\(etfQuote.regularMarketPrice)")
@@ -216,7 +216,7 @@ print("52주 최저가: $\(etfQuote.fiftyTwoWeekLow ?? 0)")
 ### 암호화폐
 
 ```swift
-let bitcoin = try YFTicker(symbol: "BTC-USD")
+let bitcoin = YFTicker(symbol: "BTC-USD")
 let bitcoinQuote = try await client.fetchQuote(ticker: bitcoin)
 
 print("Bitcoin: $\(bitcoinQuote.regularMarketPrice)")
@@ -225,7 +225,7 @@ print("Bitcoin: $\(bitcoinQuote.regularMarketPrice)")
 ### 통화
 
 ```swift
-let usdKrw = try YFTicker(symbol: "USDKRW=X")
+let usdKrw = YFTicker(symbol: "USDKRW=X")
 let exchangeRate = try await client.fetchQuote(ticker: usdKrw)
 
 print("USD/KRW: \(exchangeRate.regularMarketPrice)")
@@ -234,7 +234,7 @@ print("USD/KRW: \(exchangeRate.regularMarketPrice)")
 ### 원자재
 
 ```swift
-let gold = try YFTicker(symbol: "GC=F") // Gold Futures
+let gold = YFTicker(symbol: "GC=F") // Gold Futures
 let goldQuote = try await client.fetchQuote(ticker: gold)
 
 print("Gold: $\(goldQuote.regularMarketPrice)")
@@ -247,13 +247,9 @@ print("Gold: $\(goldQuote.regularMarketPrice)")
 ```swift
 func fetchQuoteSafely(symbol: String) async -> YFQuote? {
     do {
-        let ticker = try YFTicker(symbol: symbol)
+        let ticker = YFTicker(symbol: symbol)
         let quote = try await client.fetchQuote(ticker: ticker)
         return quote
-        
-    } catch YFError.invalidSymbol {
-        print("❌ 잘못된 종목 심볼: \(symbol)")
-        return nil
         
     } catch YFError.rateLimited {
         print("⏰ Rate limit 도달. 5초 후 재시도...")

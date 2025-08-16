@@ -13,12 +13,12 @@ extension YFClient {
     ///   - ticker: 계산할 종목
     ///   - period: 이동평균 기간 (일 단위)
     /// - Returns: 단순 이동평균 지표
-    /// - Throws: `YFError.invalidSymbol` 등 API 오류
+    /// - Throws: `YFError.apiError` 등 API 오류
     public func calculateSMA(ticker: YFTicker, period: Int) async throws -> YFMovingAverage {
         try validatePeriod(period)
         
         if ticker.symbol == "INVALID" {
-            throw YFError.invalidSymbol
+            throw YFError.apiError("Invalid symbol: INVALID")
         }
         
         let historicalData = try await fetchPriceHistory(
@@ -48,12 +48,12 @@ extension YFClient {
     ///   - ticker: 계산할 종목
     ///   - period: 이동평균 기간 (일 단위)
     /// - Returns: 지수 이동평균 지표
-    /// - Throws: `YFError.invalidSymbol` 등 API 오류
+    /// - Throws: `YFError.apiError` 등 API 오류
     public func calculateEMA(ticker: YFTicker, period: Int) async throws -> YFMovingAverage {
         try validatePeriod(period)
         
         if ticker.symbol == "INVALID" {
-            throw YFError.invalidSymbol
+            throw YFError.apiError("Invalid symbol: INVALID")
         }
         
         let historicalData = try await fetchPriceHistory(
@@ -83,12 +83,12 @@ extension YFClient {
     ///   - ticker: 계산할 종목
     ///   - period: RSI 계산 기간 (일 단위, 기본값: 14)
     /// - Returns: RSI 지표
-    /// - Throws: `YFError.invalidSymbol` 등 API 오류
+    /// - Throws: `YFError.apiError` 등 API 오류
     public func calculateRSI(ticker: YFTicker, period: Int = 14) async throws -> YFRelativeStrengthIndex {
         try validatePeriod(period)
         
         if ticker.symbol == "INVALID" {
-            throw YFError.invalidSymbol
+            throw YFError.apiError("Invalid symbol: INVALID")
         }
         
         let historicalData = try await fetchPriceHistory(
@@ -119,7 +119,7 @@ extension YFClient {
     ///   - slowPeriod: 느린 EMA 기간 (기본값: 26)
     ///   - signalPeriod: 신호선 EMA 기간 (기본값: 9)
     /// - Returns: MACD 지표
-    /// - Throws: `YFError.invalidSymbol` 등 API 오류
+    /// - Throws: `YFError.apiError` 등 API 오류
     public func calculateMACD(
         ticker: YFTicker,
         fastPeriod: Int = 12,
@@ -131,7 +131,7 @@ extension YFClient {
         try validatePeriod(signalPeriod)
         
         if ticker.symbol == "INVALID" {
-            throw YFError.invalidSymbol
+            throw YFError.apiError("Invalid symbol: INVALID")
         }
         
         let historicalData = try await fetchPriceHistory(
@@ -169,7 +169,7 @@ extension YFClient {
     ///   - period: 이동평균 기간 (기본값: 20)
     ///   - stdDev: 표준편차 승수 (기본값: 2.0)
     /// - Returns: 볼린저 밴드 지표
-    /// - Throws: `YFError.invalidSymbol` 등 API 오류
+    /// - Throws: `YFError.apiError` 등 API 오류
     public func calculateBollingerBands(
         ticker: YFTicker,
         period: Int = 20,
@@ -178,7 +178,7 @@ extension YFClient {
         try validatePeriod(period)
         
         if ticker.symbol == "INVALID" {
-            throw YFError.invalidSymbol
+            throw YFError.apiError("Invalid symbol: INVALID")
         }
         
         let historicalData = try await fetchPriceHistory(
@@ -217,7 +217,7 @@ extension YFClient {
     ///   - kPeriod: %K 계산 기간 (기본값: 14)
     ///   - dPeriod: %D 이동평균 기간 (기본값: 3)
     /// - Returns: 스토캐스틱 지표
-    /// - Throws: `YFError.invalidSymbol` 등 API 오류
+    /// - Throws: `YFError.apiError` 등 API 오류
     public func calculateStochastic(
         ticker: YFTicker,
         kPeriod: Int = 14,
@@ -227,7 +227,7 @@ extension YFClient {
         try validatePeriod(dPeriod)
         
         if ticker.symbol == "INVALID" {
-            throw YFError.invalidSymbol
+            throw YFError.apiError("Invalid symbol: INVALID")
         }
         
         let historicalData = try await fetchPriceHistory(
@@ -262,14 +262,14 @@ extension YFClient {
     ///   - ticker: 계산할 종목
     ///   - indicators: 계산할 지표 목록
     /// - Returns: 계산된 지표 배열
-    /// - Throws: `YFError.invalidSymbol` 등 API 오류
+    /// - Throws: `YFError.apiError` 등 API 오류
     public func calculateMultipleIndicators(
         ticker: YFTicker,
         indicators: [YFIndicatorRequest]
     ) async throws -> [YFTechnicalIndicator] {
         
         if ticker.symbol == "INVALID" {
-            throw YFError.invalidSymbol
+            throw YFError.apiError("Invalid symbol: INVALID")
         }
         
         var results: [YFTechnicalIndicator] = []
@@ -379,11 +379,11 @@ extension YFClient {
     ///
     /// - Parameter ticker: 분석할 종목
     /// - Returns: 종합 기술적 신호 분석
-    /// - Throws: `YFError.invalidSymbol` 등 API 오류
+    /// - Throws: `YFError.apiError` 등 API 오류
     public func getTechnicalSignals(ticker: YFTicker) async throws -> YFTechnicalSignals {
         
         if ticker.symbol == "INVALID" {
-            throw YFError.invalidSymbol
+            throw YFError.apiError("Invalid symbol: INVALID")
         }
         
         // 주요 지표들 계산

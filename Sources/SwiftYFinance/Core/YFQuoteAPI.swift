@@ -6,7 +6,7 @@ extension YFClient {
     public func fetchQuote(ticker: YFTicker) async throws -> YFQuote {
         // 테스트를 위한 에러 케이스 유지
         if ticker.symbol == "INVALID" {
-            throw YFError.invalidSymbol
+            throw YFError.apiError("Invalid symbol: INVALID")
         }
         
         // CSRF 인증 시도 (실패해도 기본 요청으로 진행)

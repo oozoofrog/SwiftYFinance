@@ -5,7 +5,7 @@ import Foundation
 struct YFHistoricalDataTests {
     @Test
     func testHistoricalDataInit() throws {
-        let ticker = try YFTicker(symbol: "AAPL")
+        let ticker = YFTicker(symbol: "AAPL")
         let startDate = Date().addingTimeInterval(-86400 * 30)
         let endDate = Date()
         
@@ -48,7 +48,7 @@ struct YFHistoricalDataTests {
     
     @Test
     func testHistoricalDataDateRange() throws {
-        let ticker = try YFTicker(symbol: "AAPL")
+        let ticker = YFTicker(symbol: "AAPL")
         let startDate = Date().addingTimeInterval(-86400 * 30)
         let endDate = Date()
         
@@ -83,7 +83,7 @@ struct YFHistoricalDataTests {
     
     @Test
     func testHistoricalDataEmpty() throws {
-        let ticker = try YFTicker(symbol: "AAPL")
+        let ticker = YFTicker(symbol: "AAPL")
         let startDate = Date().addingTimeInterval(-86400 * 30)
         let endDate = Date()
         

@@ -11,7 +11,7 @@ SwiftYFinance를 사용한 옵션 거래 데이터 분석
 ### 기본 옵션 체인 조회
 
 ```swift
-let ticker = try YFTicker(symbol: "AAPL")
+let ticker = YFTicker(symbol: "AAPL")
 let optionsChain = try await client.fetchOptionsChain(ticker: ticker)
 
 print("=== \(ticker.symbol) 옵션 체인 ===")

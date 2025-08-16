@@ -121,4 +121,14 @@ public final class YFSession: @unchecked Sendable {
             config.connectionProxyDictionary = proxy
         }
     }
+    
+    // MARK: - 테스트 지원
+    
+    /// 세션 상태 완전 초기화 (테스트용)
+    /// 
+    /// 테스트 격리를 위해 세션의 모든 상태를 초기값으로 되돌립니다.
+    /// 인증 상태, crumb 토큰, 쿠키 전략을 모두 리셋합니다.
+    public func resetState() async {
+        await sessionState.reset()
+    }
 }

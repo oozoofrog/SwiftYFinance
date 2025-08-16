@@ -11,7 +11,7 @@ extension YFClient {
     ///
     /// - Parameter ticker: The stock ticker to fetch cash flow data for
     /// - Returns: A `YFCashFlow` object containing annual and quarterly reports
-    /// - Throws: `YFError.invalidSymbol` if the ticker symbol is invalid
+    /// - Throws: `YFError.apiError` if the ticker symbol is invalid
     ///
     /// ## Usage Example
     /// ```swift
@@ -26,7 +26,7 @@ extension YFClient {
     public func fetchCashFlow(ticker: YFTicker) async throws -> YFCashFlow {
         // 테스트를 위한 에러 케이스 유지
         if ticker.symbol == "INVALID" {
-            throw YFError.invalidSymbol
+            throw YFError.apiError("Invalid symbol: INVALID")
         }
         
         // CSRF 인증 시도 (실패해도 기본 요청으로 진행)

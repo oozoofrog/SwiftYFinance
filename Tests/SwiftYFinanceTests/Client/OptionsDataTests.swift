@@ -6,7 +6,7 @@ struct OptionsDataTests {
     @Test
     func testFetchOptionsChain() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "AAPL")
+        let ticker = YFTicker(symbol: "AAPL")
         
         // 옵션 체인 조회
         let options = try await client.fetchOptionsChain(ticker: ticker)
@@ -40,7 +40,7 @@ struct OptionsDataTests {
     @Test
     func testOptionsExpirationDates() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "SPY")
+        let ticker = YFTicker(symbol: "SPY")
         
         // 만기일 목록 조회
         let expirationDates = try await client.getOptionsExpirationDates(ticker: ticker)
@@ -59,7 +59,7 @@ struct OptionsDataTests {
     @Test
     func testOptionsGreeks() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "MSFT")
+        let ticker = YFTicker(symbol: "MSFT")
         
         let options = try await client.fetchOptionsChain(ticker: ticker)
         let firstExpiry = options.expirationDates.first!
@@ -95,7 +95,7 @@ struct OptionsDataTests {
     @Test
     func testOptionsChainWithExpiry() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "QQQ")
+        let ticker = YFTicker(symbol: "QQQ")
         
         // 특정 만기일의 옵션 체인 조회
         let expirationDates = try await client.getOptionsExpirationDates(ticker: ticker)
@@ -123,7 +123,7 @@ struct OptionsDataTests {
     @Test
     func testOptionsInvalidSymbol() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "INVALID")
+        let ticker = YFTicker(symbol: "INVALID")
         
         // 잘못된 심볼에 대한 에러 처리
         do {

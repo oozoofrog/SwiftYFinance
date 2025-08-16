@@ -14,7 +14,7 @@ extension YFClient {
     public func fetchQuarterlyFinancials(ticker: YFTicker) async throws -> YFQuarterlyFinancials {
         // 테스트를 위한 에러 케이스
         if ticker.symbol == "INVALID" {
-            throw YFError.invalidSymbol
+            throw YFError.apiError("Invalid symbol: INVALID")
         }
         
         // Mock 분기별 데이터 생성 (실제로는 fundamentals-timeseries API 호출)

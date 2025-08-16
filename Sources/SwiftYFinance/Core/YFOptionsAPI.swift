@@ -16,7 +16,7 @@ extension YFClient {
     public func fetchOptionsChain(ticker: YFTicker, expiry: Date? = nil) async throws -> YFOptionsChain {
         // 테스트를 위한 에러 케이스
         if ticker.symbol == "INVALID" {
-            throw YFError.invalidSymbol
+            throw YFError.apiError("Invalid symbol: INVALID")
         }
         
         // 만기일 목록 조회

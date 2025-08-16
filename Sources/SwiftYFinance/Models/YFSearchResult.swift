@@ -12,7 +12,7 @@ import Foundation
 /// 
 /// for result in results {
 ///     print("\(result.symbol): \(result.shortName)")
-///     let ticker = try result.toTicker()
+///     let ticker = result.toTicker()
 /// }
 /// ```
 public struct YFSearchResult: Codable, Sendable {
@@ -36,9 +36,8 @@ public struct YFSearchResult: Codable, Sendable {
     
     /// 검색 결과를 YFTicker 객체로 변환
     /// - Returns: 종목 심볼로 생성된 YFTicker 인스턴스
-    /// - Throws: 유효하지 않은 심볼인 경우 YFError.invalidSymbol
-    public func toTicker() throws -> YFTicker {
-        return try YFTicker(symbol: symbol)
+    public func toTicker() -> YFTicker {
+        return YFTicker(symbol: symbol)
     }
     
     /// 초기화

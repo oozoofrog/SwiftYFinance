@@ -6,24 +6,18 @@
 /// ## 에러 처리 예시
 /// ```swift
 /// do {
-///     let ticker = try YFTicker(symbol: "INVALID_SYMBOL_TOO_LONG")
-/// } catch YFError.invalidSymbol {
-///     print("유효하지 않은 심볼입니다")
+///     let quote = try await client.fetchQuote(ticker: ticker)
 /// } catch YFError.networkError {
 ///     print("네트워크 오류가 발생했습니다")
+/// } catch YFError.apiError(let message) {
+///     print("API 오류: \(message)")
 /// } catch {
 ///     print("알 수 없는 오류: \(error)")
 /// }
 /// ```
 public enum YFError: Error, Equatable {
     
-    /// 유효하지 않은 심볼
-    ///
-    /// 다음 조건 중 하나라도 만족하지 않을 때 발생:
-    /// - 빈 문자열이거나 공백만 있는 경우
-    /// - 10자를 초과하는 경우  
-    /// - 허용되지 않은 특수문자 포함
-    case invalidSymbol
+    // invalidSymbol 케이스 제거됨 - API에서 처리
     
     /// 유효하지 않은 날짜 범위
     ///

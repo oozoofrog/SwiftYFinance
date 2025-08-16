@@ -37,13 +37,15 @@ actor YFRateLimiter {
     /// 
     /// Yahoo Finance 서버의 안정성을 고려하여 설정된 값입니다.
     /// 너무 높으면 서버에서 차단될 수 있고, 너무 낮으면 성능이 저하됩니다.
-    private let maxConcurrentRequests = 3
+    /// 테스트 환경에서는 더 빠른 실행을 위해 조정 가능합니다.
+    var maxConcurrentRequests = 3
     
     /// 최소 요청 간격 (초)
     /// 
     /// 연속된 요청 사이의 최소 대기 시간입니다.
     /// 이 간격을 통해 서버 부하를 줄이고 안정적인 API 접근을 보장합니다.
-    private let minimumInterval: TimeInterval = 0.3
+    /// 테스트 환경에서는 더 빠른 실행을 위해 조정 가능합니다.
+    var minimumInterval: TimeInterval = 0.3
     
     /// 현재 실행 중인 요청 수
     /// 
@@ -181,5 +183,51 @@ actor YFRateLimiter {
         
         // 모든 재시도 실패 시 마지막 에러 throw
         throw lastError!
+    }
+    
+    // MARK: - 테스트 지원
+    
+    /// Rate Limiter 상태 완전 초기화 (테스트용)
+    /// 
+    /// 테스트 격리를 위해 Rate Limiter의 모든 상태를 초기값으로 되돌립니다.
+    /// 활성 요청 수, 마지막 요청 시간, 대기 중인 continuation들을 모두 리셋합니다.
+    func reset() {
+        activeRequests = 0
+        lastRequestTime = Date.distantPast
+        
+        // 대기 중인 모든 continuation을 해제
+        for continuation in waitingContinuations {
+            continuation.resume()
+        }
+        waitingContinuations.removeAll()
+    }
+    
+    /// 테스트용 설정 적용 (테스트용)
+    /// 
+    /// 테스트 실행 속도를 높이기 위해 Rate Limiter 설정을 조정합니다.
+    /// - Parameters:
+    ///   - minimumInterval: 최소 요청 간격 (기본값: 0.05초)
+    ///   - maxConcurrentRequests: 최대 동시 요청 수 (기본값: 1)
+    func configureForTesting(minimumInterval: TimeInterval = 0.05, maxConcurrentRequests: Int = 1) {
+        self.minimumInterval = minimumInterval
+        self.maxConcurrentRequests = maxConcurrentRequests
+        reset()
+    }
+    
+    /// 운영용 설정으로 복원 (테스트용)
+    /// 
+    /// 테스트 완료 후 원래 운영 설정으로 되돌립니다.
+    func restoreProductionSettings() {
+        self.minimumInterval = 0.3
+        self.maxConcurrentRequests = 3
+        reset()
+    }
+    
+    /// 현재 설정 정보 반환 (테스트용)
+    /// 
+    /// 현재 Rate Limiter의 설정을 확인할 수 있습니다.
+    /// - Returns: (minimumInterval, maxConcurrentRequests) 튜플
+    func getCurrentSettings() -> (minimumInterval: TimeInterval, maxConcurrentRequests: Int) {
+        return (minimumInterval: minimumInterval, maxConcurrentRequests: maxConcurrentRequests)
     }
 }

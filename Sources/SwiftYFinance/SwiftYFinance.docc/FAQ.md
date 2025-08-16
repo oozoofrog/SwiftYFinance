@@ -65,13 +65,12 @@ let invalidSymbols = [
 // 심볼 검증 함수 사용
 func validateAndFetch(_ input: String) async {
     do {
-        let ticker = try YFTicker(symbol: input.uppercased().trimmingCharacters(in: .whitespacesAndNewlines))
+        let ticker = YFTicker(symbol: input.uppercased().trimmingCharacters(in: .whitespacesAndNewlines))
         let quote = try await client.fetchQuote(ticker: ticker)
         print("✅ \(quote.symbol): $\(quote.regularMarketPrice)")
         
-    } catch YFError.invalidSymbol {
-        print("❌ 잘못된 심볼: \(input)")
-        // Yahoo Finance 웹사이트에서 정확한 심볼 확인 필요
+    } catch YFError.networkError {
+        print("❌ 네트워크 오류: \(input)")
         
     } catch {
         print("❌ 기타 에러: \(error)")
@@ -88,7 +87,7 @@ func validateAndFetch(_ input: String) async {
 func fetchMultipleQuotes(symbols: [String]) async {
     for symbol in symbols {
         do {
-            let ticker = try YFTicker(symbol: symbol)
+            let ticker = YFTicker(symbol: symbol)
             let quote = try await client.fetchQuote(ticker: ticker)
             print("\(symbol): $\(quote.regularMarketPrice)")
             
@@ -193,7 +192,7 @@ class SmartQuoteManager {
         // 2단계: 필요한 것만 API 호출
         for symbol in symbolsToFetch {
             do {
-                let ticker = try YFTicker(symbol: symbol)
+                let ticker = YFTicker(symbol: symbol)
                 let quote = try await client.fetchQuote(ticker: ticker)
                 results[symbol] = quote
                 cache.set(symbol: symbol, quote: quote, ttl: maxAge)
@@ -221,7 +220,7 @@ func fetchQuotesConcurrently(symbols: [String], maxConcurrent: Int = 3) async ->
                 defer { semaphore.signal() }
                 
                 do {
-                    let ticker = try YFTicker(symbol: symbol)
+                    let ticker = YFTicker(symbol: symbol)
                     let quote = try await client.fetchQuote(ticker: ticker)
                     return (symbol, quote)
                 } catch {
@@ -344,7 +343,7 @@ func robustFetch<T>(
 
 // 사용 예제
 let quote = try await robustFetch {
-    let ticker = try YFTicker(symbol: "AAPL")
+    let ticker = YFTicker(symbol: "AAPL")
     return try await client.fetchQuote(ticker: ticker)
 }
 ```
@@ -366,7 +365,7 @@ func handleCSRFError() async throws {
         print("✅ CSRF 재인증 성공")
         
         // 인증 후 원래 요청 재시도
-        let ticker = try YFTicker(symbol: "AAPL")
+        let ticker = YFTicker(symbol: "AAPL")
         let quote = try await client.fetchQuote(ticker: ticker)
         
     } catch {
@@ -475,7 +474,7 @@ class RealTimeQuoteMonitor {
             while isMonitoring {
                 for symbol in symbols {
                     do {
-                        let ticker = try YFTicker(symbol: symbol)
+                        let ticker = YFTicker(symbol: symbol)
                         let quote = try await client.fetchQuote(ticker: ticker)
                         
                         await MainActor.run {
@@ -636,7 +635,7 @@ func diagnoseSymbol(_ symbol: String) async {
     
     // 2. 기본 Quote 테스트
     do {
-        let ticker = try YFTicker(symbol: symbol)
+        let ticker = YFTicker(symbol: symbol)
         let quote = try await client.fetchQuote(ticker: ticker)
         print("✅ Quote 조회 성공")
         
@@ -654,7 +653,7 @@ func diagnoseSymbol(_ symbol: String) async {
     
     // 3. 과거 데이터 테스트
     do {
-        let ticker = try YFTicker(symbol: symbol)
+        let ticker = YFTicker(symbol: symbol)
         let history = try await client.fetchHistory(ticker: ticker, period: .oneMonth)
         print("✅ History 조회 성공 (\(history.prices.count)개 데이터)")
         
@@ -667,17 +666,17 @@ func diagnoseSymbol(_ symbol: String) async {
         do {
             switch test {
             case "Financials":
-                let ticker = try YFTicker(symbol: symbol)
+                let ticker = YFTicker(symbol: symbol)
                 _ = try await client.fetchFinancials(ticker: ticker)
                 print("✅ Financials 사용 가능")
                 
             case "Options":
-                let ticker = try YFTicker(symbol: symbol)
+                let ticker = YFTicker(symbol: symbol)
                 _ = try await client.fetchOptionsChain(ticker: ticker)
                 print("✅ Options 사용 가능")
                 
             case "News":
-                let ticker = try YFTicker(symbol: symbol)
+                let ticker = YFTicker(symbol: symbol)
                 _ = try await client.fetchNews(ticker: ticker)
                 print("✅ News 사용 가능")
                 
@@ -717,7 +716,7 @@ class BackgroundSafeYFManager: ObservableObject {
         
         do {
             // 백그라운드에서는 단순한 작업만
-            let ticker = try YFTicker(symbol: "AAPL")
+            let ticker = YFTicker(symbol: "AAPL")
             let quote = try await client.fetchQuote(ticker: ticker)
             
             await MainActor.run {
