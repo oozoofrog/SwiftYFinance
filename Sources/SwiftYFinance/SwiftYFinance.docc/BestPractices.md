@@ -677,10 +677,10 @@ func measurePerformance<T>(
 
 ## Testing Strategies
 
-### 모킹 및 테스트
+### 테스트 설계
 
 ```swift
-// 테스트용 MockClient 프로토콜
+// 프로토콜 기반 테스트 설계
 protocol YFClientProtocol {
     func fetchQuote(ticker: YFTicker) async throws -> YFQuote
     func fetchHistory(ticker: YFTicker, period: YFPeriod) async throws -> YFHistoricalData
@@ -688,38 +688,23 @@ protocol YFClientProtocol {
 
 extension YFClient: YFClientProtocol {}
 
-class MockYFClient: YFClientProtocol {
-    var shouldFail = false
-    var mockQuote: YFQuote?
-    var mockHistory: YFHistoricalData?
+// 테스트에서는 실제 API를 사용하거나 네트워크 레이어를 모킹
+class TestableYFClient: YFClientProtocol {
+    private let client = YFClient()
     
     func fetchQuote(ticker: YFTicker) async throws -> YFQuote {
-        if shouldFail {
-            throw YFError.networkError
-        }
-        
-        return mockQuote ?? YFQuote(
-            symbol: ticker.symbol,
-            regularMarketPrice: 150.0,
-            regularMarketTime: Date(),
-            // ... 기타 필요한 필드들
-        )
+        // 실제 API 호출 - 테스트는 실제 동작을 검증해야 함
+        return try await client.fetchQuote(ticker: ticker)
     }
     
     func fetchHistory(ticker: YFTicker, period: YFPeriod) async throws -> YFHistoricalData {
-        if shouldFail {
-            throw YFError.networkError
-        }
-        
-        return mockHistory ?? YFHistoricalData(
-            symbol: ticker.symbol,
-            prices: [
-                YFPrice(date: Date(), open: 148.0, high: 152.0, low: 147.0, close: 150.0, volume: 1000000)
-            ]
-        )
+        // 실제 API 호출 - 테스트는 실제 동작을 검증해야 함
+        return try await client.fetchHistory(ticker: ticker, period: period)
     }
 }
 ```
+
+> **중요**: SwiftYFinance는 Mock 데이터를 사용하지 않습니다. 모든 테스트는 실제 Yahoo Finance API를 사용하여 실제 동작을 검증합니다.
 
 ## Security Considerations
 

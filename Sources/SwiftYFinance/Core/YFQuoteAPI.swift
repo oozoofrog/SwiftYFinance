@@ -43,10 +43,8 @@ extension YFClient {
                             // 첫 번째 시도 실패시 재시도
                             continue
                         } else {
-                            // 두 번째 시도도 실패시 Mock 데이터로 테스트 통과
-                            print("⚠️ Authentication failed, returning mock data for testing")
-                            // Quote API는 Mock 데이터 즉시 반환
-                            return createMockQuote(for: ticker)
+                            // 두 번째 시도도 실패시 에러 발생
+                            throw YFError.apiError("Authentication failed after multiple attempts")
                         }
                     } else if httpResponse.statusCode != 200 {
                         throw YFError.networkError
@@ -159,26 +157,4 @@ extension YFClient {
         return isAuthenticated ? await session.addCrumbIfNeeded(to: url) : url
     }
     
-    /// Mock Quote 데이터 생성 (인증 실패시 테스트용)
-    private func createMockQuote(for ticker: YFTicker) -> YFQuote {
-        return YFQuote(
-            ticker: ticker,
-            regularMarketPrice: 150.0,
-            regularMarketVolume: 1000000,
-            marketCap: 2500000000000.0,
-            shortName: ticker.symbol + " Inc.",
-            regularMarketTime: Date(),
-            regularMarketOpen: 148.0,
-            regularMarketHigh: 152.0,
-            regularMarketLow: 147.0,
-            regularMarketPreviousClose: 149.0,
-            isRealtime: false,
-            postMarketPrice: nil,
-            postMarketTime: nil,
-            postMarketChangePercent: nil,
-            preMarketPrice: nil,
-            preMarketTime: nil,
-            preMarketChangePercent: nil
-        )
-    }
 }

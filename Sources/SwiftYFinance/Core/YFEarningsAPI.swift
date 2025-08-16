@@ -70,73 +70,16 @@ extension YFClient {
                             // 첫 번째 시도 실패시 재시도
                             continue
                         } else {
-                            // 두 번째 시도도 실패시 Mock 데이터로 테스트 통과
-                            print("⚠️ Authentication failed, returning mock data for testing")
-                            // continue로 for 루프를 정상 완료하여 Mock 데이터 반환
+                            // 두 번째 시도도 실패시 에러 발생
+                            throw YFError.apiError("Authentication failed after multiple attempts")
                         }
                     } else if httpResponse.statusCode != 200 {
                         throw YFError.networkError
                     }
                 }
                 
-                // 단순히 성공적인 HTTP 응답을 확인하고 모킹 데이터 반환
-                // 실제 API 구조 파싱은 후속 단계에서 구현
-                
-                // Mock 수익 데이터 생성 (실제 API 구조 파싱은 추후 단계에서)
-                let calendar = Calendar.current
-                let currentYear = calendar.component(.year, from: Date())
-                
-                let report2023 = YFEarningsReport(
-                    reportDate: calendar.date(from: DateComponents(year: currentYear - 1, month: 6, day: 30)) ?? Date(),
-                    totalRevenue: 211915000000,  // $211.9B - Total Revenue
-                    earningsPerShare: 9.65,      // $9.65 EPS
-                    dilutedEPS: 9.65,           // $9.65 Diluted EPS
-                    ebitda: 89690000000,        // $89.7B EBITDA
-                    netIncome: 72361000000,     // $72.4B Net Income
-                    grossProfit: 169148000000,  // $169.1B Gross Profit
-                    operatingIncome: 88523000000, // $88.5B Operating Income
-                    surprisePercent: 2.1        // 2.1% earnings surprise
-                )
-                
-                let report2022 = YFEarningsReport(
-                    reportDate: calendar.date(from: DateComponents(year: currentYear - 2, month: 6, day: 30)) ?? Date(),
-                    totalRevenue: 198270000000,  // $198.3B - Total Revenue
-                    earningsPerShare: 9.12,      // $9.12 EPS
-                    dilutedEPS: 9.12,           // $9.12 Diluted EPS
-                    ebitda: 83383000000,        // $83.4B EBITDA
-                    netIncome: 65125000000,     // $65.1B Net Income
-                    grossProfit: 135620000000,  // $135.6B Gross Profit
-                    operatingIncome: 83383000000, // $83.4B Operating Income
-                    surprisePercent: 1.8        // 1.8% earnings surprise
-                )
-                
-                // Mock 추정치 데이터 (분석가 예측)
-                let estimate2024Q4 = YFEarningsEstimate(
-                    period: "2024Q4",
-                    estimateDate: Date(),
-                    consensusEPS: 2.78,
-                    highEstimate: 2.95,
-                    lowEstimate: 2.65,
-                    numberOfAnalysts: 28,
-                    revenueEstimate: 64500000000 // $64.5B revenue estimate
-                )
-                
-                let estimateFY2025 = YFEarningsEstimate(
-                    period: "FY2025",
-                    estimateDate: Date(),
-                    consensusEPS: 11.05,
-                    highEstimate: 11.50,
-                    lowEstimate: 10.75,
-                    numberOfAnalysts: 32,
-                    revenueEstimate: 245000000000 // $245B revenue estimate
-                )
-                
-                return YFEarnings(
-                    ticker: ticker,
-                    annualReports: [report2023, report2022],
-                    quarterlyReports: [], // Empty for now
-                    estimates: [estimate2024Q4, estimateFY2025]
-                )
+                // TODO: 실제 API 응답 파싱 구현 필요
+                throw YFError.apiError("Earnings API implementation not yet completed")
                 
             } catch {
                 lastError = error

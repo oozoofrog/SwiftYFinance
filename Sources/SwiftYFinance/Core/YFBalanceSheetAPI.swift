@@ -63,50 +63,16 @@ extension YFClient {
                             // 첫 번째 시도 실패시 재시도
                             continue
                         } else {
-                            // 두 번째 시도도 실패시 Mock 데이터로 테스트 통과
-                            print("⚠️ Authentication failed, returning mock data for testing")
-                            // continue로 for 루프를 정상 완료하여 Mock 데이터 반환
+                            // 두 번째 시도도 실패시 에러 발생
+                            throw YFError.apiError("Authentication failed after multiple attempts")
                         }
                     } else if httpResponse.statusCode != 200 {
                         throw YFError.networkError
                     }
                 }
                 
-                // 단순히 성공적인 HTTP 응답을 확인하고 모킹 데이터 반환
-                // 실제 API 구조 파싱은 후속 단계에서 구현
-                
-                // Mock 대차대조표 데이터 생성 (실제 API 구조 파싱은 추후 단계에서)
-                let calendar = Calendar.current
-                let currentYear = calendar.component(.year, from: Date())
-                
-                let report2023 = YFBalanceSheetReport(
-                    reportDate: calendar.date(from: DateComponents(year: currentYear - 1, month: 12, day: 31)) ?? Date(),
-                    totalCurrentAssets: 143566000000,  // $143.6B
-                    totalCurrentLiabilities: 63710000000,  // $63.7B
-                    totalStockholderEquity: 267270000000,  // $267.3B
-                    retainedEarnings: 164726000000,  // $164.7B
-                    totalAssets: 395916000000,  // $395.9B
-                    totalLiabilities: 128646000000,  // $128.6B
-                    cash: 73100000000,  // $73.1B
-                    shortTermInvestments: 31590000000  // $31.6B
-                )
-                
-                let report2022 = YFBalanceSheetReport(
-                    reportDate: calendar.date(from: DateComponents(year: currentYear - 2, month: 12, day: 31)) ?? Date(),
-                    totalCurrentAssets: 135405000000,  // $135.4B
-                    totalCurrentLiabilities: 60845000000,  // $60.8B
-                    totalStockholderEquity: 253226000000,  // $253.2B
-                    retainedEarnings: 154058000000,  // $154.1B
-                    totalAssets: 381191000000,  // $381.2B
-                    totalLiabilities: 127965000000,  // $128.0B
-                    cash: 48844000000,  // $48.8B
-                    shortTermInvestments: 24658000000  // $24.7B
-                )
-                
-                return YFBalanceSheet(
-                    ticker: ticker,
-                    annualReports: [report2023, report2022]
-                )
+                // TODO: 실제 API 응답 파싱 구현 필요
+                throw YFError.apiError("Balance Sheet API implementation not yet completed")
                 
             } catch {
                 lastError = error

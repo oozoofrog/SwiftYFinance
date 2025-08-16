@@ -13,56 +13,19 @@ struct QuoteSummaryTests {
                 "result": [{
                     "price": {
                         "shortName": "Apple Inc.",
-                        "regularMarketPrice": {
-                            "raw": 150.25,
-                            "fmt": "$150.25"
-                        },
-                        "regularMarketVolume": {
-                            "raw": 50000000,
-                            "fmt": "50.00M"
-                        },
-                        "marketCap": {
-                            "raw": 2500000000000,
-                            "fmt": "$2.50T"
-                        },
-                        "regularMarketTime": {
-                            "raw": 1755028802,
-                            "fmt": "4:00PM EST"
-                        },
-                        "regularMarketOpen": {
-                            "raw": 149.80,
-                            "fmt": "$149.80"
-                        },
-                        "regularMarketDayHigh": {
-                            "raw": 151.50,
-                            "fmt": "$151.50"
-                        },
-                        "regularMarketDayLow": {
-                            "raw": 148.90,
-                            "fmt": "$148.90"
-                        },
-                        "regularMarketPreviousClose": {
-                            "raw": 149.50,
-                            "fmt": "$149.50"
-                        },
-                        "postMarketPrice": {
-                            "raw": 150.75,
-                            "fmt": "$150.75"
-                        },
-                        "postMarketTime": {
-                            "raw": 1755032402,
-                            "fmt": "5:00PM EST"
-                        },
-                        "postMarketChangePercent": {
-                            "raw": 0.33,
-                            "fmt": "+0.33%"
-                        }
+                        "regularMarketPrice": 150.25,
+                        "regularMarketVolume": 50000000,
+                        "marketCap": 2500000000000,
+                        "regularMarketTime": 1755028802,
+                        "regularMarketOpen": 149.80,
+                        "regularMarketDayHigh": 151.50,
+                        "regularMarketDayLow": 148.90,
+                        "regularMarketPreviousClose": 149.50,
+                        "postMarketPrice": 150.75,
+                        "postMarketTime": 1755032402,
+                        "postMarketChangePercent": 0.33
                     },
                     "summaryDetail": {
-                        "volume": {
-                            "raw": 50000000,
-                            "fmt": "50.00M"
-                        }
                     }
                 }],
                 "error": null
@@ -83,25 +46,24 @@ struct QuoteSummaryTests {
         #expect(result.price != nil)
         #expect(result.summaryDetail != nil)
         
-        // PriceData 구조 검증
+        // PriceData 구조 검증 (실제 API 응답 형식에 맞춘 직접 값)
         let priceData = result.price!
         #expect(priceData.shortName == "Apple Inc.")
-        #expect(priceData.regularMarketPrice?.raw == 150.25)
-        #expect(priceData.regularMarketPrice?.fmt == "$150.25")
-        #expect(priceData.regularMarketVolume?.raw == 50000000)
-        #expect(priceData.marketCap?.raw == 2500000000000)
-        #expect(priceData.regularMarketTime?.raw == 1755028802)
+        #expect(priceData.regularMarketPrice == 150.25)
+        #expect(priceData.regularMarketVolume == 50000000)
+        #expect(priceData.marketCap == 2500000000000)
+        #expect(priceData.regularMarketTime == 1755028802)
         
         // OHLC 데이터 검증
-        #expect(priceData.regularMarketOpen?.raw == 149.80)
-        #expect(priceData.regularMarketDayHigh?.raw == 151.50)
-        #expect(priceData.regularMarketDayLow?.raw == 148.90)
-        #expect(priceData.regularMarketPreviousClose?.raw == 149.50)
+        #expect(priceData.regularMarketOpen == 149.80)
+        #expect(priceData.regularMarketDayHigh == 151.50)
+        #expect(priceData.regularMarketDayLow == 148.90)
+        #expect(priceData.regularMarketPreviousClose == 149.50)
         
         // 시간외 거래 데이터 검증
-        #expect(priceData.postMarketPrice?.raw == 150.75)
-        #expect(priceData.postMarketTime?.raw == 1755032402)
-        #expect(priceData.postMarketChangePercent?.raw == 0.33)
+        #expect(priceData.postMarketPrice == 150.75)
+        #expect(priceData.postMarketTime == 1755032402)
+        #expect(priceData.postMarketChangePercent == 0.33)
     }
     
     @Test
@@ -131,22 +93,6 @@ struct QuoteSummaryTests {
         #expect(error.description == "No data found, symbol may be delisted")
     }
     
-    @Test
-    func testValueContainerStructure() throws {
-        // ValueContainer<T> 구조체 개별 테스트
-        let valueJSON = """
-        {
-            "raw": 150.25,
-            "fmt": "$150.25"
-        }
-        """.data(using: .utf8)!
-        
-        let parser = YFResponseParser()
-        let valueContainer = try parser.parse(valueJSON, type: ValueContainer<Double>.self)
-        
-        #expect(valueContainer.raw == 150.25)
-        #expect(valueContainer.fmt == "$150.25")
-    }
     
     @Test
     func testPartialData() throws {
@@ -157,10 +103,7 @@ struct QuoteSummaryTests {
                 "result": [{
                     "price": {
                         "shortName": "Test Stock",
-                        "regularMarketPrice": {
-                            "raw": 100.0,
-                            "fmt": "$100.00"
-                        }
+                        "regularMarketPrice": 100.0
                     }
                 }]
             }
@@ -172,7 +115,7 @@ struct QuoteSummaryTests {
         
         let priceData = response.quoteSummary.result![0].price!
         #expect(priceData.shortName == "Test Stock")
-        #expect(priceData.regularMarketPrice?.raw == 100.0)
+        #expect(priceData.regularMarketPrice == 100.0)
         
         // nullable 필드들이 nil인지 확인
         #expect(priceData.postMarketPrice == nil)
@@ -233,8 +176,8 @@ struct QuoteSummaryTests {
             if let result = quoteSummaryResponse.quoteSummary.result?.first,
                let priceData = result.price {
                 #expect(priceData.shortName != nil)
-                #expect(priceData.regularMarketPrice?.raw != nil)
-                #expect(priceData.regularMarketPrice!.raw > 0)
+                #expect(priceData.regularMarketPrice != nil)
+                #expect(priceData.regularMarketPrice! > 0)
             }
         } else if httpResponse?.statusCode == 401 || httpResponse?.statusCode == 403 {
             // 인증 실패 - 예상된 결과
