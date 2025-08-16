@@ -134,6 +134,11 @@ public class YFWebSocketManager {
             throw YFError.webSocketError(.invalidURL("Invalid custom WebSocket URL: \(urlString)"))
         }
         
+        // Validate WebSocket scheme
+        guard url.scheme == "ws" || url.scheme == "wss" else {
+            throw YFError.webSocketError(.invalidURL("WebSocket URL must use ws:// or wss:// scheme: \(urlString)"))
+        }
+        
         try await connectToURL(url)
     }
     #endif
