@@ -15,7 +15,7 @@ struct YFWebSocketMessageDecodingTests {
         
         // Then - Expected values from yfinance-reference test
         #expect(message.symbol == "BTC-USD")
-        #expect(message.price == 94745.08)
+        #expect(abs(message.price - 94745.08) < 0.1) // Float precision tolerance
         #expect(message.currency == "USD")
         
         // Timestamp should be reasonable (around test time)
@@ -38,7 +38,7 @@ struct YFWebSocketMessageDecodingTests {
             #expect(message.price >= 0)
         } catch YFError.webSocketError(.messageDecodingFailed(let errorMessage)) {
             // If it fails, should have descriptive error
-            #expect(errorMessage.contains("protobuf") || errorMessage.contains("decode"))
+            #expect(errorMessage.contains("Protobuf") || errorMessage.contains("parse") || errorMessage.contains("decode"))
         } catch {
             #expect(Bool(false), "Unexpected error type: \(error)")
         }

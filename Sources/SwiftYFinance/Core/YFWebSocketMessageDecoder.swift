@@ -1,4 +1,5 @@
 import Foundation
+import SwiftProtobuf
 
 /// Yahoo Finance WebSocket 메시지 디코더
 ///
@@ -76,18 +77,45 @@ public class YFWebSocketMessageDecoder {
     /// print(message.symbol) // "BTC-USD"
     /// ```
     ///
-    /// - Note: 현재는 기본 구현만 제공됩니다. Protobuf 파싱은 추후 구현 예정입니다.
+    /// - Note: Yahoo Finance의 PricingData Protobuf 스키마를 기반으로 파싱됩니다.
     public func decode(_ base64Message: String) throws -> YFWebSocketMessage {
         // Base64 디코딩
         let data = try decodeBase64(base64Message)
         
-        // TODO: Protobuf 파싱 구현 (Task 2.8에서 구현 예정)
-        // 현재는 기본값으로 반환
+        // Protobuf 파싱 및 변환
+        return try parseProtobufData(data)
+    }
+    
+    // MARK: - Private Methods
+    
+    /// Protobuf 데이터를 YFWebSocketMessage로 변환
+    ///
+    /// - Parameter data: Protobuf 직렬화된 데이터
+    /// - Returns: 파싱된 YFWebSocketMessage
+    /// - Throws: `YFError.webSocketError(.messageDecodingFailed)` Protobuf 파싱 실패 시
+    private func parseProtobufData(_ data: Data) throws -> YFWebSocketMessage {
+        do {
+            let pricingData = try PricingData(serializedBytes: data)
+            return convertToWebSocketMessage(pricingData)
+        } catch let protobufError {
+            let errorDescription = protobufError.localizedDescription
+            throw YFError.webSocketError(.messageDecodingFailed("Failed to parse Yahoo Finance Protobuf data: \(errorDescription)"))
+        }
+    }
+    
+    /// PricingData를 YFWebSocketMessage로 변환
+    ///
+    /// - Parameter pricingData: Yahoo Finance PricingData
+    /// - Returns: 변환된 YFWebSocketMessage
+    private func convertToWebSocketMessage(_ pricingData: PricingData) -> YFWebSocketMessage {
+        let timestampSeconds = TimeInterval(pricingData.time) / 1000.0
+        let currency = pricingData.currency.isEmpty ? nil : pricingData.currency
+        
         return YFWebSocketMessage(
-            symbol: "UNKNOWN",
-            price: 0.0,
-            timestamp: Date(),
-            currency: nil
+            symbol: pricingData.id,
+            price: Double(pricingData.price),
+            timestamp: Date(timeIntervalSince1970: timestampSeconds),
+            currency: currency
         )
     }
 }
