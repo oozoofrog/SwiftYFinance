@@ -19,7 +19,7 @@ func fetchMultipleQuotes(symbols: [String]) async throws -> [String: YFQuote] {
     
     for symbol in symbols {
         do {
-            let ticker = try YFTicker(symbol: symbol)
+            let ticker = YFTicker(symbol: symbol)
             let quote = try await client.fetchQuote(ticker: ticker)
             quotes[symbol] = quote
             
@@ -42,7 +42,7 @@ func fetchMultipleQuotesBad(symbols: [String]) async throws -> [String: YFQuote]
     
     // 딜레이 없이 연속 요청 - Rate Limit에 걸림
     for symbol in symbols {
-        let ticker = try YFTicker(symbol: symbol)
+        let ticker = YFTicker(symbol: symbol)
         let quote = try await client.fetchQuote(ticker: ticker)
         quotes[symbol] = quote
     }
@@ -85,7 +85,7 @@ func processBatches<T>(
 let symbols = Array(1...100).map { "STOCK\($0)" }
 
 try await processBatches(items: symbols, batchSize: 15) { symbol in
-    let ticker = try YFTicker(symbol: symbol)
+    let ticker = YFTicker(symbol: symbol)
     let quote = try await client.fetchQuote(ticker: ticker)
     print("\(symbol): $\(quote.regularMarketPrice)")
 }
@@ -153,7 +153,7 @@ func withRetry<T>(
 
 // 사용 예제
 let quote = try await withRetry {
-    let ticker = try YFTicker(symbol: "AAPL")
+    let ticker = YFTicker(symbol: "AAPL")
     return try await client.fetchQuote(ticker: ticker)
 }
 ```
@@ -174,7 +174,7 @@ func fetchQuotesRobustly(symbols: [String]) async -> [QuoteResult] {
     
     for symbol in symbols {
         do {
-            let ticker = try YFTicker(symbol: symbol)
+            let ticker = YFTicker(symbol: symbol)
             let quote = try await withRetry {
                 try await client.fetchQuote(ticker: ticker)
             }
@@ -377,7 +377,7 @@ func processLargeSymbolList(symbols: [String]) async throws {
         
         for symbol in chunk {
             do {
-                let ticker = try YFTicker(symbol: symbol)
+                let ticker = YFTicker(symbol: symbol)
                 let quote = try await client.fetchQuote(ticker: ticker)
                 chunkData.append(quote)
                 
@@ -403,7 +403,7 @@ func processLargeSymbolListBad(symbols: [String]) async throws {
     
     // 모든 데이터를 메모리에 축적 - 메모리 부족 위험
     for symbol in symbols {
-        let ticker = try YFTicker(symbol: symbol)
+        let ticker = YFTicker(symbol: symbol)
         let quote = try await client.fetchQuote(ticker: ticker)
         allQuotes.append(quote)
     }
@@ -454,7 +454,7 @@ func fetchQuotesConcurrently(symbols: [String]) async -> [QuoteResult] {
                 defer { Task { await throttler.releaseSlot() } }
                 
                 do {
-                    let ticker = try YFTicker(symbol: symbol)
+                    let ticker = YFTicker(symbol: symbol)
                     let quote = try await client.fetchQuote(ticker: ticker)
                     return QuoteResult(symbol: symbol, quote: quote, error: nil)
                     
@@ -525,7 +525,7 @@ func safeCreateTicker(_ input: String) throws -> YFTicker {
     }
     
     let normalizedSymbol = SymbolValidator.normalize(input)
-    return try YFTicker(symbol: normalizedSymbol)
+    return YFTicker(symbol: normalizedSymbol)
 }
 ```
 

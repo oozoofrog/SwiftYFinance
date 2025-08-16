@@ -18,7 +18,7 @@ SwiftYFinance는 Chrome 136 브라우저를 모방하여 Yahoo Finance의 차단
 let client = YFClient()
 // 모든 요청이 자동으로 Chrome 136으로 인식됩니다
 
-let ticker = try YFTicker(symbol: "AAPL")
+let ticker = YFTicker(symbol: "AAPL")
 let quote = try await client.fetchQuote(ticker: ticker)
 ```
 
@@ -95,7 +95,7 @@ SwiftYFinance는 지능형 Rate Limiting을 제공하여 API 제한을 자동으
 let symbols = ["AAPL", "GOOGL", "MSFT", "AMZN", "TSLA"]
 
 for symbol in symbols {
-    let ticker = try YFTicker(symbol: symbol)
+    let ticker = YFTicker(symbol: symbol)
     let quote = try await client.fetchQuote(ticker: ticker)
     print("\(symbol): $\(quote.regularMarketPrice)")
     
@@ -130,7 +130,7 @@ for batch in symbols.chunked(into: batchSize) {
     
     for symbol in batch {
         do {
-            let ticker = try YFTicker(symbol: symbol)
+            let ticker = YFTicker(symbol: symbol)
             let quote = try await client.fetchQuote(ticker: ticker)
             print("\(symbol): $\(quote.regularMarketPrice)")
             

@@ -72,7 +72,7 @@ func fetchAppleStock() async {
     
     do {
         // 종목 심볼 생성
-        let ticker = try YFTicker(symbol: "AAPL")
+        let ticker = YFTicker(symbol: "AAPL")
         
         // 현재 시세 조회
         let quote = try await client.fetchQuote(ticker: ticker)
@@ -100,8 +100,6 @@ SwiftYFinance는 구조화된 에러 처리를 제공합니다:
 do {
     let quote = try await client.fetchQuote(ticker: ticker)
     // 성공적으로 데이터를 가져온 경우
-} catch YFError.invalidSymbol {
-    print("잘못된 종목 심볼입니다")
 } catch YFError.networkError {
     print("네트워크 연결을 확인해주세요")
 } catch YFError.rateLimited {
@@ -120,7 +118,7 @@ let symbols = ["AAPL", "GOOGL", "MSFT", "TSLA"]
 
 for symbolString in symbols {
     do {
-        let ticker = try YFTicker(symbol: symbolString)
+        let ticker = YFTicker(symbol: symbolString)
         let quote = try await client.fetchQuote(ticker: ticker)
         
         print("\(symbolString): $\(quote.regularMarketPrice)")
@@ -137,7 +135,7 @@ for symbolString in symbols {
 ### 과거 데이터 조회
 
 ```swift
-let ticker = try YFTicker(symbol: "AAPL")
+let ticker = YFTicker(symbol: "AAPL")
 
 // 지난 1개월 일별 데이터
 let history = try await client.fetchHistory(ticker: ticker, period: .oneMonth)

@@ -6,7 +6,7 @@ struct PriceHistoryTests {
     @Test
     func testFetchPriceHistory1Day() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "AAPL")
+        let ticker = YFTicker(symbol: "AAPL")
         
         let endDate = Date()
         let startDate = Calendar.current.date(byAdding: .day, value: -1, to: endDate)!
@@ -21,7 +21,7 @@ struct PriceHistoryTests {
     @Test
     func testFetchPriceHistory1Week() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "MSFT")
+        let ticker = YFTicker(symbol: "MSFT")
         
         let history = try await client.fetchHistory(ticker: ticker, period: .oneWeek)
         
@@ -37,7 +37,7 @@ struct PriceHistoryTests {
     @Test
     func testFetchPriceHistoryCustomRange() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "GOOGL")
+        let ticker = YFTicker(symbol: "GOOGL")
         
         let endDate = Date()
         let startDate = Calendar.current.date(byAdding: .month, value: -3, to: endDate)!
@@ -58,7 +58,7 @@ struct PriceHistoryTests {
     @Test
     func testFetchPriceHistoryInvalidSymbol() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "INVALID_SYMBOL_XYZ")
+        let ticker = YFTicker(symbol: "INVALID_SYMBOL_XYZ")
         
         // 실제 API는 invalid symbol에 대해 다양한 응답을 할 수 있음
         // 에러를 던지거나, 빈 결과를 반환할 수 있음
@@ -75,7 +75,7 @@ struct PriceHistoryTests {
     @Test
     func testFetchPriceHistoryEmptyResult() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "AAPL")
+        let ticker = YFTicker(symbol: "AAPL")
         
         // 미래 날짜로 설정하여 빈 결과를 유도
         let futureDate = Calendar.current.date(byAdding: .year, value: 1, to: Date())!

@@ -6,7 +6,7 @@ struct QuoteDataTests {
     @Test
     func testFetchQuoteBasic() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "AAPL")
+        let ticker = YFTicker(symbol: "AAPL")
         
         let quote = try await client.fetchQuote(ticker: ticker)
         
@@ -20,7 +20,7 @@ struct QuoteDataTests {
     @Test
     func testFetchQuoteRealtime() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "TSLA")
+        let ticker = YFTicker(symbol: "TSLA")
         
         let quote = try await client.fetchQuote(ticker: ticker, realtime: true)
         
@@ -37,7 +37,7 @@ struct QuoteDataTests {
     @Test
     func testFetchQuoteAfterHours() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "NVDA")
+        let ticker = YFTicker(symbol: "NVDA")
         
         let quote = try await client.fetchQuote(ticker: ticker)
         

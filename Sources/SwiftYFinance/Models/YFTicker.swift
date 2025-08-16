@@ -2,8 +2,8 @@ import Foundation
 
 /// Yahoo Finance 주식 심볼 표현
 ///
-/// 주식, ETF, 지수 등의 금융 상품을 식별하는 심볼을 안전하게 관리합니다.
-/// 심볼 유효성 검증 및 정규화를 자동으로 수행합니다.
+/// 주식, ETF, 지수 등의 금융 상품을 식별하는 심볼을 관리합니다.
+/// 심볼 정규화(대문자 변환, 공백 제거)를 자동으로 수행합니다.
 ///
 /// ## 지원되는 심볼 형식
 /// - **미국 주식**: AAPL, MSFT, GOOGL
@@ -14,24 +14,25 @@ import Foundation
 /// ## 사용 예시
 /// ```swift
 /// // 기본 사용법
-/// let ticker = try YFTicker(symbol: "AAPL")
+/// let ticker = YFTicker(symbol: "AAPL")
 /// print(ticker.symbol) // "AAPL"
 /// 
 /// // 자동 정규화
-/// let ticker2 = try YFTicker(symbol: "  aapl  ")
+/// let ticker2 = YFTicker(symbol: "  aapl  ")
 /// print(ticker2.symbol) // "AAPL"
 /// 
 /// // 국제 주식
-/// let hkTicker = try YFTicker(symbol: "0700.HK")
+/// let hkTicker = YFTicker(symbol: "0700.HK")
 /// ```
 ///
-/// ## 유효성 검증
-/// 심볼은 다음 조건을 만족해야 합니다:
-/// - 1-10자 길이
-/// - 영숫자, 점(.), 하이픈(-), 캐럿(^) 문자만 허용
+/// ## 심볼 처리
 /// - 공백 문자 자동 제거
+/// - 소문자를 대문자로 자동 변환
+/// - 심볼 유효성은 Yahoo Finance API에서 검증됨
 ///
-/// - Throws: ``YFError/invalidSymbol`` 유효하지 않은 심볼인 경우
+/// ## 오류 처리
+/// 잘못된 심볼의 경우 API 호출 시 적절한 에러가 반환됩니다.
+/// 클라이언트 측에서는 기본적인 정리만 수행하고 서버 검증에 의존합니다.
 public struct YFTicker: CustomStringConvertible, Codable, Hashable, Sendable {
     
     /// 정규화된 심볼 문자열
@@ -46,26 +47,14 @@ public struct YFTicker: CustomStringConvertible, Codable, Hashable, Sendable {
     
     /// YFTicker 초기화
     ///
-    /// 제공된 심볼 문자열의 유효성을 검증하고 정규화합니다.
+    /// 제공된 심볼 문자열을 정규화합니다.
+    /// 심볼 유효성은 Yahoo Finance API 호출 시 서버에서 검증됩니다.
     ///
     /// - Parameter symbol: 주식 심볼 (예: "AAPL", "MSFT")
-    /// - Throws: ``YFError/invalidSymbol`` 심볼이 유효하지 않은 경우
-    public init(symbol: String) throws {
-        let trimmed = symbol.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        guard !trimmed.isEmpty else {
-            throw YFError.invalidSymbol
-        }
-        
-        guard trimmed.count <= 10 else {
-            throw YFError.invalidSymbol
-        }
-        
-        let allowedCharacters = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: ".-^"))
-        guard trimmed.rangeOfCharacter(from: allowedCharacters.inverted) == nil else {
-            throw YFError.invalidSymbol
-        }
-        
-        self.symbol = trimmed.uppercased()
+    public init(symbol: String) {
+        // 기본적인 정리만 수행: 공백 제거 및 대문자 변환
+        self.symbol = symbol
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .uppercased()
     }
 }

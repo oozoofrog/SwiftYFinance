@@ -105,7 +105,7 @@ import SwiftYFinance
 let client = YFClient()
 
 // 종목 생성
-let ticker = try YFTicker(symbol: "AAPL")
+let ticker = YFTicker(symbol: "AAPL")
 
 // 현재 시세 조회
 let quote = try await client.fetchQuote(ticker: ticker)

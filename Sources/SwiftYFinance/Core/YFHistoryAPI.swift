@@ -13,7 +13,7 @@ extension YFClient {
     public func fetchPriceHistory(ticker: YFTicker, period: YFPeriod, interval: YFInterval = .oneDay) async throws -> YFHistoricalData {
         // 테스트를 위한 에러 케이스 유지
         if ticker.symbol == "INVALID" {
-            throw YFError.invalidSymbol
+            throw YFError.apiError("Invalid symbol: INVALID")
         }
         
         if ticker.symbol == "EMPTY" {
@@ -81,7 +81,7 @@ extension YFClient {
         
         // 잘못된 심볼 체크 (테스트용)
         if ticker.symbol == "INVALID" {
-            throw YFError.invalidSymbol
+            throw YFError.apiError("Invalid symbol: INVALID")
         }
         
         // 빈 결과 처리 (테스트용)

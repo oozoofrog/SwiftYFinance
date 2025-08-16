@@ -18,7 +18,7 @@ extension YFClient {
     ///   - includeRelatedTickers: 관련 종목 포함 여부 (기본값: false)
     ///   - includeImages: 이미지 정보 포함 여부 (기본값: false)
     /// - Returns: 뉴스 기사 배열
-    /// - Throws: `YFError.invalidSymbol` 등 API 오류
+    /// - Throws: `YFError.apiError` 등 API 오류
     ///
     /// ## 사용 예시
     /// ```swift

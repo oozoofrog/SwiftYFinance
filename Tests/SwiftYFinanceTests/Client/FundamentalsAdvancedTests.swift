@@ -6,7 +6,7 @@ struct FundamentalsAdvancedTests {
     @Test
     func testFetchQuarterlyFinancials() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "AAPL")
+        let ticker = YFTicker(symbol: "AAPL")
         
         // 분기별 재무제표 조회
         let quarterlyFinancials = try await client.fetchQuarterlyFinancials(ticker: ticker)
@@ -31,7 +31,7 @@ struct FundamentalsAdvancedTests {
     @Test
     func testFinancialRatios() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "MSFT")
+        let ticker = YFTicker(symbol: "MSFT")
         
         // 재무 비율 계산
         let ratios = try await client.calculateFinancialRatios(ticker: ticker)
@@ -65,7 +65,7 @@ struct FundamentalsAdvancedTests {
     @Test
     func testGrowthMetrics() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "GOOGL")
+        let ticker = YFTicker(symbol: "GOOGL")
         
         // 성장 지표 계산
         let growth = try await client.calculateGrowthMetrics(ticker: ticker)
@@ -98,7 +98,7 @@ struct FundamentalsAdvancedTests {
     @Test
     func testFinancialHealthMetrics() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "AAPL")
+        let ticker = YFTicker(symbol: "AAPL")
         
         // 재무 건전성 지표
         let health = try await client.assessFinancialHealth(ticker: ticker)
@@ -135,7 +135,7 @@ struct FundamentalsAdvancedTests {
     @Test
     func testIndustryComparison() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "AAPL")
+        let ticker = YFTicker(symbol: "AAPL")
         
         // 산업 평균 대비 비교
         let comparison = try await client.compareToIndustry(ticker: ticker)
@@ -165,7 +165,7 @@ struct FundamentalsAdvancedTests {
     @Test
     func testAdvancedFinancialsInvalidSymbol() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "INVALID")
+        let ticker = YFTicker(symbol: "INVALID")
         
         // 잘못된 심볼에 대한 에러 처리
         do {
@@ -179,7 +179,7 @@ struct FundamentalsAdvancedTests {
     @Test
     func testFinancialDataConsistency() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "MSFT")
+        let ticker = YFTicker(symbol: "MSFT")
         
         // 연간 vs 분기별 데이터 일관성 확인
         let annualFinancials = try await client.fetchFinancials(ticker: ticker)

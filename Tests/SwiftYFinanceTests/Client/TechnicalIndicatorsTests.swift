@@ -6,7 +6,7 @@ struct TechnicalIndicatorsTests {
     @Test
     func testSimpleMovingAverage() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "AAPL")
+        let ticker = YFTicker(symbol: "AAPL")
         
         // 20일 단순이동평균 계산
         let sma = try await client.calculateSMA(ticker: ticker, period: 20)
@@ -31,7 +31,7 @@ struct TechnicalIndicatorsTests {
     @Test
     func testExponentialMovingAverage() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "MSFT")
+        let ticker = YFTicker(symbol: "MSFT")
         
         // 12일 지수이동평균 계산
         let ema = try await client.calculateEMA(ticker: ticker, period: 12)
@@ -58,7 +58,7 @@ struct TechnicalIndicatorsTests {
     @Test
     func testRSICalculation() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "GOOGL")
+        let ticker = YFTicker(symbol: "GOOGL")
         
         // 14일 RSI 계산
         let rsi = try await client.calculateRSI(ticker: ticker, period: 14)
@@ -89,7 +89,7 @@ struct TechnicalIndicatorsTests {
     @Test
     func testMACDCalculation() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "AMZN")
+        let ticker = YFTicker(symbol: "AMZN")
         
         // MACD 계산 (12, 26, 9)
         let macd = try await client.calculateMACD(ticker: ticker, fastPeriod: 12, slowPeriod: 26, signalPeriod: 9)
@@ -123,7 +123,7 @@ struct TechnicalIndicatorsTests {
     @Test
     func testBollingerBands() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "TSLA")
+        let ticker = YFTicker(symbol: "TSLA")
         
         // 볼린저 밴드 계산 (20일, 2 표준편차)
         let bb = try await client.calculateBollingerBands(ticker: ticker, period: 20, stdDev: 2.0)
@@ -149,7 +149,7 @@ struct TechnicalIndicatorsTests {
     @Test
     func testStochasticOscillator() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "META")
+        let ticker = YFTicker(symbol: "META")
         
         // 스토캐스틱 계산 (14일 %K, 3일 %D)
         let stoch = try await client.calculateStochastic(ticker: ticker, kPeriod: 14, dPeriod: 3)
@@ -181,7 +181,7 @@ struct TechnicalIndicatorsTests {
     @Test
     func testMultipleIndicators() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "NVDA")
+        let ticker = YFTicker(symbol: "NVDA")
         
         // 여러 지표를 한 번에 계산
         let indicators = try await client.calculateMultipleIndicators(
@@ -222,7 +222,7 @@ struct TechnicalIndicatorsTests {
     @Test
     func testTechnicalSignals() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "AAPL")
+        let ticker = YFTicker(symbol: "AAPL")
         
         // 기술적 신호 분석
         let signals = try await client.getTechnicalSignals(ticker: ticker)
@@ -246,7 +246,7 @@ struct TechnicalIndicatorsTests {
     @Test
     func testInvalidTickerIndicators() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "INVALID")
+        let ticker = YFTicker(symbol: "INVALID")
         
         // 잘못된 티커에 대한 지표 계산
         do {
@@ -260,7 +260,7 @@ struct TechnicalIndicatorsTests {
     @Test
     func testIndicatorPeriodValidation() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "AAPL")
+        let ticker = YFTicker(symbol: "AAPL")
         
         // 잘못된 기간으로 지표 계산
         do {

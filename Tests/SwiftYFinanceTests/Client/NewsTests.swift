@@ -6,7 +6,7 @@ struct NewsTests {
     @Test
     func testFetchBasicNews() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "AAPL")
+        let ticker = YFTicker(symbol: "AAPL")
         
         // 기본 뉴스 조회 (10개)
         let news = try await client.fetchNews(ticker: ticker)
@@ -29,7 +29,7 @@ struct NewsTests {
     @Test
     func testFetchNewsWithLimit() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "MSFT")
+        let ticker = YFTicker(symbol: "MSFT")
         
         // 제한된 개수 뉴스 조회
         let news = try await client.fetchNews(ticker: ticker, count: 5)
@@ -48,7 +48,7 @@ struct NewsTests {
     @Test
     func testFetchNewsByCategory() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "GOOGL")
+        let ticker = YFTicker(symbol: "GOOGL")
         
         // 카테고리별 뉴스 조회
         let allNews = try await client.fetchNews(ticker: ticker, category: .all)
@@ -71,7 +71,7 @@ struct NewsTests {
     @Test
     func testNewsSentimentAnalysis() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "TSLA")
+        let ticker = YFTicker(symbol: "TSLA")
         
         // 감성 분석이 포함된 뉴스 조회
         let news = try await client.fetchNews(ticker: ticker, includeSentiment: true)
@@ -93,7 +93,7 @@ struct NewsTests {
     @Test
     func testRelatedStocksInNews() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "AAPL")
+        let ticker = YFTicker(symbol: "AAPL")
         
         // 관련 종목 정보가 포함된 뉴스 조회
         let news = try await client.fetchNews(ticker: ticker, includeRelatedTickers: true)
@@ -117,7 +117,7 @@ struct NewsTests {
     @Test
     func testNewsFiltering() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "AMZN")
+        let ticker = YFTicker(symbol: "AMZN")
         
         // 날짜 범위로 뉴스 필터링
         let endDate = Date()
@@ -149,7 +149,7 @@ struct NewsTests {
     @Test
     func testNewsCategories() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "META")
+        let ticker = YFTicker(symbol: "META")
         
         // 뉴스 카테고리 분류 확인
         let news = try await client.fetchNews(ticker: ticker, count: 15)
@@ -183,7 +183,7 @@ struct NewsTests {
     @Test
     func testInvalidTickerNews() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "INVALID")
+        let ticker = YFTicker(symbol: "INVALID")
         
         // 잘못된 티커에 대한 뉴스 조회
         do {
@@ -199,7 +199,7 @@ struct NewsTests {
     @Test
     func testNewsImageHandling() async throws {
         let client = YFClient()
-        let ticker = try YFTicker(symbol: "NFLX")
+        let ticker = YFTicker(symbol: "NFLX")
         
         // 이미지 정보가 포함된 뉴스 조회
         let news = try await client.fetchNews(ticker: ticker, includeImages: true)
