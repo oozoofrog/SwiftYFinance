@@ -64,22 +64,18 @@ extension YFSession {
     /// CSRF 전략으로 인증 시도
     /// - SeeAlso: yfinance-reference/yfinance/data.py:_get_crumb_csrf()
     internal func attemptCSRFAuthentication() async -> Bool {
-        do {
-            // 1. 동의 페이지에서 CSRF 토큰 획득
-            guard let tokens = await getConsentTokens() else {
-                return false
-            }
-            
-            // 2. 동의 프로세스 실행
-            guard await processConsent(tokens: tokens) else {
-                return false
-            }
-            
-            // 3. Crumb 토큰 획득
-            return await getCrumbToken(strategy: .csrf)
-        } catch {
+        // 1. 동의 페이지에서 CSRF 토큰 획득
+        guard let tokens = await getConsentTokens() else {
             return false
         }
+
+        // 2. 동의 프로세스 실행
+        guard await processConsent(tokens: tokens) else {
+            return false
+        }
+
+        // 3. Crumb 토큰 획득
+        return await getCrumbToken(strategy: .csrf)
     }
     
     /// Basic 전략으로 인증 시도  
@@ -186,7 +182,7 @@ extension YFSession {
             
             // GET 요청으로 동의 복사
             let getURL = URL(string: "https://guce.yahoo.com/copyConsent?sessionId=\(sessionId)")!
-            var getRequest = URLRequest(url: getURL, timeoutInterval: timeout)
+            let getRequest = URLRequest(url: getURL, timeoutInterval: timeout)
             
             let (_, getResponse) = try await urlSession.data(for: getRequest)
             

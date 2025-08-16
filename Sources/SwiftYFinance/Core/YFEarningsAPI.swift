@@ -37,12 +37,10 @@ extension YFClient {
         }
         
         // CSRF 인증 시도 (실패해도 기본 요청으로 진행)
-        var authenticationAttempted = false
         let isAuthenticated = await session.isCSRFAuthenticated
         if !isAuthenticated {
             do {
                 try await session.authenticateCSRF()
-                authenticationAttempted = true
             } catch {
                 // CSRF 인증 실패시 기본 요청으로 진행
             }
