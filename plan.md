@@ -53,13 +53,14 @@ Python yfinance 라이브러리를 Swift로 포팅한 종합 금융 데이터 �
 
 ### 계획된 개발 (Phase 8)
 
-#### Phase 8: WebSocket 실시간 스트리밍 🚀
-- **실시간 데이터 스트리밍**: `wss://streamer.finance.yahoo.com` 연동
-- **동기/비동기 지원**: URLSessionWebSocketTask + Swift Concurrency
-- **Protobuf 디코딩**: Yahoo Finance PricingData 메시지 파싱
-- **구독 관리**: 심볼별 실시간 가격 업데이트 구독/해제
-- **스트림 모니터링**: 연결 상태, 메시지 통계, 오류 복구
-- **기존 구조 통합**: YFClient 확장, 캐싱, Rate Limiting 활용
+#### Phase 8: WebSocket 실시간 스트리밍 🚀 **진행 중** (4/7 단계 완료)
+- ✅ **기본 데이터 모델**: YFWebSocketMessage, YFStreamingQuote, YFWebSocketError
+- ✅ **Protobuf 디코딩**: SwiftProtobuf 1.30.0 + Yahoo Finance PricingData 스키마 
+- ✅ **WebSocket 연결**: URLSessionWebSocketTask 기반 실제 연결 관리
+- ✅ **구독 관리**: JSON 프로토콜 ({"subscribe":[], "unsubscribe":[]}) 완전 구현
+- 🚧 **실시간 스트리밍**: AsyncStream 기반 메시지 스트리밍 (다음 단계)
+- **재연결 & 고급 기능**: exponential backoff, 다중 구독 관리
+- **YFClient 통합**: 기존 아키텍처와 통합, 캐싱, Rate Limiting 활용
 
 ## 주요 기능
 
