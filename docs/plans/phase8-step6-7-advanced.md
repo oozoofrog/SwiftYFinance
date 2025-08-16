@@ -49,22 +49,22 @@
 ## 🔴 Step 7: YFClient 통합 테스트
 
 ### 테스트 작성 (RED)
-- [ ] **Task 7.1**: YFClient WebSocket API 통합 테스트
-  - 📝 **업데이트**: `Tests/SwiftYFinanceTests/WebSocket/YFClientIntegrationTests.swift` 생성
+- [x] **Task 7.1**: YFClient WebSocket API 통합 테스트 ✅
+  - 📝 **업데이트**: `Tests/SwiftYFinanceTests/WebSocket/YFClientWebSocketIntegrationTests.swift` 생성
   - 🔄 **커밋**: `[Behavior] Add YFClient WebSocket API integration tests`
-- [ ] **Task 7.2**: 기존 기능과 호환성 테스트
-  - 📝 **업데이트**: `YFClientIntegrationTests.swift`에 호환성 테스트 추가
+- [x] **Task 7.2**: 기존 기능과 호환성 테스트 ✅
+  - 📝 **업데이트**: `YFClientWebSocketIntegrationTests.swift`에 호환성 테스트 추가
   - 🔄 **커밋**: `[Behavior] Add backward compatibility tests for existing features`
-- [ ] **Task 7.3**: 인증 세션 연동 테스트
-  - 📝 **업데이트**: `YFClientIntegrationTests.swift`에 세션 연동 테스트 추가
+- [x] **Task 7.3**: 인증 세션 연동 테스트 ✅
+  - 📝 **업데이트**: `YFClientWebSocketIntegrationTests.swift`에 세션 연동 테스트 추가
   - 🔄 **커밋**: `[Behavior] Add authentication session integration tests`
-- [ ] **Task 7.4**: Rate Limiting 통합 테스트
-  - 📝 **업데이트**: `YFClientIntegrationTests.swift`에 Rate Limiting 테스트 추가
+- [x] **Task 7.4**: Rate Limiting 통합 테스트 ✅
+  - 📝 **업데이트**: `YFClientWebSocketIntegrationTests.swift`에 Rate Limiting 테스트 추가
   - 🔄 **커밋**: `[Behavior] Add Rate Limiting integration tests`
 
 ### 구현 (GREEN)
-- [ ] **Task 7.5**: YFWebSocketAPI.swift 생성 (YFClient 확장)
-  - 📝 **업데이트**: `Sources/SwiftYFinance/API/YFWebSocketAPI.swift` 생성
+- [x] **Task 7.5**: YFWebSocketAPI.swift 생성 (YFClient 확장) ✅
+  - 📝 **업데이트**: `Sources/SwiftYFinance/Core/YFWebSocketAPI.swift` 생성
   - 🔄 **커밋**: `[Behavior] Create YFWebSocketAPI as YFClient extension`
 - [ ] **Task 7.6**: 실시간 스트리밍 퍼블릭 API 구현
   - 📝 **업데이트**: `YFWebSocketAPI.swift`에 public API 구현
