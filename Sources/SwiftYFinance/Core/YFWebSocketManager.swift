@@ -49,6 +49,9 @@ public class YFWebSocketManager {
     /// URLSession for WebSocket connections
     private let urlSession: URLSession
     
+    /// 현재 구독 중인 심볼들
+    private var subscriptions: Set<String> = []
+    
     // MARK: - Initialization
     
     /// YFWebSocketManager 초기화
@@ -87,11 +90,87 @@ public class YFWebSocketManager {
     /// 활성 WebSocket 연결을 정상적으로 종료합니다.
     public func disconnect() async {
         connectionState = .disconnected
+        subscriptions.removeAll()
         webSocketTask?.cancel(with: .goingAway, reason: nil)
         webSocketTask = nil
     }
     
+    // MARK: - Subscription Management
+    
+    /// 심볼 구독
+    ///
+    /// 지정된 심볼들의 실시간 데이터를 구독합니다.
+    /// Yahoo Finance WebSocket 프로토콜에 따라 JSON 형식으로 구독 메시지를 전송합니다.
+    ///
+    /// - Parameter symbols: 구독할 심볼 배열 (예: ["AAPL", "TSLA"])
+    /// - Throws: `YFError.webSocketError` 연결 또는 구독 관련 오류
+    ///
+    /// ## 사용 예시
+    /// ```swift
+    /// let manager = YFWebSocketManager()
+    /// try await manager.connect()
+    /// try await manager.subscribe(to: ["AAPL", "TSLA"])
+    /// ```
+    public func subscribe(to symbols: [String]) async throws {
+        guard connectionState == .connected else {
+            throw YFError.webSocketError(.notConnected("Must be connected to WebSocket before subscribing"))
+        }
+        
+        guard !symbols.isEmpty else {
+            throw YFError.webSocketError(.invalidSubscription("Cannot subscribe to empty symbol list"))
+        }
+        
+        // 중복 제거 및 구독 목록 업데이트
+        let uniqueSymbols = Set(symbols)
+        subscriptions.formUnion(uniqueSymbols)
+        
+        // JSON 구독 메시지 생성 및 전송
+        let message = Self.createSubscriptionMessage(symbols: Array(subscriptions))
+        try await sendMessage(message)
+    }
+    
+    /// 심볼 구독 취소
+    ///
+    /// 지정된 심볼들의 실시간 데이터 구독을 취소합니다.
+    ///
+    /// - Parameter symbols: 구독 취소할 심볼 배열
+    /// - Throws: `YFError.webSocketError` 연결 또는 구독 관련 오류
+    public func unsubscribe(from symbols: [String]) async throws {
+        guard connectionState == .connected else {
+            throw YFError.webSocketError(.notConnected("Must be connected to WebSocket before unsubscribing"))
+        }
+        
+        guard !symbols.isEmpty else {
+            return // 빈 배열 무시
+        }
+        
+        // 구독 목록에서 제거
+        let symbolsToRemove = Set(symbols)
+        subscriptions.subtract(symbolsToRemove)
+        
+        // JSON 구독 취소 메시지 생성 및 전송
+        let message = Self.createUnsubscriptionMessage(symbols: symbols)
+        try await sendMessage(message)
+    }
+    
     // MARK: - Private Methods
+    
+    /// WebSocket으로 메시지 전송
+    ///
+    /// - Parameter message: 전송할 JSON 메시지 문자열
+    /// - Throws: `YFError.webSocketError` 메시지 전송 실패 시
+    private func sendMessage(_ message: String) async throws {
+        guard let webSocketTask = webSocketTask else {
+            throw YFError.webSocketError(.notConnected("WebSocket task not available"))
+        }
+        
+        do {
+            let urlSessionMessage = URLSessionWebSocketTask.Message.string(message)
+            try await webSocketTask.send(urlSessionMessage)
+        } catch {
+            throw YFError.webSocketError(.connectionFailed("Failed to send message: \(error.localizedDescription)"))
+        }
+    }
     
     /// 지정된 URL로 WebSocket 연결 시도
     ///
@@ -107,6 +186,42 @@ public class YFWebSocketManager {
         } catch {
             connectionState = .disconnected
             throw YFError.webSocketError(.connectionFailed("Failed to connect to \(url.absoluteString): \(error.localizedDescription)"))
+        }
+    }
+    
+    // MARK: - Static Utility Methods
+    
+    /// 구독 JSON 메시지 생성
+    ///
+    /// Yahoo Finance WebSocket 프로토콜에 맞는 구독 메시지를 생성합니다.
+    ///
+    /// - Parameter symbols: 구독할 심볼 배열
+    /// - Returns: JSON 형식의 구독 메시지 문자열
+    static func createSubscriptionMessage(symbols: [String]) -> String {
+        let subscriptionData: [String: [String]] = ["subscribe": symbols]
+        
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: subscriptionData, options: [])
+            return String(data: jsonData, encoding: .utf8) ?? "{\"subscribe\":[]}"
+        } catch {
+            return "{\"subscribe\":[]}"
+        }
+    }
+    
+    /// 구독 취소 JSON 메시지 생성
+    ///
+    /// Yahoo Finance WebSocket 프로토콜에 맞는 구독 취소 메시지를 생성합니다.
+    ///
+    /// - Parameter symbols: 구독 취소할 심볼 배열
+    /// - Returns: JSON 형식의 구독 취소 메시지 문자열
+    static func createUnsubscriptionMessage(symbols: [String]) -> String {
+        let unsubscriptionData: [String: [String]] = ["unsubscribe": symbols]
+        
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: unsubscriptionData, options: [])
+            return String(data: jsonData, encoding: .utf8) ?? "{\"unsubscribe\":[]}"
+        } catch {
+            return "{\"unsubscribe\":[]}"
         }
     }
     
@@ -140,6 +255,15 @@ public class YFWebSocketManager {
         }
         
         try await connectToURL(url)
+    }
+    
+    /// 현재 구독 목록 조회 (테스트용)
+    ///
+    /// DEBUG 빌드에서만 사용할 수 있는 구독 목록 조회 메서드입니다.
+    ///
+    /// - Returns: 현재 구독 중인 심볼들의 Set
+    public func testGetSubscriptions() -> Set<String> {
+        return subscriptions
     }
     #endif
 }

@@ -145,4 +145,16 @@ public enum YFWebSocketError: Error, Equatable {
     /// 자동 재연결 시도가 실패한 경우
     /// - Parameter message: 재연결 실패 상세 메시지
     case reconnectionFailed(String)
+    
+    /// WebSocket 연결되지 않음
+    ///
+    /// WebSocket에 연결되지 않은 상태에서 작업 시도
+    /// - Parameter message: 연결되지 않음 상세 메시지
+    case notConnected(String)
+    
+    /// 잘못된 구독 요청
+    ///
+    /// 빈 심볼 목록이나 잘못된 형식의 구독 요청
+    /// - Parameter message: 잘못된 구독 요청 상세 메시지
+    case invalidSubscription(String)
 }
