@@ -262,6 +262,141 @@ for stock in growthStocks.stocks {
 }
 ```
 
+## Real-time WebSocket Streaming
+
+실시간 WebSocket 스트리밍으로 주식 데이터를 실시간으로 수신:
+
+### 기본 WebSocket 연결
+
+```swift
+let manager = YFWebSocketManager()
+
+// 연결 시작
+try await manager.connect()
+
+// 연결 상태 확인
+let connectionState = await manager.connectionState
+print("연결 상태: \(connectionState)")
+```
+
+### 실시간 데이터 스트리밍
+
+```swift
+// 심볼 구독
+try await manager.subscribe(symbols: ["AAPL", "GOOGL", "MSFT"])
+
+// 실시간 데이터 수신
+for await priceUpdate in manager.priceStream {
+    print("📈 \(priceUpdate.symbol): $\(priceUpdate.price)")
+    print("변동: \(priceUpdate.changePercent)%")
+    print("시간: \(priceUpdate.timestamp)")
+}
+```
+
+### 구독 관리
+
+```swift
+// 추가 심볼 구독
+try await manager.subscribe(symbols: ["TSLA", "NVDA"])
+
+// 특정 심볼 구독 해제
+try await manager.unsubscribe(symbols: ["GOOGL"])
+
+// 현재 구독 목록 확인
+let subscriptions = await manager.subscriptions
+print("구독 중인 심볼: \(subscriptions)")
+
+// 모든 구독 해제
+try await manager.unsubscribeAll()
+```
+
+### 연결 품질 모니터링
+
+```swift
+// 연결 품질 메트릭 확인
+let quality = await manager.connectionQuality
+print("연결 성공률: \(String(format: "%.1f", quality.successRate * 100))%")
+print("평균 지연시간: \(String(format: "%.0f", quality.averageLatency * 1000))ms")
+print("메시지 수신률: \(String(format: "%.1f", quality.messageRate))개/분")
+
+// 에러 로그 확인
+let errorLog = await manager.errorLog
+for entry in errorLog.prefix(5) {
+    print("❌ \(entry.timestamp): \(entry.error.localizedDescription)")
+}
+```
+
+### 자동 재연결 및 에러 처리
+
+```swift
+// 자동 재연결 설정 (기본적으로 활성화)
+manager.enableAutoReconnect = true
+
+// 연결 상태 변화 모니터링
+Task {
+    for await state in manager.connectionStateStream {
+        switch state {
+        case .connected:
+            print("✅ WebSocket 연결됨")
+        case .connecting:
+            print("🔄 WebSocket 연결 중...")
+        case .disconnected:
+            print("⏸️ WebSocket 연결 해제됨")
+        case .failed:
+            print("❌ WebSocket 연결 실패")
+        }
+    }
+}
+
+// 수동 재연결
+if await manager.connectionState == .failed {
+    try await manager.reconnect()
+}
+```
+
+### 동시성 안전성
+
+SwiftYFinance WebSocket은 Swift의 최신 동시성 모델을 준수합니다:
+
+```swift
+// ✅ 모든 상태 접근은 Thread-safe
+let connectionState = await manager.connectionState
+let subscriptions = await manager.subscriptions
+
+// ✅ Actor 격리를 통한 안전한 상태 관리
+try await manager.subscribe(symbols: ["AAPL"])
+try await manager.unsubscribe(symbols: ["AAPL"])
+
+// ✅ AsyncStream을 통한 안전한 데이터 스트리밍
+for await update in manager.priceStream {
+    // 메인 스레드나 어떤 스레드에서든 안전하게 처리
+    await updateUI(with: update)
+}
+```
+
+### 메모리 효율성
+
+```swift
+// 대량 심볼 구독 시 배치 처리
+let allSymbols = ["AAPL", "GOOGL", "MSFT", "TSLA", "NVDA", /* ... 100개 이상 */]
+
+for batch in allSymbols.chunked(into: 20) {
+    try await manager.subscribe(symbols: Set(batch))
+    
+    // 배치 간 잠시 대기로 서버 부하 방지
+    try await Task.sleep(nanoseconds: 500_000_000) // 0.5초
+}
+
+// 불필요한 구독 정리
+let activeSymbols = await getActivePortfolioSymbols()
+let currentSubscriptions = await manager.subscriptions
+let unnecessarySubscriptions = currentSubscriptions.subtracting(activeSymbols)
+
+if !unnecessarySubscriptions.isEmpty {
+    try await manager.unsubscribe(symbols: unnecessarySubscriptions)
+}
+```
+
 ## Performance Monitoring
 
 고급 기능 사용 시 성능 모니터링:

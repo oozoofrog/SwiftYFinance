@@ -35,6 +35,69 @@ Kent Beck의 "Tidy First?" 방법론에 따라 구조 변경과 기능 변경을
 - **Sendable 프로토콜**: concurrency 안전성
 - **모듈화 설계**: 기능별 파일 분리
 
+## Swift 동시성 원칙
+
+### Actor 패턴 활용
+- **상태 격리**: mutable 상태는 actor로 격리하여 데이터 레이스 방지
+- **Internal State Actor**: 복잡한 상태 관리가 필요한 경우 별도 actor 생성
+- **관심사 분리**: 상태 관리와 비즈니스 로직을 명확히 분리
+
+```swift
+// ✅ 올바른 패턴: Internal State Actor
+internal actor InternalState {
+    private var mutableData: [String: Any] = [:]
+    
+    func updateData(key: String, value: Any) {
+        mutableData[key] = value
+    }
+}
+
+public final class Manager: @unchecked Sendable {
+    private let internalState = InternalState()
+    
+    public func updateValue(key: String, value: Any) async {
+        await internalState.updateData(key: key, value: value)
+    }
+}
+```
+
+### Sendable 준수 가이드라인
+- **final class 선호**: 상속이 불필요한 경우 final로 선언하여 Sendable 준수 간소화
+- **@unchecked Sendable 신중 사용**: 반드시 필요한 경우에만 사용하고 안전성을 보장
+- **Non-Sendable 타입 처리**: URLSession 관련 타입은 메인 클래스에서 신중하게 관리
+
+### 동시성 안전 코딩 패턴
+- **모든 actor 접근은 async**: actor 메서드 호출 시 반드시 await 사용
+- **상태 변경 원자성**: 관련된 여러 상태 변경은 하나의 actor 메서드에서 수행
+- **읽기 전용 연산 최적화**: 가능한 경우 computed property로 구현
+
+```swift
+// ✅ 원자적 상태 변경
+actor StateManager {
+    private var count = 0
+    private var isActive = false
+    
+    func activateWithCount(_ newCount: Int) {
+        count = newCount
+        isActive = true
+    }
+}
+
+// ❌ 비원자적 상태 변경 (데이터 레이스 위험)
+actor BadStateManager {
+    private var count = 0
+    private var isActive = false
+    
+    func setCount(_ newCount: Int) { count = newCount }
+    func activate() { isActive = true }
+}
+```
+
+### 테스트에서의 동시성
+- **async 테스트 메서드**: actor 상태에 접근하는 테스트는 async로 선언
+- **await 사용**: 모든 actor 메서드 호출에 await 키워드 사용
+- **동시성 테스트**: 복잡한 동시성 시나리오에 대한 별도 테스트 작성
+
 ## 파일 크기 관리
 
 ### 분리 기준
