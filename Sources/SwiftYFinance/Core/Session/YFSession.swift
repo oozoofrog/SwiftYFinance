@@ -94,6 +94,13 @@ public final actor YFSession {
         }
     }
     
+    /// 프록시 설정 (async)
+    var proxyConfig: [String: Any]? {
+        get async {
+            return proxy
+        }
+    }
+    
     // MARK: - Initialization
     
     /// YFSession 초기화 (Phase 4.5.3 네트워크 최적화)
