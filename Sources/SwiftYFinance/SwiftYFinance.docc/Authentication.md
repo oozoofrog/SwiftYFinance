@@ -186,17 +186,6 @@ let longRunningData = try await client.fetchHistory(
 )
 ```
 
-### 프록시 설정
-
-기업 환경에서 프록시를 사용하는 경우:
-
-```swift
-// 주의: 실제 구현은 URLSessionConfiguration을 통해 수행
-let session = YFSession()
-
-// 시스템 프록시 설정 사용
-// 일반적으로 자동으로 처리되지만, 필요시 수동 설정 가능
-```
 
 ## Error Recovery
 

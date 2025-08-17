@@ -23,7 +23,7 @@ struct YFSessionTests {
     func testSessionDefaultHeaders() async {
         let session = YFSession()
         
-        let headers = await session.defaultHeaders
+        let headers = session.defaultHeaders
         
         #expect(headers["User-Agent"]?.contains("Mozilla") == true)
         #expect(headers["Accept"]?.contains("text/html") == true)
@@ -34,26 +34,31 @@ struct YFSessionTests {
         let customHeaders = ["Custom-Header": "CustomValue"]
         let sessionWithHeaders = YFSession(additionalHeaders: customHeaders)
         
-        let combinedHeaders = await sessionWithHeaders.defaultHeaders
+        let combinedHeaders = sessionWithHeaders.defaultHeaders
         #expect(combinedHeaders["Custom-Header"] == "CustomValue")
         #expect(combinedHeaders["User-Agent"]?.contains("Mozilla") == true)
     }
     
     @Test
-    func testSessionProxy() {
-        let proxyConfig = [
-            "HTTPSProxy": "proxy.example.com",
-            "HTTPSPort": 8080
-        ] as [String: Any]
+    func testSessionConfiguration() {
+        // 기본 세션 생성 테스트
+        let defaultSession = YFSession()
+        #expect(defaultSession.baseURL.absoluteString == "https://query2.finance.yahoo.com")
+        #expect(defaultSession.timeout == 15.0)
         
-        let sessionWithProxy = YFSession(proxy: proxyConfig)
+        // 커스텀 설정으로 세션 생성 테스트
+        let customURL = URL(string: "https://custom.finance.yahoo.com")!
+        let customHeaders = ["Custom-Header": "CustomValue"]
+        let customSession = YFSession(
+            baseURL: customURL,
+            timeout: 30.0,
+            additionalHeaders: customHeaders
+        )
+        #expect(customSession.baseURL.absoluteString == "https://custom.finance.yahoo.com")
+        #expect(customSession.timeout == 30.0)
         
-        #expect(sessionWithProxy.proxy != nil)
-        #expect(sessionWithProxy.proxy?["HTTPSProxy"] as? String == "proxy.example.com")
-        #expect(sessionWithProxy.proxy?["HTTPSPort"] as? Int == 8080)
-        
-        let sessionWithoutProxy = YFSession()
-        #expect(sessionWithoutProxy.proxy == nil)
+        let headers = customSession.defaultHeaders
+        #expect(headers["Custom-Header"] == "CustomValue")
     }
     
     @Test
@@ -217,27 +222,27 @@ struct YFSessionTests {
         // User-Agent 로테이션 기능 테스트
         let session = YFSession()
         
-        let originalUserAgent = await session.defaultHeaders["User-Agent"]
+        let originalUserAgent = session.defaultHeaders["User-Agent"]
         #expect(originalUserAgent?.contains("Chrome") == true)
         
         // User-Agent 로테이션
-        await session.rotateUserAgent()
-        let rotatedUserAgent = await session.defaultHeaders["User-Agent"] 
+        session.rotateUserAgent()
+        let rotatedUserAgent = session.defaultHeaders["User-Agent"] 
         
         // 로테이션 후 다른 User-Agent 일 가능성 (배열이 1개보다 많은 경우)
         // 또는 같을 수도 있음 (배열이 1개인 경우)
         #expect(rotatedUserAgent?.contains("Chrome") == true)
         
         // 랜덤 User-Agent 선택
-        await session.randomizeUserAgent()
-        let randomUserAgent = await session.defaultHeaders["User-Agent"]
+        session.randomizeUserAgent()
+        let randomUserAgent = session.defaultHeaders["User-Agent"]
         #expect(randomUserAgent?.contains("Chrome") == true)
         
         // 여러 번 로테이션해서 순환하는지 확인
         var userAgents: Set<String> = []
         for _ in 0..<10 {
-            await session.rotateUserAgent()
-            if let ua = await session.defaultHeaders["User-Agent"] {
+            session.rotateUserAgent()
+            if let ua = session.defaultHeaders["User-Agent"] {
                 userAgents.insert(ua)
             }
         }
@@ -257,7 +262,7 @@ struct YFSessionTests {
     func testBrowserLevelHeaders() async {
         // 브라우저 수준 헤더 확인
         let session = YFSession()
-        let headers = await session.defaultHeaders
+        let headers = session.defaultHeaders
         
         // 필수 브라우저 헤더들 확인
         #expect(headers["Accept"]?.contains("text/html") == true)

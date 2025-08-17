@@ -46,7 +46,6 @@ public final actor YFSession {
     nonisolated public let urlSession: URLSession
     nonisolated public let baseURL: URL
     nonisolated public let timeout: TimeInterval
-    public let proxy: [String: Any]?
     
     // MARK: - Private Properties
     nonisolated private let additionalHeaders: [String: String]
@@ -94,13 +93,6 @@ public final actor YFSession {
         }
     }
     
-    /// 프록시 설정 (async)
-    var proxyConfig: [String: Any]? {
-        get async {
-            return proxy
-        }
-    }
-    
     // MARK: - Initialization
     
     /// YFSession 초기화 (Phase 4.5.3 네트워크 최적화)
@@ -108,26 +100,17 @@ public final actor YFSession {
     ///   - baseURL: 기본 API URL (기본값: query2.finance.yahoo.com)
     ///   - timeout: 요청 타임아웃 (기본값: 15초로 단축)
     ///   - additionalHeaders: 추가 HTTP 헤더
-    ///   - proxy: 프록시 설정
     public init(
         baseURL: URL = URL(string: "https://query2.finance.yahoo.com")!,
         timeout: TimeInterval = 15.0,  // Phase 4.5.3: 30초 → 15초 단축
-        additionalHeaders: [String: String] = [:],
-        proxy: [String: Any]? = nil
+        additionalHeaders: [String: String] = [:]
     ) {
         self.baseURL = baseURL
         self.timeout = timeout
         self.additionalHeaders = additionalHeaders
-        self.proxy = proxy
         
         // YFBrowserImpersonator를 사용한 네트워크 최적화된 URLSession 생성
         self.urlSession = browserImpersonator.createConfiguredURLSession()
-        
-        // 프록시 설정이 있는 경우 적용
-        if let proxy = proxy {
-            let config = self.urlSession.configuration
-            config.connectionProxyDictionary = proxy
-        }
     }
     
     // MARK: - 테스트 지원

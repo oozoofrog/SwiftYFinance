@@ -179,7 +179,7 @@ for symbol in symbols {
 
 **Network Error**
 - 인터넷 연결 상태 확인
-- 방화벽이나 프록시 설정 확인
+- 방화벽 설정 확인
 
 **Rate Limited**
 - 요청 간격을 늘려서 재시도
