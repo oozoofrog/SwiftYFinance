@@ -23,7 +23,7 @@ import Foundation
 ///
 /// - SeeAlso: `YFWebSocketMessage` WebSocket 메시지 데이터
 /// - SeeAlso: `YFStreamingQuote` 실시간 스트리밍 쿼트
-public final class YFWebSocketManager: @unchecked Sendable {
+public actor YFWebSocketManager {
     
     /// WebSocket 연결 상태 (분리된 타입 별칭)
     public typealias ConnectionState = YFWebSocketConnectionState

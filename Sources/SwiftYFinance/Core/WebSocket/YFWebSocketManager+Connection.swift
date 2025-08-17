@@ -37,19 +37,9 @@ extension YFWebSocketManager {
                 }
                 
                 // 연결 태스크 추가
-                group.addTask { [weak self] in
-                    guard let self = self else {
-                        return .failure(YFError.webSocketError(.connectionFailed("Self was deallocated")))
-                    }
-                    
+                group.addTask {
                     do {
-                        self.webSocketTask = self.urlSession.webSocketTask(with: url)
-                        self.webSocketTask?.resume()
-                        
-                        if let task = self.webSocketTask {
-                            let testMessage = URLSessionWebSocketTask.Message.string("")
-                            try await task.send(testMessage)
-                        }
+                        try await self.performConnection(to: url)
                         return .success(())
                     } catch {
                         return .failure(error)
@@ -114,6 +104,20 @@ extension YFWebSocketManager {
             // 에러 로깅
             await logError(yfError, context: "WebSocket connection to \(url.absoluteString)")
             throw yfError
+        }
+    }
+    
+    /// WebSocket 연결 수행 (Actor-safe)
+    ///
+    /// - Parameter url: 연결할 URL
+    /// - Throws: 연결 관련 오류
+    private func performConnection(to url: URL) async throws {
+        webSocketTask = urlSession.webSocketTask(with: url)
+        webSocketTask?.resume()
+        
+        if let task = webSocketTask {
+            let testMessage = URLSessionWebSocketTask.Message.string("")
+            try await task.send(testMessage)
         }
     }
 }

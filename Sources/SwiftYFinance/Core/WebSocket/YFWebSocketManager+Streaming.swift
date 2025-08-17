@@ -24,19 +24,33 @@ extension YFWebSocketManager {
     /// ```
     public func messageStream() async -> AsyncStream<YFWebSocketMessage> {
         return AsyncStream { continuation in
-            self.messageContinuation = continuation
-            
-            // Start background message listening if connected
             Task {
-                if await isUsableState {
-                    await startMessageListening()
-                }
+                await self.setupMessageStream(with: continuation)
             }
             
             continuation.onTermination = { _ in
-                self.messageContinuation = nil
+                Task {
+                    await self.clearMessageContinuation()
+                }
             }
         }
+    }
+    
+    /// 메시지 스트림 설정 (Actor-safe)
+    ///
+    /// - Parameter continuation: AsyncStream의 continuation
+    private func setupMessageStream(with continuation: AsyncStream<YFWebSocketMessage>.Continuation) async {
+        messageContinuation = continuation
+        
+        // Start background message listening if connected
+        if await isUsableState {
+            await startMessageListening()
+        }
+    }
+    
+    /// 메시지 continuation 정리 (Actor-safe)
+    private func clearMessageContinuation() async {
+        messageContinuation = nil
     }
     
     /// 백그라운드에서 WebSocket 메시지 수신 시작
