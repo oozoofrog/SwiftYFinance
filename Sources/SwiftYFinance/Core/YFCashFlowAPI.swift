@@ -53,7 +53,7 @@ extension YFClient {
                     request.setValue(value, forHTTPHeaderField: key)
                 }
                 
-                let (_, response) = try await session.urlSession.data(for: request)
+                let (data, response) = try await session.urlSession.data(for: request)
                 
                 // HTTP 응답 상태 확인
                 if let httpResponse = response as? HTTPURLResponse {
@@ -72,42 +72,95 @@ extension YFClient {
                     }
                 }
                 
-                // 단순히 성공적인 HTTP 응답을 확인하고 모킹 데이터 반환
-                // 실제 API 구조 파싱은 후속 단계에서 구현
+                // fundamentals-timeseries API 응답 파싱 (BalanceSheet와 동일한 패턴)
+                let decoder = JSONDecoder()
+                let timeseriesResponse = try decoder.decode(FundamentalsTimeseriesResponse.self, from: data)
                 
-                // Mock 현금흐름표 데이터 생성 (실제 API 구조 파싱은 추후 단계에서)
-                let calendar = Calendar.current
-                let currentYear = calendar.component(.year, from: Date())
+                // 각 cash flow metric별 데이터 추출
+                var annualData: [String: [TimeseriesValue]] = [:]
+                var quarterlyData: [String: [TimeseriesValue]] = [:]
                 
-                let report2023 = YFCashFlowReport(
-                    reportDate: calendar.date(from: DateComponents(year: currentYear - 1, month: 9, day: 30)) ?? Date(),
-                    operatingCashFlow: 110543000000,  // $110.5B - Operating Cash Flow
-                    netPPEPurchaseAndSale: -10959000000,  // -$11.0B - Net PPE Purchase And Sale
-                    freeCashFlow: 99584000000,  // $99.6B - Free Cash Flow
-                    capitalExpenditure: -10959000000,  // -$11.0B - Capital Expenditure
-                    financingCashFlow: -108488000000,  // -$108.5B - Financing Cash Flow  
-                    investingCashFlow: -3705000000,  // -$3.7B - Investing Cash Flow
-                    changeInCash: -1650000000,  // -$1.7B - Changes In Cash
-                    beginningCashPosition: 29965000000,  // $30.0B - Beginning Cash Position
-                    endCashPosition: 28315000000  // $28.3B - End Cash Position
-                )
+                for result in timeseriesResponse.timeseries?.result ?? [] {
+                    // Annual Cash Flow metrics
+                    if let annualOperatingCashFlow = result.annualOperatingCashFlow {
+                        annualData["operatingCashFlow"] = annualOperatingCashFlow
+                    }
+                    if let annualFreeCashFlow = result.annualFreeCashFlow {
+                        annualData["freeCashFlow"] = annualFreeCashFlow
+                    }
+                    if let annualCapitalExpenditure = result.annualCapitalExpenditure {
+                        annualData["capitalExpenditure"] = annualCapitalExpenditure
+                    }
+                    if let annualNetPPE = result.annualNetPPEPurchaseAndSale {
+                        annualData["netPPEPurchaseAndSale"] = annualNetPPE
+                    }
+                    if let annualFinancingCashFlow = result.annualFinancingCashFlow {
+                        annualData["financingCashFlow"] = annualFinancingCashFlow
+                    }
+                    if let annualInvestingCashFlow = result.annualInvestingCashFlow {
+                        annualData["investingCashFlow"] = annualInvestingCashFlow
+                    }
+                    if let annualChangesInCash = result.annualChangesInCash {
+                        annualData["changeInCash"] = annualChangesInCash
+                    }
+                    if let annualBeginningCashPosition = result.annualBeginningCashPosition {
+                        annualData["beginningCashPosition"] = annualBeginningCashPosition
+                    }
+                    if let annualEndCashPosition = result.annualEndCashPosition {
+                        annualData["endCashPosition"] = annualEndCashPosition
+                    }
+                    
+                    // Quarterly Cash Flow metrics (필요시 사용)
+                    if let quarterlyOperatingCashFlow = result.quarterlyOperatingCashFlow {
+                        quarterlyData["operatingCashFlow"] = quarterlyOperatingCashFlow
+                    }
+                    if let quarterlyFreeCashFlow = result.quarterlyFreeCashFlow {
+                        quarterlyData["freeCashFlow"] = quarterlyFreeCashFlow
+                    }
+                }
                 
-                let report2022 = YFCashFlowReport(
-                    reportDate: calendar.date(from: DateComponents(year: currentYear - 2, month: 9, day: 30)) ?? Date(),
-                    operatingCashFlow: 122151000000,  // $122.2B - Operating Cash Flow
-                    netPPEPurchaseAndSale: -10708000000,  // -$10.7B - Net PPE Purchase And Sale
-                    freeCashFlow: 111443000000,  // $111.4B - Free Cash Flow
-                    capitalExpenditure: -10708000000,  // -$10.7B - Capital Expenditure
-                    financingCashFlow: -110749000000,  // -$110.7B - Financing Cash Flow
-                    investingCashFlow: -22354000000,  // -$22.4B - Investing Cash Flow
-                    changeInCash: -10952000000,  // -$11.0B - Changes In Cash
-                    beginningCashPosition: 35929000000,  // $35.9B - Beginning Cash Position
-                    endCashPosition: 24977000000  // $25.0B - End Cash Position
-                )
+                // Annual reports 변환
+                var annualReports: [YFCashFlowReport] = []
+                if let operatingCashFlows = annualData["operatingCashFlow"] {
+                    for cashFlow in operatingCashFlows {
+                        let dateFormatter = DateFormatter()
+                        dateFormatter.dateFormat = "yyyy-MM-dd"
+                        
+                        guard let dateString = cashFlow.asOfDate,
+                              let date = dateFormatter.date(from: dateString),
+                              let operatingCashFlowValue = cashFlow.reportedValue?.raw else { continue }
+                        
+                        // 동일한 날짜의 다른 데이터 찾기
+                        let freeCashFlow = annualData["freeCashFlow"]?.first { $0.asOfDate == dateString }?.reportedValue?.raw
+                        let capitalExpenditure = annualData["capitalExpenditure"]?.first { $0.asOfDate == dateString }?.reportedValue?.raw
+                        let netPPEPurchaseAndSale = annualData["netPPEPurchaseAndSale"]?.first { $0.asOfDate == dateString }?.reportedValue?.raw
+                        let financingCashFlow = annualData["financingCashFlow"]?.first { $0.asOfDate == dateString }?.reportedValue?.raw
+                        let investingCashFlow = annualData["investingCashFlow"]?.first { $0.asOfDate == dateString }?.reportedValue?.raw
+                        let changeInCash = annualData["changeInCash"]?.first { $0.asOfDate == dateString }?.reportedValue?.raw
+                        let beginningCashPosition = annualData["beginningCashPosition"]?.first { $0.asOfDate == dateString }?.reportedValue?.raw
+                        let endCashPosition = annualData["endCashPosition"]?.first { $0.asOfDate == dateString }?.reportedValue?.raw
+                        
+                        annualReports.append(YFCashFlowReport(
+                            reportDate: date,
+                            operatingCashFlow: operatingCashFlowValue,
+                            netPPEPurchaseAndSale: netPPEPurchaseAndSale,
+                            freeCashFlow: freeCashFlow,
+                            capitalExpenditure: capitalExpenditure,
+                            financingCashFlow: financingCashFlow,
+                            investingCashFlow: investingCashFlow,
+                            changeInCash: changeInCash,
+                            beginningCashPosition: beginningCashPosition,
+                            endCashPosition: endCashPosition
+                        ))
+                    }
+                }
+                
+                // 날짜순 정렬 (최신부터)
+                annualReports.sort { $0.reportDate > $1.reportDate }
                 
                 return YFCashFlow(
                     ticker: ticker,
-                    annualReports: [report2023, report2022]
+                    annualReports: annualReports
                 )
                 
             } catch {
@@ -126,26 +179,35 @@ extension YFClient {
 // MARK: - Private Helper Methods
 extension YFClient {
     
-    /// cash flow API URL 구성 헬퍼
+    /// cash flow API URL 구성 헬퍼 (fundamentals-timeseries 사용)
     internal func buildCashFlowURL(ticker: YFTicker) async throws -> URL {
-        // CSRF 인증 상태에 따라 base URL 선택
-        let isAuthenticated = await session.isCSRFAuthenticated
-        let baseURL = isAuthenticated ? 
-            session.baseURL.absoluteString : 
-            "https://query1.finance.yahoo.com"
+        let baseURL = "https://query2.finance.yahoo.com"
         
-        var components = URLComponents(string: "\(baseURL)/v10/finance/quoteSummary/\(ticker.symbol)")!
+        // yfinance-reference에 따른 cash flow metrics
+        let cashFlowMetrics = [
+            "FreeCashFlow", "OperatingCashFlow", "CapitalExpenditure", 
+            "NetPPEPurchaseAndSale", "FinancingCashFlow", "InvestingCashFlow",
+            "ChangesInCash", "BeginningCashPosition", "EndCashPosition"
+        ]
+        
+        let annualMetrics = cashFlowMetrics.map { "annual\($0)" }
+        let quarterlyMetrics = cashFlowMetrics.map { "quarterly\($0)" }
+        let typeParam = (annualMetrics + quarterlyMetrics).joined(separator: ",")
+        
+        var components = URLComponents(string: "\(baseURL)/ws/fundamentals-timeseries/v1/finance/timeseries/\(ticker.symbol)")!
         components.queryItems = [
-            URLQueryItem(name: "modules", value: "price"),
-            URLQueryItem(name: "corsDomain", value: "finance.yahoo.com"),
-            URLQueryItem(name: "formatted", value: "false")
+            URLQueryItem(name: "symbol", value: ticker.symbol),
+            URLQueryItem(name: "type", value: typeParam),
+            URLQueryItem(name: "merge", value: "false"),
+            URLQueryItem(name: "period1", value: "493590046"), // 1985년부터
+            URLQueryItem(name: "period2", value: String(Int(Date().timeIntervalSince1970))),
+            URLQueryItem(name: "corsDomain", value: "finance.yahoo.com")
         ]
         
         guard let url = components.url else {
             throw YFError.invalidRequest
         }
         
-        // CSRF 인증된 경우 crumb 추가
-        return isAuthenticated ? await session.addCrumbIfNeeded(to: url) : url
+        return url
     }
 }

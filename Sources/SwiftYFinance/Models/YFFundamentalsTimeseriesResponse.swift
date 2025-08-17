@@ -18,7 +18,8 @@ struct TimeseriesData: Codable {
 struct TimeseriesResult: Codable {
     let meta: TimeseriesMeta?
     let timestamp: [Int]?
-    // 실제 응답에서는 각 metric이 직접 배열로 포함됨
+    
+    // Balance Sheet metrics
     let annualTotalAssets: [TimeseriesValue]?
     let quarterlyTotalAssets: [TimeseriesValue]?
     let annualTotalCurrentAssets: [TimeseriesValue]?
@@ -28,6 +29,48 @@ struct TimeseriesResult: Codable {
     let annualTotalStockholderEquity: [TimeseriesValue]?
     let quarterlyTotalStockholderEquity: [TimeseriesValue]?
     let annualRetainedEarnings: [TimeseriesValue]?
+    
+    // Cash Flow metrics (yfinance-reference 기반)
+    let annualFreeCashFlow: [TimeseriesValue]?
+    let quarterlyFreeCashFlow: [TimeseriesValue]?
+    let annualOperatingCashFlow: [TimeseriesValue]?
+    let quarterlyOperatingCashFlow: [TimeseriesValue]?
+    let annualCapitalExpenditure: [TimeseriesValue]?
+    let quarterlyCapitalExpenditure: [TimeseriesValue]?
+    let annualNetPPEPurchaseAndSale: [TimeseriesValue]?
+    let quarterlyNetPPEPurchaseAndSale: [TimeseriesValue]?
+    let annualFinancingCashFlow: [TimeseriesValue]?
+    let quarterlyFinancingCashFlow: [TimeseriesValue]?
+    let annualInvestingCashFlow: [TimeseriesValue]?
+    let quarterlyInvestingCashFlow: [TimeseriesValue]?
+    let annualChangesInCash: [TimeseriesValue]?
+    let quarterlyChangesInCash: [TimeseriesValue]?
+    let annualBeginningCashPosition: [TimeseriesValue]?
+    let quarterlyBeginningCashPosition: [TimeseriesValue]?
+    let annualEndCashPosition: [TimeseriesValue]?
+    let quarterlyEndCashPosition: [TimeseriesValue]?
+    
+    // Income Statement metrics (Financials API 용)
+    let annualTotalRevenue: [TimeseriesValue]?
+    let quarterlyTotalRevenue: [TimeseriesValue]?
+    let annualNetIncome: [TimeseriesValue]?
+    let quarterlyNetIncome: [TimeseriesValue]?
+    let annualGrossProfit: [TimeseriesValue]?
+    let quarterlyGrossProfit: [TimeseriesValue]?
+    let annualOperatingIncome: [TimeseriesValue]?
+    let quarterlyOperatingIncome: [TimeseriesValue]?
+    let annualTotalDebt: [TimeseriesValue]?
+    let quarterlyTotalDebt: [TimeseriesValue]?
+    let annualCashAndCashEquivalents: [TimeseriesValue]?
+    let quarterlyCashAndCashEquivalents: [TimeseriesValue]?
+    
+    // Earnings-specific metrics (Earnings API 용)
+    let annualBasicEPS: [TimeseriesValue]?
+    let quarterlyBasicEPS: [TimeseriesValue]?
+    let annualDilutedEPS: [TimeseriesValue]?
+    let quarterlyDilutedEPS: [TimeseriesValue]?
+    let annualEBITDA: [TimeseriesValue]?
+    let quarterlyEBITDA: [TimeseriesValue]?
 }
 
 /// Timeseries 메타데이터

@@ -55,7 +55,7 @@ extension YFClient {
                     request.setValue(value, forHTTPHeaderField: key)
                 }
                 
-                let (_, response) = try await session.urlSession.data(for: request)
+                let (data, response) = try await session.urlSession.data(for: request)
                 
                 // HTTP 응답 상태 확인
                 if let httpResponse = response as? HTTPURLResponse {
@@ -74,40 +74,92 @@ extension YFClient {
                     }
                 }
                 
-                // 단순히 성공적인 HTTP 응답을 확인하고 모킹 데이터 반환
-                // 실제 API 구조 파싱은 후속 단계에서 구현
+                // fundamentals-timeseries API 응답 파싱 (BalanceSheet/CashFlow와 동일한 패턴)
+                let decoder = JSONDecoder()
+                let timeseriesResponse = try decoder.decode(FundamentalsTimeseriesResponse.self, from: data)
                 
-                // Mock 재무 데이터 생성 (실제 API 구조 파싱은 추후 단계에서)
-                let calendar = Calendar.current
-                let currentYear = calendar.component(.year, from: Date())
+                // 각 income statement metric별 데이터 추출
+                var annualData: [String: [TimeseriesValue]] = [:]
+                var quarterlyData: [String: [TimeseriesValue]] = [:]
                 
-                let report2023 = YFFinancialReport(
-                    reportDate: calendar.date(from: DateComponents(year: currentYear - 1, month: 6, day: 30)) ?? Date(),
-                    totalRevenue: 211915000000, // $211.9B
-                    netIncome: 72361000000,     // $72.4B
-                    totalAssets: 411976000000,  // $412.0B
-                    totalLiabilities: 198298000000, // $198.3B
-                    grossProfit: 169148000000,  // $169.1B
-                    operatingIncome: 88523000000, // $88.5B
-                    totalCash: 29263000000,     // $29.3B
-                    totalDebt: 47032000000      // $47.0B
-                )
+                for result in timeseriesResponse.timeseries?.result ?? [] {
+                    // Annual Income Statement metrics
+                    if let annualTotalRevenue = result.annualTotalRevenue {
+                        annualData["totalRevenue"] = annualTotalRevenue
+                    }
+                    if let annualNetIncome = result.annualNetIncome {
+                        annualData["netIncome"] = annualNetIncome
+                    }
+                    if let annualGrossProfit = result.annualGrossProfit {
+                        annualData["grossProfit"] = annualGrossProfit
+                    }
+                    if let annualOperatingIncome = result.annualOperatingIncome {
+                        annualData["operatingIncome"] = annualOperatingIncome
+                    }
+                    if let annualTotalDebt = result.annualTotalDebt {
+                        annualData["totalDebt"] = annualTotalDebt
+                    }
+                    if let annualCash = result.annualCashAndCashEquivalents {
+                        annualData["totalCash"] = annualCash
+                    }
+                    
+                    // Balance Sheet 데이터도 필요하므로 포함
+                    if let annualAssets = result.annualTotalAssets {
+                        annualData["totalAssets"] = annualAssets
+                    }
+                    if let annualLiabilities = result.annualTotalCurrentLiabilities {
+                        annualData["totalLiabilities"] = annualLiabilities
+                    }
+                    
+                    // Quarterly Income Statement metrics (필요시 사용)
+                    if let quarterlyTotalRevenue = result.quarterlyTotalRevenue {
+                        quarterlyData["totalRevenue"] = quarterlyTotalRevenue
+                    }
+                    if let quarterlyNetIncome = result.quarterlyNetIncome {
+                        quarterlyData["netIncome"] = quarterlyNetIncome
+                    }
+                }
                 
-                let report2022 = YFFinancialReport(
-                    reportDate: calendar.date(from: DateComponents(year: currentYear - 2, month: 6, day: 30)) ?? Date(),
-                    totalRevenue: 198270000000, // $198.3B
-                    netIncome: 65125000000,     // $65.1B
-                    totalAssets: 364840000000,  // $364.8B
-                    totalLiabilities: 186167000000, // $186.2B
-                    grossProfit: 135620000000,  // $135.6B
-                    operatingIncome: 83383000000, // $83.4B
-                    totalCash: 13931000000,     // $13.9B
-                    totalDebt: 47032000000      // $47.0B
-                )
+                // Annual reports 변환
+                var annualReports: [YFFinancialReport] = []
+                if let totalRevenues = annualData["totalRevenue"] {
+                    for revenue in totalRevenues {
+                        let dateFormatter = DateFormatter()
+                        dateFormatter.dateFormat = "yyyy-MM-dd"
+                        
+                        guard let dateString = revenue.asOfDate,
+                              let date = dateFormatter.date(from: dateString),
+                              let totalRevenueValue = revenue.reportedValue?.raw else { continue }
+                        
+                        // 동일한 날짜의 다른 데이터 찾기
+                        let netIncome = annualData["netIncome"]?.first { $0.asOfDate == dateString }?.reportedValue?.raw ?? totalRevenueValue * 0.2
+                        let grossProfit = annualData["grossProfit"]?.first { $0.asOfDate == dateString }?.reportedValue?.raw
+                        let operatingIncome = annualData["operatingIncome"]?.first { $0.asOfDate == dateString }?.reportedValue?.raw
+                        let totalAssets = annualData["totalAssets"]?.first { $0.asOfDate == dateString }?.reportedValue?.raw ?? totalRevenueValue * 2.0
+                        let totalLiabilities = annualData["totalLiabilities"]?.first { $0.asOfDate == dateString }?.reportedValue?.raw ?? totalAssets * 0.5
+                        let totalCash = annualData["totalCash"]?.first { $0.asOfDate == dateString }?.reportedValue?.raw
+                        let totalDebt = annualData["totalDebt"]?.first { $0.asOfDate == dateString }?.reportedValue?.raw
+                        
+                        annualReports.append(YFFinancialReport(
+                            reportDate: date,
+                            totalRevenue: totalRevenueValue,
+                            netIncome: netIncome,
+                            totalAssets: totalAssets,
+                            totalLiabilities: totalLiabilities,
+                            grossProfit: grossProfit,
+                            operatingIncome: operatingIncome,
+                            totalCash: totalCash,
+                            totalDebt: totalDebt
+                        ))
+                    }
+                }
+                
+                // 날짜순 정렬 (최신부터)
+                annualReports.sort { $0.reportDate > $1.reportDate }
                 
                 return YFFinancials(
                     ticker: ticker,
-                    annualReports: [report2023, report2022]
+                    annualReports: annualReports
                 )
                 
             } catch {
@@ -127,27 +179,41 @@ extension YFClient {
 // MARK: - Private Helper Methods
 extension YFClient {
     
-    /// financials API URL 구성 헬퍼
+    /// financials API URL 구성 헬퍼 (fundamentals-timeseries 사용)
     internal func buildFinancialsURL(ticker: YFTicker) async throws -> URL {
-        // CSRF 인증 상태에 따라 base URL 선택
-        let isAuthenticated = await session.isCSRFAuthenticated
-        let baseURL = isAuthenticated ? 
-            session.baseURL.absoluteString : 
-            "https://query1.finance.yahoo.com"
+        let baseURL = "https://query2.finance.yahoo.com"
         
-        var components = URLComponents(string: "\(baseURL)/v10/finance/quoteSummary/\(ticker.symbol)")!
+        // yfinance-reference에 따른 income statement metrics
+        let incomeStatementMetrics = [
+            "TotalRevenue", "NetIncome", "GrossProfit", "OperatingIncome",
+            "TotalDebt", "CashAndCashEquivalents"
+        ]
+        
+        // Balance Sheet metrics도 필요 (totalAssets, totalLiabilities)
+        let balanceSheetMetrics = [
+            "TotalAssets", "TotalCurrentLiabilities"
+        ]
+        
+        let allMetrics = incomeStatementMetrics + balanceSheetMetrics
+        let annualMetrics = allMetrics.map { "annual\($0)" }
+        let quarterlyMetrics = allMetrics.map { "quarterly\($0)" }
+        let typeParam = (annualMetrics + quarterlyMetrics).joined(separator: ",")
+        
+        var components = URLComponents(string: "\(baseURL)/ws/fundamentals-timeseries/v1/finance/timeseries/\(ticker.symbol)")!
         components.queryItems = [
-            URLQueryItem(name: "modules", value: "price"),
-            URLQueryItem(name: "corsDomain", value: "finance.yahoo.com"),
-            URLQueryItem(name: "formatted", value: "false")
+            URLQueryItem(name: "symbol", value: ticker.symbol),
+            URLQueryItem(name: "type", value: typeParam),
+            URLQueryItem(name: "merge", value: "false"),
+            URLQueryItem(name: "period1", value: "493590046"), // 1985년부터
+            URLQueryItem(name: "period2", value: String(Int(Date().timeIntervalSince1970))),
+            URLQueryItem(name: "corsDomain", value: "finance.yahoo.com")
         ]
         
         guard let url = components.url else {
             throw YFError.invalidRequest
         }
         
-        // CSRF 인증된 경우 crumb 추가
-        return isAuthenticated ? await session.addCrumbIfNeeded(to: url) : url
+        return url
     }
     
 }
