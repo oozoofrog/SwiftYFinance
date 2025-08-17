@@ -1,4 +1,5 @@
 import Foundation
+import Testing
 @testable import SwiftYFinance
 
 /// 테스트 격리를 위한 공통 유틸리티

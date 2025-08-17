@@ -60,7 +60,7 @@ extension YFClient {
                     request.setValue(value, forHTTPHeaderField: key)
                 }
                 
-                let (_, response) = try await session.urlSession.data(for: request)
+                let (data, response) = try await session.urlSession.data(for: request)
                 
                 // HTTP 응답 상태 확인
                 if let httpResponse = response as? HTTPURLResponse {
@@ -78,8 +78,89 @@ extension YFClient {
                     }
                 }
                 
-                // TODO: 실제 API 응답 파싱 구현 필요
-                throw YFError.apiError("Earnings API implementation not yet completed")
+                // fundamentals-timeseries API 응답 파싱 (다른 API들과 동일한 패턴)
+                let decoder = JSONDecoder()
+                let timeseriesResponse = try decoder.decode(FundamentalsTimeseriesResponse.self, from: data)
+                
+                // 각 earnings metric별 데이터 추출
+                var annualData: [String: [TimeseriesValue]] = [:]
+                var quarterlyData: [String: [TimeseriesValue]] = [:]
+                
+                for result in timeseriesResponse.timeseries?.result ?? [] {
+                    // Annual Earnings metrics
+                    if let annualTotalRevenue = result.annualTotalRevenue {
+                        annualData["totalRevenue"] = annualTotalRevenue
+                    }
+                    if let annualNetIncome = result.annualNetIncome {
+                        annualData["netIncome"] = annualNetIncome
+                    }
+                    if let annualBasicEPS = result.annualBasicEPS {
+                        annualData["basicEPS"] = annualBasicEPS
+                    }
+                    if let annualDilutedEPS = result.annualDilutedEPS {
+                        annualData["dilutedEPS"] = annualDilutedEPS
+                    }
+                    if let annualEBITDA = result.annualEBITDA {
+                        annualData["ebitda"] = annualEBITDA
+                    }
+                    if let annualGrossProfit = result.annualGrossProfit {
+                        annualData["grossProfit"] = annualGrossProfit
+                    }
+                    if let annualOperatingIncome = result.annualOperatingIncome {
+                        annualData["operatingIncome"] = annualOperatingIncome
+                    }
+                    
+                    // Quarterly Earnings metrics (필요시 사용)
+                    if let quarterlyTotalRevenue = result.quarterlyTotalRevenue {
+                        quarterlyData["totalRevenue"] = quarterlyTotalRevenue
+                    }
+                    if let quarterlyBasicEPS = result.quarterlyBasicEPS {
+                        quarterlyData["basicEPS"] = quarterlyBasicEPS
+                    }
+                }
+                
+                // Annual reports 변환
+                var annualReports: [YFEarningsReport] = []
+                if let totalRevenues = annualData["totalRevenue"], let basicEPSValues = annualData["basicEPS"] {
+                    // Revenue와 EPS 데이터를 기준으로 매칭
+                    for revenue in totalRevenues {
+                        let dateFormatter = DateFormatter()
+                        dateFormatter.dateFormat = "yyyy-MM-dd"
+                        
+                        guard let dateString = revenue.asOfDate,
+                              let date = dateFormatter.date(from: dateString),
+                              let totalRevenueValue = revenue.reportedValue?.raw else { continue }
+                        
+                        // 동일한 날짜의 EPS 데이터 찾기
+                        guard let basicEPSValue = basicEPSValues.first(where: { $0.asOfDate == dateString })?.reportedValue?.raw else { continue }
+                        
+                        // 동일한 날짜의 다른 데이터 찾기
+                        let netIncome = annualData["netIncome"]?.first { $0.asOfDate == dateString }?.reportedValue?.raw
+                        let dilutedEPS = annualData["dilutedEPS"]?.first { $0.asOfDate == dateString }?.reportedValue?.raw
+                        let ebitda = annualData["ebitda"]?.first { $0.asOfDate == dateString }?.reportedValue?.raw
+                        let grossProfit = annualData["grossProfit"]?.first { $0.asOfDate == dateString }?.reportedValue?.raw
+                        let operatingIncome = annualData["operatingIncome"]?.first { $0.asOfDate == dateString }?.reportedValue?.raw
+                        
+                        annualReports.append(YFEarningsReport(
+                            reportDate: date,
+                            totalRevenue: totalRevenueValue,
+                            earningsPerShare: basicEPSValue,
+                            dilutedEPS: dilutedEPS,
+                            ebitda: ebitda,
+                            netIncome: netIncome,
+                            grossProfit: grossProfit,
+                            operatingIncome: operatingIncome
+                        ))
+                    }
+                }
+                
+                // 날짜순 정렬 (최신부터)
+                annualReports.sort { $0.reportDate > $1.reportDate }
+                
+                return YFEarnings(
+                    ticker: ticker,
+                    annualReports: annualReports
+                )
                 
             } catch {
                 lastError = error
@@ -97,26 +178,34 @@ extension YFClient {
 // MARK: - Private Helper Methods
 extension YFClient {
     
-    /// earnings API URL 구성 헬퍼
+    /// earnings API URL 구성 헬퍼 (fundamentals-timeseries 사용)
     internal func buildEarningsURL(ticker: YFTicker) async throws -> URL {
-        // CSRF 인증 상태에 따라 base URL 선택
-        let isAuthenticated = await session.isCSRFAuthenticated
-        let baseURL = isAuthenticated ? 
-            session.baseURL.absoluteString : 
-            "https://query1.finance.yahoo.com"
+        let baseURL = "https://query2.finance.yahoo.com"
         
-        var components = URLComponents(string: "\(baseURL)/v10/finance/quoteSummary/\(ticker.symbol)")!
+        // yfinance-reference에 따른 earnings metrics
+        let earningsMetrics = [
+            "TotalRevenue", "NetIncome", "BasicEPS", "DilutedEPS",
+            "EBITDA", "GrossProfit", "OperatingIncome"
+        ]
+        
+        let annualMetrics = earningsMetrics.map { "annual\($0)" }
+        let quarterlyMetrics = earningsMetrics.map { "quarterly\($0)" }
+        let typeParam = (annualMetrics + quarterlyMetrics).joined(separator: ",")
+        
+        var components = URLComponents(string: "\(baseURL)/ws/fundamentals-timeseries/v1/finance/timeseries/\(ticker.symbol)")!
         components.queryItems = [
-            URLQueryItem(name: "modules", value: "price"),
-            URLQueryItem(name: "corsDomain", value: "finance.yahoo.com"),
-            URLQueryItem(name: "formatted", value: "false")
+            URLQueryItem(name: "symbol", value: ticker.symbol),
+            URLQueryItem(name: "type", value: typeParam),
+            URLQueryItem(name: "merge", value: "false"),
+            URLQueryItem(name: "period1", value: "493590046"), // 1985년부터
+            URLQueryItem(name: "period2", value: String(Int(Date().timeIntervalSince1970))),
+            URLQueryItem(name: "corsDomain", value: "finance.yahoo.com")
         ]
         
         guard let url = components.url else {
             throw YFError.invalidRequest
         }
         
-        // CSRF 인증된 경우 crumb 추가
-        return isAuthenticated ? await session.addCrumbIfNeeded(to: url) : url
+        return url
     }
 }
