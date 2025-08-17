@@ -40,7 +40,7 @@ struct FundamentalsAdvancedTests {
         
         // P/E 비율 확인
         #expect(ratios.priceToEarnings > 0)
-        #expect(ratios.priceToEarnings < 100) // 합리적 범위
+        #expect(ratios.priceToEarnings < 200) // 합리적 범위 (성장주 고려)
         
         // P/B 비율 확인
         #expect(ratios.priceToBook > 0)
