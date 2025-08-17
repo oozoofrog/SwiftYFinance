@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftYFinance
 
-struct ProtobufDecodingTests {
+struct YFProtobufDecodingTests {
     
     @Test("Base64 decoding basic test with valid input")
     func testBase64DecodingBasic() throws {

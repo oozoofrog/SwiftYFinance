@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftYFinance
 
-struct WebSocketConnectionTests {
+struct YFWebSocketConnectionTests {
     
     @Test("Real WebSocket connection success test with Yahoo Finance")
     func testRealWebSocketConnectionSuccess() async throws {
