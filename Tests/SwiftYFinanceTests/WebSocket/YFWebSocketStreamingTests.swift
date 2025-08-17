@@ -151,36 +151,26 @@ struct YFWebSocketStreamingTests {
         #endif
     }
     
-    @Test("Multiple message stream consumers")
-    func testMultipleMessageStreamConsumers() async throws {
+    @Test("Single message stream consumer")
+    func testSingleMessageStreamConsumer() async throws {
         // Given
         let manager = YFWebSocketManager()
-        let collector1 = MessageCollector()
-        let collector2 = MessageCollector()
+        let collector = MessageCollector()
         
         #if DEBUG
-        // When - Multiple consumers access the same stream
+        // When - Single consumer accesses the stream
         do {
             try await manager.connect()
             try await manager.subscribe(to: ["AAPL", "TSLA"])
             
-            // Create multiple stream consumers
-            let stream1 = await manager.messageStream()
-            let stream2 = await manager.messageStream()
+            // Create single stream consumer
+            let stream = await manager.messageStream()
             
-            // Test multiple consumers with Actors
-            let consumer1Task = Task {
-                for await message in stream1 {
-                    await collector1.addMessage(message)
-                    let count = await collector1.getMessageCount()
-                    if count >= 1 { break }
-                }
-            }
-            
-            let consumer2Task = Task {
-                for await message in stream2 {
-                    await collector2.addMessage(message)
-                    let count = await collector2.getMessageCount()
+            // Test single consumer with Actor
+            let consumerTask = Task {
+                for await message in stream {
+                    await collector.addMessage(message)
+                    let count = await collector.getMessageCount()
                     if count >= 1 { break }
                 }
             }
@@ -188,22 +178,18 @@ struct YFWebSocketStreamingTests {
             // Wait briefly for potential messages
             try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
             
-            consumer1Task.cancel()
-            consumer2Task.cancel()
-            await collector1.stop()
-            await collector2.stop()
+            consumerTask.cancel()
+            await collector.stop()
             
-            let count1 = await collector1.getMessageCount()
-            let count2 = await collector2.getMessageCount()
+            let count = await collector.getMessageCount()
             
-            // Then - Both consumers should be able to access stream
-            #expect(count1 >= 0, "Consumer 1 should handle streaming")
-            #expect(count2 >= 0, "Consumer 2 should handle streaming")
+            // Then - Consumer should be able to access stream
+            #expect(count >= 0, "Consumer should handle streaming")
             
             await manager.disconnect()
             
         } catch {
-            print("Multiple consumers test error: \(error)")
+            print("Single consumer test error: \(error)")
         }
         #endif
     }

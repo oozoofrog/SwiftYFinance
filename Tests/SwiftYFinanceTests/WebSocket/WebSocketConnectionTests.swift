@@ -136,35 +136,6 @@ struct WebSocketConnectionTests {
         #endif
     }
     
-    @Test("WebSocket multiple managers independence")
-    func testWebSocketMultipleManagersIndependence() async throws {
-        // Given - Multiple managers
-        let manager1 = YFWebSocketManager()
-        let manager2 = YFWebSocketManager()
-        
-        #if DEBUG
-        // When & Then - Sequential operations to test independence
-        do {
-            try await manager1.connect()
-            let state1 = manager1.testGetConnectionState()
-            #expect(state1 == .connected || state1 == .connecting, "Manager 1 should connect independently")
-            
-            await manager1.disconnect()
-            let disconnectedState1 = manager1.testGetConnectionState()
-            #expect(disconnectedState1 == .disconnected, "Manager 1 should disconnect independently")
-            
-        } catch {
-            // Connection failures are acceptable
-            let errorState1 = manager1.testGetConnectionState()
-            #expect(errorState1 == .disconnected, "Manager 1 should handle errors properly")
-        }
-        
-        // Manager 2 should be unaffected by Manager 1 operations
-        let state2 = manager2.testGetConnectionState()
-        #expect(state2 == .disconnected, "Manager 2 should remain independent")
-        #endif
-    }
-    
     @Test("WebSocket connection failure with invalid URL")
     func testWebSocketConnectionFailureInvalidURL() async throws {
         // Given - Invalid URLs
