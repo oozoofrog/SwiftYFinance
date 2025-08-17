@@ -6,11 +6,11 @@ import Foundation
 struct YFNewsResponse: Codable {
     let explains: [String]?
     let count: Int?
-    let quotes: [String]?
+    let quotes: [YFQuoteResponse]?  // Dictionary 배열로 수정
     let news: [YFNewsResponseItem]?
-    let nav: [String]?
-    let lists: [String]?
-    let researchReports: [String]?
+    let nav: [YFNavResponse]?  // Dictionary 배열로 수정
+    let lists: [YFListResponse]?  // Dictionary 배열로 수정
+    let researchReports: [YFResearchResponse]?  // Dictionary 배열로 수정
     let screenerFieldResults: [String]?
     let totalTime: Int?
     let timeTakenForQuotes: Int?
@@ -25,6 +25,39 @@ struct YFNewsResponse: Codable {
     
     // Alternative response format
     let stream: [YFNewsStreamItem]?
+}
+
+/// Quote response item in search API
+struct YFQuoteResponse: Codable {
+    let symbol: String?
+    let shortname: String?
+    let longname: String?
+    let exchDisp: String?
+    let typeDisp: String?
+    let index: String?
+    let score: Double?
+    let isYahooFinance: Bool?
+}
+
+/// Nav response item
+struct YFNavResponse: Codable {
+    let name: String?
+    let navId: String?
+    let categoryType: String?
+}
+
+/// List response item  
+struct YFListResponse: Codable {
+    let name: String?
+    let listId: String?
+    let type: String?
+}
+
+/// Research response item
+struct YFResearchResponse: Codable {
+    let title: String?
+    let reportId: String?
+    let provider: String?
 }
 
 /// News stream item

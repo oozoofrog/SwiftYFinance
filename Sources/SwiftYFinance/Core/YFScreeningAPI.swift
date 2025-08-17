@@ -76,9 +76,11 @@ extension YFClient {
         let screenerResponse = try decoder.decode(YFScreenerResponse.self, from: data)
         
         // Response를 YFScreenResult로 변환
-        return screenerResponse.finance?.result?.flatMap { $0.quotes?.compactMap { quote in
-            convertToScreenResult(from: quote)
-        } } ?? []
+        return screenerResponse.finance?.result?.compactMap { result in
+            result.quotes?.compactMap { quote in
+                convertToScreenResult(from: quote)
+            }
+        }.flatMap { $0 } ?? []
     }
     
     /// 실제 Yahoo Finance 사전 정의된 스크리너 API 호출
@@ -106,9 +108,11 @@ extension YFClient {
         let screenerResponse = try decoder.decode(YFScreenerResponse.self, from: data)
         
         // Response를 YFScreenResult로 변환
-        let results = screenerResponse.finance?.result?.flatMap { $0.quotes?.compactMap { quote in
-            convertToScreenResult(from: quote)
-        } } ?? []
+        let results = screenerResponse.finance?.result?.compactMap { result in
+            result.quotes?.compactMap { quote in
+                convertToScreenResult(from: quote)
+            }
+        }.flatMap { $0 } ?? []
         
         return Array(results.prefix(limit))
     }
@@ -180,33 +184,27 @@ extension YFClient {
     
     /// Quote를 YFScreenResult로 변환
     private func convertToScreenResult(from quote: YFScreenerQuote) -> YFScreenResult? {
-        guard let symbol = quote.symbol,
-              let ticker = try? YFTicker(symbol: symbol) else {
+        guard let symbol = quote.symbol else {
             return nil
         }
         
+        let ticker = YFTicker(symbol: symbol)
+        
         return YFScreenResult(
             ticker: ticker,
-            name: quote.shortName ?? quote.longName ?? symbol,
-            exchange: quote.fullExchangeName ?? "Unknown",
-            sector: quote.sector ?? "Unknown",
-            industry: quote.industry ?? "Unknown", 
-            marketCap: quote.marketCap ?? 0,
+            companyName: quote.shortName ?? quote.longName ?? symbol,
             price: quote.regularMarketPrice ?? 0,
+            marketCap: quote.marketCap ?? 0,
             percentChange: quote.regularMarketChangePercent ?? 0,
             dayVolume: Int(quote.regularMarketVolume ?? 0),
+            sector: quote.sector ?? "Unknown",
+            industry: quote.industry,
+            region: quote.region ?? "US",
+            exchange: quote.fullExchangeName ?? "Unknown",
             peRatio: quote.forwardPE,
+            returnOnEquity: quote.returnOnEquity,
             revenueGrowth: quote.revenueQuarterlyGrowth,
-            dividendYield: quote.dividendYield,
-            beta: quote.beta,
-            bookValue: quote.bookValue,
-            priceToBook: quote.priceToBook,
-            debtToEquity: nil, // Yahoo Finance API에서 제공하지 않음
-            returnOnEquity: nil, // Yahoo Finance API에서 제공하지 않음
-            avgVolume: Int(quote.averageDailyVolume3Month ?? 0),
-            week52High: quote.fiftyTwoWeekHigh,
-            week52Low: quote.fiftyTwoWeekLow,
-            week52ChangePercent: quote.fiftyTwoWeekChangePercent
+            debtToEquity: quote.debtToEquity
         )
     }
 }

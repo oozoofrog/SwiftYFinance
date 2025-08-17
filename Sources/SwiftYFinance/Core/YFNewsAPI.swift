@@ -183,8 +183,39 @@ extension YFClient {
         let decoder = JSONDecoder()
         let newsResponse = try decoder.decode(YFNewsResponse.self, from: data)
         
-        // NewsResponse를 YFNewsArticle로 변환
+        // NewsResponse를 YFNewsArticle로 변환 (yfinance-reference 방식 적용)
         var articles: [YFNewsArticle] = []
+        
+        // 1. news 필드에서 직접 가져오기 (yfinance-reference 방식)
+        for newsItem in newsResponse.news ?? [] {
+            let publishedDate = Date(timeIntervalSince1970: TimeInterval(newsItem.providerPublishTime ?? 0))
+            let category = mapNewsCategory(from: newsItem.type)
+            
+            // 감성 분석 (요청시 - 간단한 키워드 기반)
+            let sentiment = includeSentiment ? analyzeSentiment(title: newsItem.title, summary: nil) : nil
+            
+            // 관련 종목 (현재는 원본 종목만)
+            let relatedTickers = includeRelatedTickers ? [ticker] : []
+            
+            let article = YFNewsArticle(
+                title: newsItem.title,
+                summary: "", // legacy response에는 summary 없음
+                link: newsItem.link,
+                publishedDate: publishedDate,
+                source: newsItem.publisher ?? "Yahoo Finance",
+                category: category,
+                isBreaking: false,
+                imageURL: includeImages ? newsItem.thumbnail?.resolutions?.first?.url : nil,
+                imageInfo: nil,
+                sentiment: sentiment,
+                relatedTickers: relatedTickers,
+                tags: newsItem.title.components(separatedBy: " ").filter { $0.count > 2 }.prefix(5).map { String($0) }
+            )
+            
+            articles.append(article)
+        }
+        
+        // 2. stream 필드도 백업으로 시도
         for newsItem in newsResponse.stream ?? [] {
             guard let content = newsItem.content else { continue }
             
