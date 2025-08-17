@@ -23,11 +23,6 @@ public enum YFWebSocketConnectionState: Equatable, Sendable {
     /// 메시지 송수신이 가능한 정상 작동 상태입니다.
     case connected
     
-    /// 재연결 중
-    ///
-    /// 연결이 끊어진 후 자동 재연결을 시도하고 있는 상태입니다.
-    /// 일시적인 네트워크 문제나 서버 문제 후 복구를 시도 중입니다.
-    case reconnecting
     
     /// 영구적 실패 (복구 불가)
     ///

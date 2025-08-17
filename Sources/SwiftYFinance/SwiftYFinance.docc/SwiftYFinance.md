@@ -15,11 +15,13 @@ SwiftYFinance는 Python의 yfinance 라이브러리를 Swift로 포팅한 금융
 - **기술적 분석**: SMA, EMA, RSI, MACD, 볼린저밴드 등
 - **뉴스 & 감성분석**: 종목 관련 뉴스와 AI 감성 분석
 - **종목 스크리닝**: 복합 조건 기반 종목 검색
+- **실시간 스트리밍**: WebSocket 기반 실시간 가격 데이터
 
 ### Swift의 장점
 
 - **타입 안전성**: 컴파일 타임에 에러 발견
 - **Async/Await**: 현대적인 비동기 프로그래밍
+- **동시성 안전성**: Actor 모델을 통한 데이터 레이스 방지
 - **메모리 안전성**: ARC를 통한 자동 메모리 관리
 - **성능**: 네이티브 코드의 빠른 실행 속도
 - **멀티플랫폼**: iOS, macOS, tvOS, watchOS 지원
@@ -66,6 +68,11 @@ SwiftYFinance의 핵심 클래스와 인터페이스입니다.
 - ``YFOptionsChain``
 - ``YFFinancialsAdvanced``
 - ``YFNewsArticle``
+
+#### Real-time Streaming
+- ``YFWebSocketManager``
+- ``YFWebSocketConnectionState``
+- ``YFWebSocketInternalState``
 
 ### Advanced Features
 
@@ -119,6 +126,15 @@ print("지난 30일간 \(history.prices.count)개의 데이터")
 let financials = try await client.fetchFinancials(ticker: ticker)
 for report in financials.annualReports {
     print("매출: \(report.totalRevenue / 1_000_000_000)B")
+}
+
+// 실시간 WebSocket 스트리밍
+let webSocket = YFWebSocketManager()
+try await webSocket.connect()
+try await webSocket.subscribe(symbols: ["AAPL"])
+
+for await priceUpdate in webSocket.priceStream {
+    print("실시간: \(priceUpdate.symbol) $\(priceUpdate.price)")
 }
 ```
 

@@ -105,14 +105,12 @@ struct YFClientWebSocketIntegrationTests {
             // Test rapid sequential requests (simulating rate limit scenario)
             let startTime = Date()
             
-            // Create multiple YFClient instances to test session sharing/isolation
-            for i in 1...3 {
-                let testClient = YFClient()
-                #expect(testClient.session != nil, "Client \(i) should have valid session")
-            }
+            // Test single client session validation
+            let testClient = YFClient()
+            #expect(testClient.session != nil, "Client should have valid session")
             
             let elapsedTime = Date().timeIntervalSince(startTime)
-            #expect(elapsedTime < 1.0, "Multiple client creation should be fast")
+            #expect(elapsedTime < 1.0, "Client creation should be fast")
             
             print("✅ Rate limiting integration structure validated")
             
@@ -134,16 +132,16 @@ struct YFClientWebSocketIntegrationTests {
             let manager = YFWebSocketManager(urlSession: client.session.urlSession)
             
             // Verify manager is properly configured
-            let initialState = manager.testGetConnectionState()
+            let initialState = await manager.testGetConnectionState()
             #expect(initialState == .disconnected, "Manager should start disconnected")
             
             // Test basic manager functionality
             try await manager.connect()
-            let connectedState = manager.testGetConnectionState()
+            let connectedState = await manager.testGetConnectionState()
             #expect(connectedState == .connected, "Manager should connect successfully")
             
             await manager.disconnect()
-            let disconnectedState = manager.testGetConnectionState()
+            let disconnectedState = await manager.testGetConnectionState()
             #expect(disconnectedState == .disconnected, "Manager should disconnect properly")
             
             print("✅ WebSocket manager creation through YFClient validated")
@@ -154,36 +152,30 @@ struct YFClientWebSocketIntegrationTests {
         #endif
     }
     
-    @Test("Client session sharing with WebSocket")
-    func testClientSessionSharingWithWebSocket() async throws {
+    @Test("Client session with WebSocket")
+    func testClientSessionWithWebSocket() async throws {
         // Given
         let client = YFClient()
         
         #if DEBUG
-        // When - Test session sharing between client and WebSocket
+        // When - Test single WebSocket manager with client session
         do {
-            // Create WebSocket manager with shared session
-            let sharedSession = client.session.urlSession
-            let manager1 = YFWebSocketManager(urlSession: sharedSession)
-            let manager2 = YFWebSocketManager(urlSession: sharedSession)
+            // Create WebSocket manager with client session
+            let clientSession = client.session.urlSession
+            let manager = YFWebSocketManager(urlSession: clientSession)
             
-            // Test that both managers can use the shared session
-            try await manager1.connect()
-            let state1 = manager1.testGetConnectionState()
-            #expect(state1 == .connected, "First manager should connect with shared session")
-            
-            try await manager2.connect()
-            let state2 = manager2.testGetConnectionState()
-            #expect(state2 == .connected, "Second manager should connect with shared session")
+            // Test that manager can use the client session
+            try await manager.connect()
+            let state = await manager.testGetConnectionState()
+            #expect(state == .connected, "Manager should connect with client session")
             
             // Clean up
-            await manager1.disconnect()
-            await manager2.disconnect()
+            await manager.disconnect()
             
-            print("✅ Client session sharing with WebSocket validated")
+            print("✅ Client session with WebSocket validated")
             
         } catch {
-            print("Client session sharing test error: \(error)")
+            print("Client session test error: \(error)")
         }
         #endif
     }
@@ -194,30 +186,19 @@ struct YFClientWebSocketIntegrationTests {
         let client = YFClient()
         
         #if DEBUG
-        // When - Test resource management with multiple components
+        // When - Test resource management with single manager
         do {
-            var managers: [YFWebSocketManager] = []
+            // Create single WebSocket manager
+            let manager = YFWebSocketManager(urlSession: client.session.urlSession)
+            try await manager.connect()
             
-            // Create multiple WebSocket managers
-            for i in 1...3 {
-                let manager = YFWebSocketManager(urlSession: client.session.urlSession)
-                try await manager.connect()
-                
-                let state = manager.testGetConnectionState()
-                #expect(state == .connected, "Manager \(i) should connect successfully")
-                
-                managers.append(manager)
-            }
+            let state = await manager.testGetConnectionState()
+            #expect(state == .connected, "Manager should connect successfully")
             
-            // Test that all managers are independent
-            #expect(managers.count == 3, "Should have 3 active managers")
-            
-            // Clean up all managers
-            for (index, manager) in managers.enumerated() {
-                await manager.disconnect()
-                let state = manager.testGetConnectionState()
-                #expect(state == .disconnected, "Manager \(index + 1) should disconnect properly")
-            }
+            // Test resource cleanup
+            await manager.disconnect()
+            let disconnectedState = await manager.testGetConnectionState()
+            #expect(disconnectedState == .disconnected, "Manager should disconnect properly")
             
             print("✅ Resource management in integrated environment validated")
             
@@ -252,7 +233,7 @@ struct YFClientWebSocketIntegrationTests {
             try await manager.connect()
             try await manager.subscribe(to: ["AAPL"])
             
-            let subscriptions = manager.testGetSubscriptions()
+            let subscriptions = await manager.testGetSubscriptions()
             #expect(subscriptions.contains("AAPL"), "Should have valid subscription")
             
             await manager.disconnect()

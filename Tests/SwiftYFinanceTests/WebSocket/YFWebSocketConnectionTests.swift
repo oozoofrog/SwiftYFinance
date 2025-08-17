@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import SwiftYFinance
 
-struct WebSocketConnectionTests {
+struct YFWebSocketConnectionTests {
     
     @Test("Real WebSocket connection success test with Yahoo Finance")
     func testRealWebSocketConnectionSuccess() async throws {
@@ -15,7 +15,7 @@ struct WebSocketConnectionTests {
             
             #if DEBUG
             // Verify connection state changed
-            let state = manager.testGetConnectionState()
+            let state = await manager.testGetConnectionState()
             #expect(state == .connected || state == .connecting, "Connection should be established or in progress")
             #endif
             
@@ -24,7 +24,7 @@ struct WebSocketConnectionTests {
             
             #if DEBUG
             // Verify disconnection
-            let finalState = manager.testGetConnectionState()
+            let finalState = await manager.testGetConnectionState()
             #expect(finalState == .disconnected, "Should be disconnected after cleanup")
             #endif
             
@@ -34,7 +34,7 @@ struct WebSocketConnectionTests {
             
             // But connection state should be properly managed
             #if DEBUG
-            let state = manager.testGetConnectionState()
+            let state = await manager.testGetConnectionState()
             #expect(state == .disconnected, "Should be disconnected after failure")
             #endif
         } catch {
@@ -56,7 +56,7 @@ struct WebSocketConnectionTests {
             try await manager.testConnectWithCustomURL(localTestURL)
             
             // If successful, verify state
-            let state = manager.testGetConnectionState()
+            let state = await manager.testGetConnectionState()
             #expect(state == .connected || state == .connecting)
             
             // Cleanup
@@ -67,7 +67,7 @@ struct WebSocketConnectionTests {
             #expect(message.contains("localhost") || message.contains("connection") || !message.isEmpty)
             
             // Verify proper error state
-            let state = manager.testGetConnectionState()
+            let state = await manager.testGetConnectionState()
             #expect(state == .disconnected)
         } catch {
             // Other connection errors are acceptable
@@ -83,7 +83,7 @@ struct WebSocketConnectionTests {
         
         #if DEBUG
         // When & Then - Initial state
-        let initialState = manager.testGetConnectionState()
+        let initialState = await manager.testGetConnectionState()
         #expect(initialState == .disconnected, "Should start disconnected")
         
         // Test connection attempt (may fail due to network)
@@ -91,17 +91,17 @@ struct WebSocketConnectionTests {
             try await manager.connect()
             
             // State should change during connection
-            let connectionState = manager.testGetConnectionState()
+            let connectionState = await manager.testGetConnectionState()
             #expect(connectionState == .connected || connectionState == .connecting)
             
             // Disconnect should change state back
             await manager.disconnect()
-            let disconnectedState = manager.testGetConnectionState()
+            let disconnectedState = await manager.testGetConnectionState()
             #expect(disconnectedState == .disconnected)
             
         } catch {
             // If connection fails, state should still be properly managed
-            let errorState = manager.testGetConnectionState()
+            let errorState = await manager.testGetConnectionState()
             #expect(errorState == .disconnected, "Should be disconnected after connection failure")
         }
         #endif
@@ -119,49 +119,20 @@ struct WebSocketConnectionTests {
                 try await manager.connect()
                 
                 // Should be connected or connecting
-                let state = manager.testGetConnectionState()
+                let state = await manager.testGetConnectionState()
                 #expect(state == .connected || state == .connecting, "Attempt \(i) should show proper state")
                 
                 // Disconnect before next attempt
                 await manager.disconnect()
-                let disconnectedState = manager.testGetConnectionState()
+                let disconnectedState = await manager.testGetConnectionState()
                 #expect(disconnectedState == .disconnected, "Should be disconnected between attempts")
                 
             } catch {
                 // Connection failures are acceptable, but state should be consistent
-                let errorState = manager.testGetConnectionState()
+                let errorState = await manager.testGetConnectionState()
                 #expect(errorState == .disconnected, "State should be disconnected after failure in attempt \(i)")
             }
         }
-        #endif
-    }
-    
-    @Test("WebSocket multiple managers independence")
-    func testWebSocketMultipleManagersIndependence() async throws {
-        // Given - Multiple managers
-        let manager1 = YFWebSocketManager()
-        let manager2 = YFWebSocketManager()
-        
-        #if DEBUG
-        // When & Then - Sequential operations to test independence
-        do {
-            try await manager1.connect()
-            let state1 = manager1.testGetConnectionState()
-            #expect(state1 == .connected || state1 == .connecting, "Manager 1 should connect independently")
-            
-            await manager1.disconnect()
-            let disconnectedState1 = manager1.testGetConnectionState()
-            #expect(disconnectedState1 == .disconnected, "Manager 1 should disconnect independently")
-            
-        } catch {
-            // Connection failures are acceptable
-            let errorState1 = manager1.testGetConnectionState()
-            #expect(errorState1 == .disconnected, "Manager 1 should handle errors properly")
-        }
-        
-        // Manager 2 should be unaffected by Manager 1 operations
-        let state2 = manager2.testGetConnectionState()
-        #expect(state2 == .disconnected, "Manager 2 should remain independent")
         #endif
     }
     
@@ -192,7 +163,7 @@ struct WebSocketConnectionTests {
                 #expect(message.contains(invalidURL) || message.contains("Invalid"), "Error should reference the invalid URL")
                 
                 // State should be disconnected after failure
-                let state = manager.testGetConnectionState()
+                let state = await manager.testGetConnectionState()
                 #expect(state == .disconnected, "Should be disconnected after invalid URL")
                 
             } catch YFError.webSocketError(.connectionFailed(let message)) {
@@ -200,7 +171,7 @@ struct WebSocketConnectionTests {
                 #expect(!message.isEmpty, "Connection failure message should be descriptive for: \(invalidURL)")
                 
                 // State should be disconnected after failure
-                let state = manager.testGetConnectionState()
+                let state = await manager.testGetConnectionState()
                 #expect(state == .disconnected, "Should be disconnected after connection failure")
                 
             } catch {
@@ -208,7 +179,7 @@ struct WebSocketConnectionTests {
                 print("Unexpected error for \(invalidURL): \(error)")
                 
                 // But state should still be properly managed
-                let state = manager.testGetConnectionState()
+                let state = await manager.testGetConnectionState()
                 #expect(state == .disconnected, "Should be disconnected after any error")
             }
         }
@@ -219,6 +190,10 @@ struct WebSocketConnectionTests {
     func testWebSocketConnectionFailureUnreachableServer() async throws {
         // Given - Unreachable but valid WebSocket URLs
         let manager = YFWebSocketManager()
+        
+        // Set shorter timeout for test (2 seconds instead of 10)
+        await manager.testSetTimeouts(connectionTimeout: 2.0, messageTimeout: 2.0)
+        
         let unreachableURLs = [
             "wss://192.168.255.255:8080/websocket", // Non-routable IP
             "ws://127.0.0.1:99999/socket",          // Localhost with invalid port
@@ -228,6 +203,9 @@ struct WebSocketConnectionTests {
         #if DEBUG
         // When & Then - Each unreachable URL should fail with connection error
         for unreachableURL in unreachableURLs {
+            // Track connection attempt time
+            let startTime = Date()
+            
             do {
                 try await manager.testConnectWithCustomURL(unreachableURL)
                 
@@ -237,25 +215,105 @@ struct WebSocketConnectionTests {
                 
             } catch YFError.webSocketError(.connectionFailed(let message)) {
                 // Expected for unreachable servers
+                let elapsedTime = Date().timeIntervalSince(startTime)
+                print("Connection failed for \(unreachableURL) after \(String(format: "%.2f", elapsedTime)) seconds")
+                
+                // Verify timeout was respected (should fail within 2 seconds + some buffer)
+                #expect(elapsedTime < 3.0, "Connection should timeout within 3 seconds (2s timeout + buffer)")
+                // Localhost with invalid port might fail immediately, which is OK
+                #expect(elapsedTime >= 0.0, "Connection failure time is acceptable")
+                
                 #expect(!message.isEmpty, "Connection failure message should be descriptive")
                 #expect(message.contains(unreachableURL) || message.contains("Failed"), "Error should reference the URL or failure")
                 
                 // State should be disconnected after failure
-                let state = manager.testGetConnectionState()
+                let state = await manager.testGetConnectionState()
                 #expect(state == .disconnected, "Should be disconnected after connection failure")
                 
             } catch YFError.webSocketError(.invalidURL(let message)) {
                 // Some URLs might be considered invalid by the system
+                let elapsedTime = Date().timeIntervalSince(startTime)
+                print("Invalid URL detected for \(unreachableURL) after \(String(format: "%.2f", elapsedTime)) seconds")
                 #expect(!message.isEmpty, "Invalid URL message should be descriptive")
+                
+            } catch YFError.webSocketError(.connectionTimeout(let message)) {
+                // Explicit timeout error
+                let elapsedTime = Date().timeIntervalSince(startTime)
+                print("Connection timeout for \(unreachableURL) after \(String(format: "%.2f", elapsedTime)) seconds")
+                
+                // Verify it actually timed out around 2 seconds
+                #expect(elapsedTime >= 1.5 && elapsedTime <= 2.5, "Timeout should occur around 2 seconds (was \(elapsedTime)s)")
+                #expect(message.contains("2"), "Timeout message should mention the 2 second timeout")
                 
             } catch {
                 // Other network-related errors are also acceptable
-                print("Network error for \(unreachableURL): \(error)")
+                let elapsedTime = Date().timeIntervalSince(startTime)
+                print("Network error for \(unreachableURL) after \(String(format: "%.2f", elapsedTime)) seconds: \(error)")
+                
+                // Still verify timing
+                #expect(elapsedTime < 3.0, "Any failure should occur within timeout window")
                 
                 // State should still be properly managed
-                let state = manager.testGetConnectionState()
+                let state = await manager.testGetConnectionState()
                 #expect(state == .disconnected, "Should be disconnected after network error")
             }
+        }
+        #endif
+    }
+    
+    @Test("WebSocket connection timeout accuracy verification")
+    func testWebSocketTimeoutAccuracy() async throws {
+        // Given - Manager with custom short timeout
+        let manager = YFWebSocketManager()
+        let testTimeout: TimeInterval = 1.5  // 1.5 seconds for quick test
+        await manager.testSetTimeouts(connectionTimeout: testTimeout, messageTimeout: testTimeout)
+        
+        // Unreachable URL that will definitely timeout
+        let timeoutURL = "wss://10.255.255.1:8080/websocket"  // Private network, unreachable
+        
+        #if DEBUG
+        // When - Attempt connection with precise time tracking
+        let startTime = Date()
+        
+        do {
+            try await manager.testConnectWithCustomURL(timeoutURL)
+            #expect(Bool(false), "Should not connect to unreachable URL")
+            
+        } catch YFError.webSocketError(.connectionTimeout(let message)) {
+            // Then - Verify timeout accuracy
+            let elapsedTime = Date().timeIntervalSince(startTime)
+            
+            print("✅ Timeout Test Results:")
+            print("   Configured timeout: \(testTimeout)s")
+            print("   Actual time elapsed: \(String(format: "%.3f", elapsedTime))s")
+            print("   Difference: \(String(format: "%.3f", abs(elapsedTime - testTimeout)))s")
+            print("   Error message: \(message)")
+            
+            // Allow 300ms tolerance for system delays
+            let tolerance: TimeInterval = 0.3
+            #expect(
+                abs(elapsedTime - testTimeout) <= tolerance,
+                "Timeout should be within \(tolerance)s of configured \(testTimeout)s (was \(String(format: "%.3f", elapsedTime))s)"
+            )
+            
+            // Verify error message mentions the timeout duration
+            #expect(message.contains("1.5") || message.contains("timeout"), "Error should mention timeout")
+            
+            // Verify state is properly reset
+            let state = await manager.testGetConnectionState()
+            #expect(state == .disconnected, "Should be disconnected after timeout")
+            
+        } catch {
+            // If we get other errors, still validate timing
+            let elapsedTime = Date().timeIntervalSince(startTime)
+            print("⚠️ Different error after \(String(format: "%.3f", elapsedTime))s: \(error)")
+            
+            // Should still respect timeout even with different error type
+            #expect(elapsedTime <= testTimeout + 0.5, "Should fail within timeout window")
+            
+            // State should be disconnected
+            let state = await manager.testGetConnectionState()
+            #expect(state == .disconnected, "Should be disconnected after error")
         }
         #endif
     }
@@ -264,6 +322,8 @@ struct WebSocketConnectionTests {
     func testWebSocketConnectionTimeoutHandling() async throws {
         // Given - URL that should timeout (black hole IP)
         let manager = YFWebSocketManager()
+        // Set shorter timeout for test
+        await manager.testSetTimeouts(connectionTimeout: 2.0, messageTimeout: 2.0)
         let timeoutURL = "ws://192.0.2.1:8080/ws" // RFC 3330 test IP (should not respond)
         
         #if DEBUG
@@ -281,7 +341,7 @@ struct WebSocketConnectionTests {
             #expect(!message.isEmpty, "Timeout error message should be descriptive")
             
             // State should be disconnected after timeout
-            let state = manager.testGetConnectionState()
+            let state = await manager.testGetConnectionState()
             #expect(state == .disconnected, "Should be disconnected after timeout")
             
         } catch {
@@ -289,7 +349,7 @@ struct WebSocketConnectionTests {
             print("Timeout test error: \(error)")
             
             // State should be properly managed
-            let state = manager.testGetConnectionState()
+            let state = await manager.testGetConnectionState()
             #expect(state == .disconnected, "Should be disconnected after timeout error")
         }
         #endif

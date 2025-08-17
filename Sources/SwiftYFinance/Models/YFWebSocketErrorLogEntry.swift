@@ -17,8 +17,6 @@ internal struct YFWebSocketErrorLogEntry {
     /// 에러 발생 시점의 연결 상태
     let connectionState: YFWebSocketConnectionState
     
-    /// 에러 발생 시점의 재연결 시도 횟수
-    let reconnectionAttempts: Int
     
     /// 에러 발생 시점의 연속 실패 횟수
     let consecutiveFailures: Int
@@ -29,6 +27,6 @@ internal struct YFWebSocketErrorLogEntry {
     ///
     /// - Returns: 포매팅된 에러 로그 문자열
     var description: String {
-        return "\(timestamp): [\(context)] \(error) (state: \(connectionState), attempts: \(reconnectionAttempts), failures: \(consecutiveFailures))"
+        return "\(timestamp): [\(context)] \(error) (state: \(connectionState), failures: \(consecutiveFailures))"
     }
 }
