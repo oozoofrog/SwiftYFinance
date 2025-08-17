@@ -21,9 +21,9 @@ public enum CookieStrategy: Sendable {
     case csrf
 }
 
-/// Yahoo Finance API 세션 관리자
+/// Yahoo Finance API 세션 관리자 (Actor 기반)
 /// 
-/// 이 클래스는 Yahoo Finance API와의 네트워크 통신을 관리하며,
+/// 이 actor는 Yahoo Finance API와의 네트워크 통신을 관리하며,
 /// 브라우저 수준의 쿠키 관리, User-Agent 로테이션, CSRF 인증을 제공합니다.
 ///
 /// ## 기능
@@ -31,16 +31,17 @@ public enum CookieStrategy: Sendable {
 /// - **헤더 관리**: Chrome 브라우저 모방 헤더 자동 설정
 /// - **User-Agent 로테이션**: 탐지 방지를 위한 다중 User-Agent 지원
 /// - **CSRF 인증**: Yahoo Finance 인증 시스템 호환
+/// - **동시성 안전성**: Swift Actor 모델을 통한 완전한 thread-safety
 ///
 /// ## 사용 예시
 /// ```swift
 /// let session = YFSession()
 /// try await session.authenticateCSRF()
 /// 
-/// let url = session.addCrumbIfNeeded(to: someURL)
+/// let url = await session.addCrumbIfNeeded(to: someURL)
 /// // 네트워크 요청 수행...
 /// ```
-public final class YFSession: @unchecked Sendable {
+public final actor YFSession {
     // MARK: - Public Properties
     public let urlSession: URLSession
     public let baseURL: URL

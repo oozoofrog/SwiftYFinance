@@ -20,10 +20,10 @@ struct YFSessionTests {
     }
     
     @Test
-    func testSessionDefaultHeaders() {
+    func testSessionDefaultHeaders() async {
         let session = YFSession()
         
-        let headers = session.defaultHeaders
+        let headers = await session.defaultHeaders
         
         #expect(headers["User-Agent"]?.contains("Mozilla") == true)
         #expect(headers["Accept"]?.contains("text/html") == true)
@@ -34,7 +34,7 @@ struct YFSessionTests {
         let customHeaders = ["Custom-Header": "CustomValue"]
         let sessionWithHeaders = YFSession(additionalHeaders: customHeaders)
         
-        let combinedHeaders = sessionWithHeaders.defaultHeaders
+        let combinedHeaders = await sessionWithHeaders.defaultHeaders
         #expect(combinedHeaders["Custom-Header"] == "CustomValue")
         #expect(combinedHeaders["User-Agent"]?.contains("Mozilla") == true)
     }
@@ -213,31 +213,31 @@ struct YFSessionTests {
     }
     
     @Test
-    func testUserAgentRotation() {
+    func testUserAgentRotation() async {
         // User-Agent 로테이션 기능 테스트
         let session = YFSession()
         
-        let originalUserAgent = session.defaultHeaders["User-Agent"]
+        let originalUserAgent = await session.defaultHeaders["User-Agent"]
         #expect(originalUserAgent?.contains("Chrome") == true)
         
         // User-Agent 로테이션
-        session.rotateUserAgent()
-        let rotatedUserAgent = session.defaultHeaders["User-Agent"] 
+        await session.rotateUserAgent()
+        let rotatedUserAgent = await session.defaultHeaders["User-Agent"] 
         
         // 로테이션 후 다른 User-Agent 일 가능성 (배열이 1개보다 많은 경우)
         // 또는 같을 수도 있음 (배열이 1개인 경우)
         #expect(rotatedUserAgent?.contains("Chrome") == true)
         
         // 랜덤 User-Agent 선택
-        session.randomizeUserAgent()
-        let randomUserAgent = session.defaultHeaders["User-Agent"]
+        await session.randomizeUserAgent()
+        let randomUserAgent = await session.defaultHeaders["User-Agent"]
         #expect(randomUserAgent?.contains("Chrome") == true)
         
         // 여러 번 로테이션해서 순환하는지 확인
         var userAgents: Set<String> = []
         for _ in 0..<10 {
-            session.rotateUserAgent()
-            if let ua = session.defaultHeaders["User-Agent"] {
+            await session.rotateUserAgent()
+            if let ua = await session.defaultHeaders["User-Agent"] {
                 userAgents.insert(ua)
             }
         }
@@ -254,10 +254,10 @@ struct YFSessionTests {
     }
     
     @Test
-    func testBrowserLevelHeaders() {
+    func testBrowserLevelHeaders() async {
         // 브라우저 수준 헤더 확인
         let session = YFSession()
-        let headers = session.defaultHeaders
+        let headers = await session.defaultHeaders
         
         // 필수 브라우저 헤더들 확인
         #expect(headers["Accept"]?.contains("text/html") == true)

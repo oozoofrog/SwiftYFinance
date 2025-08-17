@@ -21,7 +21,7 @@ extension YFSession {
     /// ## 사용 예시
     /// ```swift
     /// // 정기적으로 User-Agent 변경
-    /// session.rotateUserAgent()
+    /// await session.rotateUserAgent()
     /// ```
     public func rotateUserAgent() {
         browserImpersonator.rotateUserAgent()
@@ -35,7 +35,7 @@ extension YFSession {
     /// ## 사용 예시
     /// ```swift
     /// // 무작위 User-Agent로 변경
-    /// session.randomizeUserAgent()
+    /// await session.randomizeUserAgent()
     /// ```
     public func randomizeUserAgent() {
         browserImpersonator.randomizeUserAgent()
