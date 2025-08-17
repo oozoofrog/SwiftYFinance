@@ -153,5 +153,35 @@ Python yfinance 라이브러리를 Swift로 포팅한 종합 금융 데이터 �
 
 ---
 
-**현재 상태**: Phase 1-10 완료 ✅ (전체 기능 + 테스트 안정화 + 동시성 안전성 완료)  
+### Phase 11: WebSocket 리팩토링 및 OOP 원칙 적용 ✅ (2025-08-17)
+
+#### 파일 분리 및 구조 개선
+- **WebSocket 확장 파일 분리**: YFWebSocketManager를 기능별로 분리
+  - `YFWebSocketManager+StateManagement.swift`: 상태 관리 로직
+  - `YFWebSocketManager+Streaming.swift`: 스트리밍 기능
+  - `YFWebSocketManager+Subscription.swift`: 구독 관리
+  - `YFWebSocketManager+Testing.swift`: 테스트 지원
+- **Actor 패턴 적용**: @unchecked Sendable에서 완전한 Actor 모델로 전환
+- **OOP 원칙 준수**: 관심사 분리 및 단일 책임 원칙 적용
+
+#### 테스트 명명 규칙 표준화
+- **YF 접두사 일관성**: 모든 테스트 파일을 YF 네이밍 컨벤션으로 통일
+- **49개 테스트 파일**: 체계적인 테스트 구조 확립
+- **67개 소스 파일**: 모듈화된 코드베이스 완성
+
+#### 브랜치 관리 및 병합
+- **websocket-refactoring 브랜치**: 안전한 기능 개발 완료
+- **main 브랜치 병합**: 모든 변경사항 안정적으로 통합
+- **242개 테스트**: 전체 테스트 스위트 확장 및 안정화
+
+---
+
+**현재 상태**: Phase 1-11 완료 ✅ (전체 기능 + 테스트 안정화 + 동시성 안전성 + 리팩토링 완료)  
 **다음 단계**: 유지보수 및 추가 요청사항 대응
+
+## 통계 요약 (2025-08-17 기준)
+- **총 소스 파일**: 67개
+- **총 테스트 파일**: 49개  
+- **총 테스트 케이스**: 242개
+- **현재 브랜치**: main
+- **개발 완료도**: 100% ✅
