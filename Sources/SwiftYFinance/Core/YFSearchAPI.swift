@@ -48,7 +48,7 @@ extension YFClient {
     public func search(query: YFSearchQuery) async throws -> [YFSearchResult] {
         // 캐시에서 먼저 확인
         let cacheKey = query.term
-        if let cachedResults = YFSearchCache.shared.get(for: cacheKey) {
+        if let cachedResults = await YFSearchCache.shared.get(for: cacheKey) {
             return cachedResults
         }
         
@@ -56,7 +56,7 @@ extension YFClient {
         let results = try await performSearch(query: query)
         
         // 결과를 캐시에 저장
-        YFSearchCache.shared.set(results, for: cacheKey)
+        await YFSearchCache.shared.set(results, for: cacheKey)
         
         return results
     }

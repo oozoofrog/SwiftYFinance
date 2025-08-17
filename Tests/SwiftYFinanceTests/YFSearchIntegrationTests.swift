@@ -163,7 +163,7 @@ struct YFSearchIntegrationTests {
         let client = YFClient()
         
         // 캐시 초기화
-        YFSearchCache.shared.clearAll()
+        await YFSearchCache.shared.clearAll()
         
         // 첫 번째 검색
         let startTime1 = Date()
@@ -184,7 +184,7 @@ struct YFSearchIntegrationTests {
         #expect(duration2 < duration1)
         
         // 캐시 통계 확인
-        let stats = YFSearchCache.shared.getStats()
+        let stats = await YFSearchCache.shared.getStats()
         #expect(stats.totalItems > 0)
     }
     

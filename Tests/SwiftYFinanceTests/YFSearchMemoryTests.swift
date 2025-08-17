@@ -14,10 +14,10 @@ struct YFSearchMemoryTests {
     @Test("반복 검색 메모리 누수 확인")
     func testRepeatedSearchMemoryLeak() async throws {
         let client = YFClient()
-        YFSearchCache.shared.clearAll()
+        await YFSearchCache.shared.clearAll()
         
         // 초기 메모리 상태
-        let initialStats = YFSearchCache.shared.getStats()
+        let initialStats = await YFSearchCache.shared.getStats()
         
         // 많은 검색 수행 (메모리 누수 검사)
         for i in 1...50 {
@@ -32,8 +32,8 @@ struct YFSearchMemoryTests {
         }
         
         // 캐시 정리 후 메모리 확인
-        YFSearchCache.shared.clearAll()
-        let finalStats = YFSearchCache.shared.getStats()
+        await YFSearchCache.shared.clearAll()
+        let finalStats = await YFSearchCache.shared.getStats()
         
         // 캐시가 제대로 정리되었는지 확인
         #expect(finalStats.totalItems == 0)
@@ -44,7 +44,7 @@ struct YFSearchMemoryTests {
     @Test("캐시 메모리 관리")
     func testCacheMemoryManagement() async throws {
         let cache = YFSearchCache.shared
-        cache.clearAll()
+        await cache.clearAll()
         
         let mockResult = YFSearchResult(
             symbol: "TEST",
@@ -57,10 +57,10 @@ struct YFSearchMemoryTests {
         
         // 많은 항목을 캐시에 추가
         for i in 1...150 { // 최대 제한(100)보다 많이 추가
-            cache.set([mockResult], for: "company_\(i)")
+            await cache.set([mockResult], for: "company_\(i)")
         }
         
-        let stats = cache.getStats()
+        let stats = await cache.getStats()
         
         // 최대 제한이 적용되었는지 확인
         #expect(stats.totalItems <= 100)
@@ -74,7 +74,7 @@ struct YFSearchMemoryTests {
     @Test("캐시 성능 측정")
     func testCachePerformance() async throws {
         let cache = YFSearchCache.shared
-        cache.clearAll()
+        await cache.clearAll()
         
         let mockResults = (1...10).map { i in
             YFSearchResult(
@@ -88,13 +88,13 @@ struct YFSearchMemoryTests {
         }
         
         // 캐시에 저장
-        cache.set(mockResults, for: "performance_test")
+        await cache.set(mockResults, for: "performance_test")
         
         // 성능 측정: 1000번 조회
         let startTime = Date()
         
         for _ in 1...1000 {
-            _ = cache.get(for: "performance_test")
+            _ = await cache.get(for: "performance_test")
         }
         
         let elapsed = Date().timeIntervalSince(startTime)
@@ -136,7 +136,7 @@ struct YFSearchMemoryTests {
     @Test("동시 캐시 접근 안전성")
     func testConcurrentCacheAccess() async throws {
         let cache = YFSearchCache.shared
-        cache.clearAll()
+        await cache.clearAll()
         
         let mockResult = YFSearchResult(
             symbol: "CONC",
@@ -152,27 +152,27 @@ struct YFSearchMemoryTests {
             // 저장 작업들
             for i in 0..<10 {
                 group.addTask {
-                    cache.set([mockResult], for: "concurrent_\(i)")
+                    await cache.set([mockResult], for: "concurrent_\(i)")
                 }
             }
             
             // 조회 작업들
             for i in 0..<10 {
                 group.addTask {
-                    _ = cache.get(for: "concurrent_\(i)")
+                    _ = await cache.get(for: "concurrent_\(i)")
                 }
             }
             
             // 정리 작업들
             for _ in 0..<5 {
                 group.addTask {
-                    _ = cache.cleanupExpired()
+                    _ = await cache.cleanupExpired()
                 }
             }
         }
         
         // 크래시 없이 완료되면 성공
-        let stats = cache.getStats()
+        let stats = await cache.getStats()
         #expect(stats.totalItems >= 0)
     }
     
@@ -227,7 +227,7 @@ struct YFSearchMemoryTests {
     @Test("자동 리소스 정리")
     func testAutomaticCleanup() async throws {
         let cache = YFSearchCache.shared
-        cache.clearAll()
+        await cache.clearAll()
         
         let mockResult = YFSearchResult(
             symbol: "CLEAN",
@@ -240,15 +240,15 @@ struct YFSearchMemoryTests {
         
         // 많은 데이터 추가
         for i in 1...200 { // 최대 제한보다 많이 추가
-            cache.set([mockResult], for: "cleanup_\(i)")
+            await cache.set([mockResult], for: "cleanup_\(i)")
         }
         
-        let beforeStats = cache.getStats()
+        let beforeStats = await cache.getStats()
         
         // 수동 정리 실행
-        let cleanedCount = cache.cleanupExpired()
+        let cleanedCount = await cache.cleanupExpired()
         
-        let afterStats = cache.getStats()
+        let afterStats = await cache.getStats()
         
         // 정리가 실행되었는지 확인
         #expect(cleanedCount >= 0)

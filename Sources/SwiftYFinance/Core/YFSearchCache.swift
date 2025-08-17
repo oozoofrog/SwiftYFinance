@@ -1,6 +1,6 @@
 import Foundation
 
-/// 검색 결과 캐싱을 위한 내부 캐시 매니저
+/// 검색 결과 캐싱을 위한 Actor 기반 캐시 매니저
 ///
 /// 분 단위의 TTL(Time To Live)을 사용하여 검색 결과를 메모리에 캐싱합니다.
 /// 동일한 검색어에 대한 반복 요청을 최적화하고 Yahoo Finance API 호출을 줄입니다.
@@ -8,22 +8,22 @@ import Foundation
 /// ## 캐싱 정책
 /// - **TTL**: 1분 (60초)
 /// - **최대 항목**: 100개
-/// - **Thread-Safe**: DispatchQueue 기반 동기화
+/// - **Thread-Safe**: Actor 모델 기반 동시성 안전성
 ///
 /// ## 사용 예시
 /// ```swift
 /// let cache = YFSearchCache()
 /// 
 /// // 캐시에서 검색
-/// if let cached = cache.get(for: "Apple") {
+/// if let cached = await cache.get(for: "Apple") {
 ///     return cached
 /// }
 /// 
 /// // API 호출 후 캐시에 저장
 /// let results = try await performAPISearch(query)
-/// cache.set(results, for: "Apple")
+/// await cache.set(results, for: "Apple")
 /// ```
-internal final class YFSearchCache: @unchecked Sendable {
+internal final actor YFSearchCache {
     
     /// 캐시 항목 구조체
     private struct CacheItem {
@@ -45,30 +45,25 @@ internal final class YFSearchCache: @unchecked Sendable {
     /// 캐시 저장소
     private var cache: [String: CacheItem] = [:]
     
-    /// 동시성 제어를 위한 큐
-    private let queue = DispatchQueue(label: "YFSearchCache", attributes: .concurrent)
-    
-    /// 싱글톤 인스턴스
+    /// 싱글톤 인스턴스 (전역 사용)
     static let shared = YFSearchCache()
     
-    /// 프라이빗 초기화 (싱글톤)
-    private init() {}
+    /// 기본 초기화 (테스트용 인스턴스 생성 가능)
+    init() {}
     
     /// 캐시에서 검색 결과 조회
     /// - Parameter query: 검색 쿼리 문자열
     /// - Returns: 캐시된 검색 결과, 없거나 만료된 경우 nil
     func get(for query: String) -> [YFSearchResult]? {
-        return queue.sync {
-            let key = normalizeKey(query)
-            guard let item = cache[key] else { return nil }
-            
-            if item.isExpired {
-                cache.removeValue(forKey: key)
-                return nil
-            }
-            
-            return item.results
+        let key = normalizeKey(query)
+        guard let item = cache[key] else { return nil }
+        
+        if item.isExpired {
+            cache.removeValue(forKey: key)
+            return nil
         }
+        
+        return item.results
     }
     
     /// 캐시에 검색 결과 저장
@@ -76,16 +71,14 @@ internal final class YFSearchCache: @unchecked Sendable {
     ///   - results: 저장할 검색 결과
     ///   - query: 검색 쿼리 문자열
     func set(_ results: [YFSearchResult], for query: String) {
-        queue.async(flags: .barrier) {
-            let key = self.normalizeKey(query)
-            let item = CacheItem(results: results, timestamp: Date())
-            
-            self.cache[key] = item
-            
-            // 최대 항목 수 초과 시 오래된 항목 제거
-            if self.cache.count > Self.maxItems {
-                self.removeOldestItems()
-            }
+        let key = normalizeKey(query)
+        let item = CacheItem(results: results, timestamp: Date())
+        
+        cache[key] = item
+        
+        // 최대 항목 수 초과 시 오래된 항목 제거
+        if cache.count > Self.maxItems {
+            removeOldestItems()
         }
     }
     
@@ -93,32 +86,26 @@ internal final class YFSearchCache: @unchecked Sendable {
     /// - Returns: 정리된 항목 수
     @discardableResult
     func cleanupExpired() -> Int {
-        return queue.sync(flags: .barrier) {
-            let initialCount = cache.count
-            cache = cache.filter { !$0.value.isExpired }
-            return initialCount - cache.count
-        }
+        let initialCount = cache.count
+        cache = cache.filter { !$0.value.isExpired }
+        return initialCount - cache.count
     }
     
     /// 모든 캐시 항목 삭제
     func clearAll() {
-        queue.async(flags: .barrier) {
-            self.cache.removeAll()
-        }
+        cache.removeAll()
     }
     
     /// 캐시 상태 정보 반환
     /// - Returns: 캐시 통계 정보
     func getStats() -> CacheStats {
-        return queue.sync {
-            let expired = cache.values.filter { $0.isExpired }.count
-            return CacheStats(
-                totalItems: cache.count,
-                expiredItems: expired,
-                validItems: cache.count - expired,
-                memoryUsage: estimateMemoryUsage()
-            )
-        }
+        let expired = cache.values.filter { $0.isExpired }.count
+        return CacheStats(
+            totalItems: cache.count,
+            expiredItems: expired,
+            validItems: cache.count - expired,
+            memoryUsage: estimateMemoryUsage()
+        )
     }
     
     // MARK: - Private Methods
