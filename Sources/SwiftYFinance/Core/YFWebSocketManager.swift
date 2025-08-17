@@ -23,67 +23,32 @@ import Foundation
 ///
 /// - SeeAlso: `YFWebSocketMessage` WebSocket 메시지 데이터
 /// - SeeAlso: `YFStreamingQuote` 실시간 스트리밍 쿼트
-public class YFWebSocketManager: @unchecked Sendable {
+public final class YFWebSocketManager: @unchecked Sendable {
     
     /// WebSocket 연결 상태 (분리된 타입 별칭)
     public typealias ConnectionState = YFWebSocketConnectionState
     
     // MARK: - Private Properties
     
-    /// 현재 연결 상태
-    internal var _connectionState: ConnectionState = .disconnected
-    
-    /// 상태 전환 로그
-    internal var stateTransitionLog: [YFWebSocketStateTransition] = []
-    internal let maxStateTransitionEntries = 20
-    
-    /// 현재 연결 상태 (읽기 전용)
-    internal var connectionState: ConnectionState {
-        return _connectionState
-    }
+    /// 내부 상태 관리 Actor
+    internal let internalState = YFWebSocketInternalState()
     
     /// 기본 Yahoo Finance WebSocket URL
     private let defaultURL = "wss://streamer.finance.yahoo.com/?version=2"
     
-    /// URLSession WebSocket task
-    internal var webSocketTask: URLSessionWebSocketTask?
-    
     /// URLSession for WebSocket connections
     private let urlSession: URLSession
-    
-    /// 현재 구독 중인 심볼들
-    internal var subscriptions: Set<String> = []
-    
-    /// 메시지 스트림 컨티뉴에이션
-    internal var messageContinuation: AsyncStream<YFWebSocketMessage>.Continuation?
     
     /// 메시지 디코더
     private let messageDecoder = YFWebSocketMessageDecoder()
     
-    // MARK: - Connection Monitoring Properties
+    // MARK: - Non-Sendable Properties (require careful handling)
     
-    /// 연속 실패 횟수
-    internal var consecutiveFailures: Int = 0
+    /// URLSession WebSocket task
+    internal var webSocketTask: URLSessionWebSocketTask?
     
-    /// 테스트용 잘못된 연결 모드
-    internal var testInvalidConnectionMode: Bool = false
-    
-    // MARK: - Connection Quality Monitoring
-    
-    /// 연결 품질 메트릭
-    internal var connectionQuality = YFWebSocketConnectionQuality()
-    
-    /// 에러 로그
-    internal var errorLog: [YFWebSocketErrorLogEntry] = []
-    internal let maxErrorLogEntries = 50
-    
-    // MARK: - Timeout Properties
-    
-    /// 연결 타임아웃 (초)
-    internal var connectionTimeout: TimeInterval = 10.0
-    
-    /// 메시지 수신 타임아웃 (초)
-    internal var messageTimeout: TimeInterval = 30.0
+    /// 메시지 스트림 컨티뉴에이션
+    internal var messageContinuation: AsyncStream<YFWebSocketMessage>.Continuation?
     
     // MARK: - Initialization
     
@@ -122,9 +87,9 @@ public class YFWebSocketManager: @unchecked Sendable {
     ///
     /// 활성 WebSocket 연결을 정상적으로 종료합니다.
     public func disconnect() async {
-        changeConnectionState(to: .disconnected, reason: "User requested disconnect")
+        await changeConnectionState(to: .disconnected, reason: "User requested disconnect")
         
-        subscriptions.removeAll()
+        await internalState.clearSubscriptions()
         messageContinuation?.finish()
         messageContinuation = nil
         webSocketTask?.cancel(with: .goingAway, reason: nil)
@@ -148,8 +113,9 @@ public class YFWebSocketManager: @unchecked Sendable {
     /// try await manager.subscribe(to: ["AAPL", "TSLA"])
     /// ```
     public func subscribe(to symbols: [String]) async throws {
-        guard isUsableState else {
-            throw YFError.webSocketError(.notConnected("Must be connected to WebSocket before subscribing (current state: \(connectionState))"))
+        guard await isUsableState else {
+            let currentState = await connectionState
+            throw YFError.webSocketError(.notConnected("Must be connected to WebSocket before subscribing (current state: \(currentState))"))
         }
         
         guard !symbols.isEmpty else {
@@ -158,10 +124,11 @@ public class YFWebSocketManager: @unchecked Sendable {
         
         // 중복 제거 및 구독 목록 업데이트
         let uniqueSymbols = Set(symbols)
-        subscriptions.formUnion(uniqueSymbols)
+        await internalState.addSubscriptions(uniqueSymbols)
         
         // JSON 구독 메시지 생성 및 전송
-        let message = Self.createSubscriptionMessage(symbols: Array(subscriptions))
+        let currentSubscriptions = await subscriptions
+        let message = Self.createSubscriptionMessage(symbols: Array(currentSubscriptions))
         try await sendMessage(message)
     }
     
@@ -172,8 +139,9 @@ public class YFWebSocketManager: @unchecked Sendable {
     /// - Parameter symbols: 구독 취소할 심볼 배열
     /// - Throws: `YFError.webSocketError` 연결 또는 구독 관련 오류
     public func unsubscribe(from symbols: [String]) async throws {
-        guard isUsableState else {
-            throw YFError.webSocketError(.notConnected("Must be connected to WebSocket before unsubscribing (current state: \(connectionState))"))
+        guard await isUsableState else {
+            let currentState = await connectionState
+            throw YFError.webSocketError(.notConnected("Must be connected to WebSocket before unsubscribing (current state: \(currentState))"))
         }
         
         guard !symbols.isEmpty else {
@@ -182,7 +150,7 @@ public class YFWebSocketManager: @unchecked Sendable {
         
         // 구독 목록에서 제거
         let symbolsToRemove = Set(symbols)
-        subscriptions.subtract(symbolsToRemove)
+        await internalState.removeSubscriptions(symbolsToRemove)
         
         // JSON 구독 취소 메시지 생성 및 전송
         let message = Self.createUnsubscriptionMessage(symbols: symbols)
@@ -214,8 +182,8 @@ public class YFWebSocketManager: @unchecked Sendable {
             self.messageContinuation = continuation
             
             // Start background message listening if connected
-            if isUsableState {
-                Task {
+            Task {
+                if await isUsableState {
                     await startMessageListening()
                 }
             }
@@ -251,14 +219,14 @@ public class YFWebSocketManager: @unchecked Sendable {
     internal func startMessageListening() async {
         guard let webSocketTask = webSocketTask else { return }
         
-        while isUsableState {
+        while await isUsableState {
             do {
                 let message = try await webSocketTask.receive()
                 await handleWebSocketMessage(message)
             } catch {
                 // WebSocket 연결 오류 처리
-                if isUsableState {
-                    changeConnectionState(to: .disconnected, reason: "Message listening error: \(error)")
+                if await isUsableState {
+                    await changeConnectionState(to: .disconnected, reason: "Message listening error: \(error)")
                     messageContinuation?.finish()
                 }
                 break
@@ -301,7 +269,7 @@ public class YFWebSocketManager: @unchecked Sendable {
             let webSocketMessage = try messageDecoder.decode(encodedMessage)
             
             // 메시지 수신 기록
-            recordMessageReceived()
+            await recordMessageReceived()
             
             // AsyncStream으로 메시지 전달
             messageContinuation?.yield(webSocketMessage)
@@ -309,7 +277,7 @@ public class YFWebSocketManager: @unchecked Sendable {
         } catch {
             // 디코딩 오류는 로그로만 처리 (스트림 중단하지 않음)
             let yfError = YFError.webSocketError(.messageDecodingFailed("Failed to decode message: \(error.localizedDescription)"))
-            logError(yfError, context: "Message decoding")
+            await logError(yfError, context: "Message decoding")
         }
     }
     
@@ -328,21 +296,22 @@ public class YFWebSocketManager: @unchecked Sendable {
     /// - Parameter url: 연결할 WebSocket URL
     /// - Throws: `YFError.webSocketError` WebSocket 연결 관련 오류
     internal func connectToURL(_ url: URL) async throws {
-        changeConnectionState(to: .connecting, reason: "Connection attempt to \(url.host ?? "unknown")")
+        await changeConnectionState(to: .connecting, reason: "Connection attempt to \(url.host ?? "unknown")")
         
         #if DEBUG
         // 테스트용 잘못된 연결 모드
-        if testInvalidConnectionMode {
-            changeConnectionState(to: .failed, reason: "Test invalid connection mode enabled")
+        if await testInvalidConnectionMode {
+            await changeConnectionState(to: .failed, reason: "Test invalid connection mode enabled")
             throw YFError.webSocketError(.connectionFailed("Test invalid connection mode enabled"))
         }
         #endif
         
         do {
             // 타임아웃과 함께 연결 시도
+            let currentTimeout = await connectionTimeout
             let timeoutTask = Task {
-                try await Task.sleep(nanoseconds: UInt64(connectionTimeout * 1_000_000_000))
-                throw YFError.webSocketError(.connectionTimeout("Connection timeout after \(connectionTimeout) seconds"))
+                try await Task.sleep(nanoseconds: UInt64(currentTimeout * 1_000_000_000))
+                throw YFError.webSocketError(.connectionTimeout("Connection timeout after \(currentTimeout) seconds"))
             }
             
             let connectionTask = Task {
@@ -368,10 +337,10 @@ public class YFWebSocketManager: @unchecked Sendable {
                 throw error
             }
             
-            changeConnectionState(to: .connected, reason: "WebSocket connection established")
+            await changeConnectionState(to: .connected, reason: "WebSocket connection established")
             
             // 연결 성공 기록
-            recordConnectionSuccess()
+            await recordConnectionSuccess()
             
             // 메시지 스트림이 활성화되어 있다면 메시지 수신 시작
             if messageContinuation != nil {
@@ -380,23 +349,23 @@ public class YFWebSocketManager: @unchecked Sendable {
                 }
             }
         } catch let error as YFError {
-            changeConnectionState(to: .disconnected, reason: "Connection failed: \(error)")
-            consecutiveFailures += 1
+            await changeConnectionState(to: .disconnected, reason: "Connection failed: \(error)")
+            await internalState.incrementConsecutiveFailures()
             webSocketTask?.cancel()
             webSocketTask = nil
             
             // 에러 로깅
-            logError(error, context: "WebSocket connection to \(url.absoluteString)")
+            await logError(error, context: "WebSocket connection to \(url.absoluteString)")
             throw error
         } catch {
-            changeConnectionState(to: .disconnected, reason: "Connection failed: \(error)")
-            consecutiveFailures += 1
+            await changeConnectionState(to: .disconnected, reason: "Connection failed: \(error)")
+            await internalState.incrementConsecutiveFailures()
             webSocketTask?.cancel()
             webSocketTask = nil
             
             let yfError = YFError.webSocketError(.connectionFailed("Failed to connect to \(url.absoluteString): \(error.localizedDescription)"))
             // 에러 로깅
-            logError(yfError, context: "WebSocket connection to \(url.absoluteString)")
+            await logError(yfError, context: "WebSocket connection to \(url.absoluteString)")
             throw yfError
         }
     }
@@ -437,11 +406,50 @@ public class YFWebSocketManager: @unchecked Sendable {
         }
     }
     
+    // MARK: - Internal State Access (Async)
+    
+    /// 현재 연결 상태 조회
+    internal var connectionState: ConnectionState {
+        get async {
+            return await internalState.getConnectionState()
+        }
+    }
+    
+    /// 현재 구독 목록 조회
+    internal var subscriptions: Set<String> {
+        get async {
+            return await internalState.getSubscriptions()
+        }
+    }
+    
+    /// 연속 실패 횟수 조회
+    internal var consecutiveFailures: Int {
+        get async {
+            return await internalState.getConsecutiveFailures()
+        }
+    }
+    
+    /// 테스트용 잘못된 연결 모드 조회
+    internal var testInvalidConnectionMode: Bool {
+        get async {
+            return await internalState.getTestInvalidConnectionMode()
+        }
+    }
+    
+    /// 연결 타임아웃 조회
+    internal var connectionTimeout: TimeInterval {
+        get async {
+            return await internalState.getConnectionTimeout()
+        }
+    }
+    
     // MARK: - Connection Management API
     
     /// 연결 시도 수
     internal var connectionAttempts: Int {
-        return consecutiveFailures + 1
+        get async {
+            return await internalState.getConnectionAttempts()
+        }
     }
     
     // MARK: - Error Logging API (Implemented in StateManagement extension)
@@ -452,17 +460,23 @@ public class YFWebSocketManager: @unchecked Sendable {
     
     /// 현재 연결 상태가 활성 상태인지 확인
     internal var isActiveState: Bool {
-        return [.connecting, .connected].contains(connectionState)
+        get async {
+            return await internalState.isActiveState()
+        }
     }
     
     /// 현재 연결 상태가 사용 가능한 상태인지 확인
     internal var isUsableState: Bool {
-        return connectionState == .connected
+        get async {
+            return await internalState.isUsableState()
+        }
     }
     
     /// 현재 연결 상태가 재시도 가능한 상태인지 확인
     internal var canRetryConnection: Bool {
-        return [.disconnected, .failed].contains(connectionState)
+        get async {
+            return await internalState.canRetryConnection()
+        }
     }
     
     // 상태 변경 및 이벤트 처리 메서드들은 StateManagement extension에서 구현됨

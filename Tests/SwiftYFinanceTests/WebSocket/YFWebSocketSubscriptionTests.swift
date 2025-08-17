@@ -17,7 +17,7 @@ struct YFWebSocketSubscriptionTests {
             try await manager.subscribe(to: symbols)
             
             // Then - Subscription should be tracked
-            let subscriptions = manager.testGetSubscriptions()
+            let subscriptions = await manager.testGetSubscriptions()
             #expect(subscriptions.contains("AAPL"), "Should contain AAPL subscription")
             #expect(subscriptions.contains("TSLA"), "Should contain TSLA subscription")
             #expect(subscriptions.count == 2, "Should have exactly 2 subscriptions")
@@ -45,7 +45,7 @@ struct YFWebSocketSubscriptionTests {
             try await manager.subscribe(to: [symbol])
             
             // Then - Single subscription should be tracked
-            let subscriptions = manager.testGetSubscriptions()
+            let subscriptions = await manager.testGetSubscriptions()
             #expect(subscriptions.contains(symbol), "Should contain AAPL subscription")
             #expect(subscriptions.count == 1, "Should have exactly 1 subscription")
             
@@ -71,7 +71,7 @@ struct YFWebSocketSubscriptionTests {
             try await manager.subscribe(to: symbols)
             
             // Then - All subscriptions should be tracked
-            let subscriptions = manager.testGetSubscriptions()
+            let subscriptions = await manager.testGetSubscriptions()
             for symbol in symbols {
                 #expect(subscriptions.contains(symbol), "Should contain \(symbol) subscription")
             }
@@ -123,7 +123,7 @@ struct YFWebSocketSubscriptionTests {
             try await manager.subscribe(to: emptySymbols)
             
             // Should not have any subscriptions
-            let subscriptions = manager.testGetSubscriptions()
+            let subscriptions = await manager.testGetSubscriptions()
             #expect(subscriptions.isEmpty, "Should have no subscriptions")
             
             await manager.disconnect()
@@ -151,7 +151,7 @@ struct YFWebSocketSubscriptionTests {
             try await manager.subscribe(to: symbols)
             
             // Then - Should deduplicate subscriptions
-            let subscriptions = manager.testGetSubscriptions()
+            let subscriptions = await manager.testGetSubscriptions()
             #expect(subscriptions.contains("AAPL"), "Should contain AAPL")
             #expect(subscriptions.contains("TSLA"), "Should contain TSLA")
             #expect(subscriptions.count == 2, "Should deduplicate to 2 unique subscriptions")
@@ -177,7 +177,7 @@ struct YFWebSocketSubscriptionTests {
             try await manager.subscribe(to: symbols)
             
             // Should either auto-connect or throw appropriate error
-            let subscriptions = manager.testGetSubscriptions()
+            let subscriptions = await manager.testGetSubscriptions()
             if !subscriptions.isEmpty {
                 #expect(subscriptions.contains("AAPL"), "Should contain AAPL if auto-connected")
             }
@@ -207,12 +207,12 @@ struct YFWebSocketSubscriptionTests {
             
             // First subscribe to all symbols
             try await manager.subscribe(to: symbols)
-            let initialSubscriptions = manager.testGetSubscriptions()
+            let initialSubscriptions = await manager.testGetSubscriptions()
             #expect(initialSubscriptions.count == 3, "Should have 3 initial subscriptions")
             
             // Then unsubscribe from some symbols
             try await manager.unsubscribe(from: ["AAPL", "TSLA"])
-            let remainingSubscriptions = manager.testGetSubscriptions()
+            let remainingSubscriptions = await manager.testGetSubscriptions()
             
             // Then - Only MSFT should remain
             #expect(remainingSubscriptions.contains("MSFT"), "Should still contain MSFT")
@@ -266,12 +266,12 @@ struct YFWebSocketSubscriptionTests {
             
             // Subscribe to initial symbols
             try await manager.subscribe(to: subscribedSymbols)
-            let initialSubscriptions = manager.testGetSubscriptions()
+            let initialSubscriptions = await manager.testGetSubscriptions()
             #expect(initialSubscriptions.count == 2, "Should have 2 initial subscriptions")
             
             // Try to unsubscribe from non-subscribed symbols
             try await manager.unsubscribe(from: unsubscribeSymbols)
-            let remainingSubscriptions = manager.testGetSubscriptions()
+            let remainingSubscriptions = await manager.testGetSubscriptions()
             
             // Then - Original subscriptions should remain unchanged
             #expect(remainingSubscriptions.contains("AAPL"), "Should still contain AAPL")
@@ -299,12 +299,12 @@ struct YFWebSocketSubscriptionTests {
             
             // Subscribe to all symbols
             try await manager.subscribe(to: symbols)
-            let initialSubscriptions = manager.testGetSubscriptions()
+            let initialSubscriptions = await manager.testGetSubscriptions()
             #expect(initialSubscriptions.count == 4, "Should have 4 initial subscriptions")
             
             // Unsubscribe from all symbols
             try await manager.unsubscribe(from: symbols)
-            let remainingSubscriptions = manager.testGetSubscriptions()
+            let remainingSubscriptions = await manager.testGetSubscriptions()
             
             // Then - No subscriptions should remain
             #expect(remainingSubscriptions.isEmpty, "Should have no remaining subscriptions")
@@ -330,11 +330,11 @@ struct YFWebSocketSubscriptionTests {
             
             // Subscribe to some symbols first
             try await manager.subscribe(to: ["AAPL"])
-            let initialCount = manager.testGetSubscriptions().count
+            let initialCount = await manager.testGetSubscriptions().count
             
             // Try empty unsubscription - should not change anything
             try await manager.unsubscribe(from: emptySymbols)
-            let finalCount = manager.testGetSubscriptions().count
+            let finalCount = await manager.testGetSubscriptions().count
             
             #expect(initialCount == finalCount, "Empty unsubscription should not change subscription count")
             
@@ -383,17 +383,17 @@ struct YFWebSocketSubscriptionTests {
             // Initial connection and subscription
             try await manager.connect()
             try await manager.subscribe(to: symbols)
-            let initialSubscriptions = manager.testGetSubscriptions()
+            let initialSubscriptions = await manager.testGetSubscriptions()
             #expect(initialSubscriptions.count == 2, "Should have 2 initial subscriptions")
             
             // Disconnect - subscriptions should be cleared
             await manager.disconnect()
-            let disconnectedSubscriptions = manager.testGetSubscriptions()
+            let disconnectedSubscriptions = await manager.testGetSubscriptions()
             #expect(disconnectedSubscriptions.isEmpty, "Subscriptions should be cleared on disconnect")
             
             // Reconnect - subscriptions should start empty
             try await manager.connect()
-            let reconnectedSubscriptions = manager.testGetSubscriptions()
+            let reconnectedSubscriptions = await manager.testGetSubscriptions()
             #expect(reconnectedSubscriptions.isEmpty, "Should start with no subscriptions after reconnect")
             
             await manager.disconnect()
@@ -415,25 +415,25 @@ struct YFWebSocketSubscriptionTests {
             try await manager.connect()
             
             // Start with empty state
-            var currentSubscriptions = manager.testGetSubscriptions()
+            var currentSubscriptions = await manager.testGetSubscriptions()
             #expect(currentSubscriptions.isEmpty, "Should start with no subscriptions")
             
             // Add first symbol
             try await manager.subscribe(to: ["AAPL"])
-            currentSubscriptions = manager.testGetSubscriptions()
+            currentSubscriptions = await manager.testGetSubscriptions()
             #expect(currentSubscriptions.count == 1, "Should have 1 subscription")
             #expect(currentSubscriptions.contains("AAPL"), "Should contain AAPL")
             
             // Add second symbol
             try await manager.subscribe(to: ["TSLA"])
-            currentSubscriptions = manager.testGetSubscriptions()
+            currentSubscriptions = await manager.testGetSubscriptions()
             #expect(currentSubscriptions.count == 2, "Should have 2 subscriptions")
             #expect(currentSubscriptions.contains("AAPL"), "Should still contain AAPL")
             #expect(currentSubscriptions.contains("TSLA"), "Should contain TSLA")
             
             // Add third symbol
             try await manager.subscribe(to: ["MSFT"])
-            currentSubscriptions = manager.testGetSubscriptions()
+            currentSubscriptions = await manager.testGetSubscriptions()
             #expect(currentSubscriptions.count == 3, "Should have 3 subscriptions")
             #expect(currentSubscriptions.contains("MSFT"), "Should contain MSFT")
             
@@ -459,12 +459,12 @@ struct YFWebSocketSubscriptionTests {
             
             // Subscribe to all symbols
             try await manager.subscribe(to: allSymbols)
-            let allSubscriptions = manager.testGetSubscriptions()
+            let allSubscriptions = await manager.testGetSubscriptions()
             #expect(allSubscriptions.count == 5, "Should have 5 total subscriptions")
             
             // Unsubscribe from some symbols
             try await manager.unsubscribe(from: unsubscribeSymbols)
-            let remainingSubscriptions = manager.testGetSubscriptions()
+            let remainingSubscriptions = await manager.testGetSubscriptions()
             
             // Verify specific remaining symbols
             #expect(remainingSubscriptions.count == 3, "Should have 3 remaining subscriptions")
@@ -494,29 +494,29 @@ struct YFWebSocketSubscriptionTests {
             
             // Step 1: Subscribe to initial set
             try await manager.subscribe(to: ["AAPL", "TSLA"])
-            var subscriptions = manager.testGetSubscriptions()
+            var subscriptions = await manager.testGetSubscriptions()
             #expect(subscriptions.count == 2, "Step 1: Should have 2 subscriptions")
             
             // Step 2: Add more symbols
             try await manager.subscribe(to: ["MSFT", "GOOGL"])
-            subscriptions = manager.testGetSubscriptions()
+            subscriptions = await manager.testGetSubscriptions()
             #expect(subscriptions.count == 4, "Step 2: Should have 4 subscriptions")
             
             // Step 3: Unsubscribe from one
             try await manager.unsubscribe(from: ["AAPL"])
-            subscriptions = manager.testGetSubscriptions()
+            subscriptions = await manager.testGetSubscriptions()
             #expect(subscriptions.count == 3, "Step 3: Should have 3 subscriptions")
             #expect(!subscriptions.contains("AAPL"), "Should not contain AAPL")
             
             // Step 4: Re-subscribe to previously unsubscribed
             try await manager.subscribe(to: ["AAPL"])
-            subscriptions = manager.testGetSubscriptions()
+            subscriptions = await manager.testGetSubscriptions()
             #expect(subscriptions.count == 4, "Step 4: Should have 4 subscriptions again")
             #expect(subscriptions.contains("AAPL"), "Should contain AAPL again")
             
             // Step 5: Unsubscribe all
             try await manager.unsubscribe(from: ["AAPL", "TSLA", "MSFT", "GOOGL"])
-            subscriptions = manager.testGetSubscriptions()
+            subscriptions = await manager.testGetSubscriptions()
             #expect(subscriptions.isEmpty, "Step 5: Should have no subscriptions")
             
             await manager.disconnect()

@@ -132,16 +132,16 @@ struct YFClientWebSocketIntegrationTests {
             let manager = YFWebSocketManager(urlSession: client.session.urlSession)
             
             // Verify manager is properly configured
-            let initialState = manager.testGetConnectionState()
+            let initialState = await manager.testGetConnectionState()
             #expect(initialState == .disconnected, "Manager should start disconnected")
             
             // Test basic manager functionality
             try await manager.connect()
-            let connectedState = manager.testGetConnectionState()
+            let connectedState = await manager.testGetConnectionState()
             #expect(connectedState == .connected, "Manager should connect successfully")
             
             await manager.disconnect()
-            let disconnectedState = manager.testGetConnectionState()
+            let disconnectedState = await manager.testGetConnectionState()
             #expect(disconnectedState == .disconnected, "Manager should disconnect properly")
             
             print("✅ WebSocket manager creation through YFClient validated")
@@ -166,7 +166,7 @@ struct YFClientWebSocketIntegrationTests {
             
             // Test that manager can use the client session
             try await manager.connect()
-            let state = manager.testGetConnectionState()
+            let state = await manager.testGetConnectionState()
             #expect(state == .connected, "Manager should connect with client session")
             
             // Clean up
@@ -192,12 +192,12 @@ struct YFClientWebSocketIntegrationTests {
             let manager = YFWebSocketManager(urlSession: client.session.urlSession)
             try await manager.connect()
             
-            let state = manager.testGetConnectionState()
+            let state = await manager.testGetConnectionState()
             #expect(state == .connected, "Manager should connect successfully")
             
             // Test resource cleanup
             await manager.disconnect()
-            let disconnectedState = manager.testGetConnectionState()
+            let disconnectedState = await manager.testGetConnectionState()
             #expect(disconnectedState == .disconnected, "Manager should disconnect properly")
             
             print("✅ Resource management in integrated environment validated")
@@ -233,7 +233,7 @@ struct YFClientWebSocketIntegrationTests {
             try await manager.connect()
             try await manager.subscribe(to: ["AAPL"])
             
-            let subscriptions = manager.testGetSubscriptions()
+            let subscriptions = await manager.testGetSubscriptions()
             #expect(subscriptions.contains("AAPL"), "Should have valid subscription")
             
             await manager.disconnect()

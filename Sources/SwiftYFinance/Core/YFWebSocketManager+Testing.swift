@@ -14,8 +14,8 @@ extension YFWebSocketManager {
     /// DEBUG 빌드에서만 사용할 수 있는 연결 상태 조회 메서드입니다.
     ///
     /// - Returns: 현재 WebSocket 연결 상태
-    public func testGetConnectionState() -> ConnectionState {
-        return connectionState
+    public func testGetConnectionState() async -> ConnectionState {
+        return await connectionState
     }
     
     /// 커스텀 URL로 WebSocket 연결 (테스트용)
@@ -43,8 +43,8 @@ extension YFWebSocketManager {
     /// DEBUG 빌드에서만 사용할 수 있는 구독 목록 조회 메서드입니다.
     ///
     /// - Returns: 현재 구독 중인 심볼들의 Set
-    public func testGetSubscriptions() -> Set<String> {
-        return subscriptions
+    public func testGetSubscriptions() async -> Set<String> {
+        return await subscriptions
     }
     
     // MARK: - Connection Loss Testing
@@ -53,9 +53,9 @@ extension YFWebSocketManager {
     ///
     /// DEBUG 빌드에서만 사용할 수 있는 연결 손실 시뮬레이션 메서드입니다.
     public func testSimulateConnectionLoss() async {
-        if isUsableState {
+        if await isUsableState {
             webSocketTask?.cancel()
-            changeConnectionState(to: .disconnected, reason: "Test: Simulated connection loss")
+            await changeConnectionState(to: .disconnected, reason: "Test: Simulated connection loss")
         }
     }
     
@@ -66,8 +66,8 @@ extension YFWebSocketManager {
     /// DEBUG 빌드에서만 사용할 수 있는 잘못된 연결 모드 설정 메서드입니다.
     ///
     /// - Parameter enabled: 잘못된 연결 모드 활성화 여부
-    public func testSetInvalidConnectionMode(_ enabled: Bool) {
-        testInvalidConnectionMode = enabled
+    public func testSetInvalidConnectionMode(_ enabled: Bool) async {
+        await internalState.setTestInvalidConnectionMode(enabled)
     }
     
     /// 타임아웃 설정 (테스트용)
@@ -77,9 +77,8 @@ extension YFWebSocketManager {
     /// - Parameters:
     ///   - connectionTimeout: 연결 타임아웃 (초)
     ///   - messageTimeout: 메시지 수신 타임아웃 (초)
-    public func testSetTimeouts(connectionTimeout: TimeInterval, messageTimeout: TimeInterval) {
-        self.connectionTimeout = connectionTimeout
-        self.messageTimeout = messageTimeout
+    public func testSetTimeouts(connectionTimeout: TimeInterval, messageTimeout: TimeInterval) async {
+        await internalState.setTimeouts(connectionTimeout: connectionTimeout, messageTimeout: messageTimeout)
     }
     
     // MARK: - Failure Statistics Testing
@@ -89,8 +88,8 @@ extension YFWebSocketManager {
     /// DEBUG 빌드에서만 사용할 수 있는 연속 실패 횟수 조회 메서드입니다.
     ///
     /// - Returns: 현재 연속 실패 횟수
-    public func testGetConsecutiveFailures() -> Int {
-        return consecutiveFailures
+    public func testGetConsecutiveFailures() async -> Int {
+        return await consecutiveFailures
     }
     
     /// 연결 시도 횟수 조회 (테스트용)
@@ -98,8 +97,8 @@ extension YFWebSocketManager {
     /// DEBUG 빌드에서만 사용할 수 있는 연결 시도 횟수 조회 메서드입니다.
     ///
     /// - Returns: 현재까지의 총 연결 시도 횟수
-    public func testGetConnectionAttempts() -> Int {
-        return connectionAttempts
+    public func testGetConnectionAttempts() async -> Int {
+        return await connectionAttempts
     }
     
     // MARK: - Quality and Diagnostics Testing
@@ -109,16 +108,17 @@ extension YFWebSocketManager {
     /// DEBUG 빌드에서만 사용할 수 있는 연결 품질 정보 조회 메서드입니다.
     ///
     /// - Returns: 연결 품질 정보 딕셔너리
-    public func testGetConnectionQuality() -> [String: Any] {
+    public func testGetConnectionQuality() async -> [String: Any] {
+        let quality = await internalState.getConnectionQuality()
         return [
-            "totalConnections": connectionQuality.totalConnections,
-            "successfulConnections": connectionQuality.successfulConnections,
-            "totalErrors": connectionQuality.totalErrors,
-            "messagesReceived": connectionQuality.messagesReceived,
-            "successRate": connectionQuality.successRate,
-            "errorRate": connectionQuality.errorRate,
-            "lastSuccessTime": connectionQuality.lastSuccessTime?.timeIntervalSince1970 ?? 0,
-            "lastErrorTime": connectionQuality.lastErrorTime?.timeIntervalSince1970 ?? 0
+            "totalConnections": quality.totalConnections,
+            "successfulConnections": quality.successfulConnections,
+            "totalErrors": quality.totalErrors,
+            "messagesReceived": quality.messagesReceived,
+            "successRate": quality.successRate,
+            "errorRate": quality.errorRate,
+            "lastSuccessTime": quality.lastSuccessTime?.timeIntervalSince1970 ?? 0,
+            "lastErrorTime": quality.lastErrorTime?.timeIntervalSince1970 ?? 0
         ]
     }
     
@@ -127,7 +127,8 @@ extension YFWebSocketManager {
     /// DEBUG 빌드에서만 사용할 수 있는 에러 로그 조회 메서드입니다.
     ///
     /// - Returns: 에러 로그 문자열 배열
-    public func testGetErrorLog() -> [String] {
+    public func testGetErrorLog() async -> [String] {
+        let errorLog = await internalState.getErrorLog()
         return errorLog.map { $0.description }
     }
     
@@ -136,18 +137,19 @@ extension YFWebSocketManager {
     /// DEBUG 빌드에서만 사용할 수 있는 종합 진단 정보 조회 메서드입니다.
     ///
     /// - Returns: 진단 정보 딕셔너리
-    public func testGetDiagnostics() -> [String: Any] {
+    public func testGetDiagnostics() async -> [String: Any] {
         var diagnostics: [String: Any] = [:]
         
         // 기본 상태 정보
-        diagnostics["connectionState"] = "\(connectionState)"
-        diagnostics["subscriptions"] = Array(subscriptions)
-        diagnostics["consecutiveFailures"] = consecutiveFailures
+        diagnostics["connectionState"] = "\(await connectionState)"
+        diagnostics["subscriptions"] = Array(await subscriptions)
+        diagnostics["consecutiveFailures"] = await consecutiveFailures
         
         // 연결 품질 정보
-        diagnostics["connectionQuality"] = testGetConnectionQuality()
+        diagnostics["connectionQuality"] = await testGetConnectionQuality()
         
         // 최근 에러 로그 (최대 5개)
+        let errorLog = await internalState.getErrorLog()
         let recentErrors = Array(errorLog.suffix(5)).map { $0.description }
         diagnostics["recentErrors"] = recentErrors
         
@@ -159,7 +161,8 @@ extension YFWebSocketManager {
     /// DEBUG 빌드에서만 사용할 수 있는 상태 전환 로그 조회 메서드입니다.
     ///
     /// - Returns: 상태 전환 로그 문자열 배열
-    public func testGetStateTransitionLog() -> [String] {
+    public func testGetStateTransitionLog() async -> [String] {
+        let stateTransitionLog = await internalState.getStateTransitionLog()
         return stateTransitionLog.map { $0.description }
     }
     
@@ -168,12 +171,12 @@ extension YFWebSocketManager {
     /// DEBUG 빌드에서만 사용할 수 있는 상태 정보 조회 메서드입니다.
     ///
     /// - Returns: 상태 정보 딕셔너리
-    public func testGetStateInfo() -> [String: Any] {
+    public func testGetStateInfo() async -> [String: Any] {
         return [
-            "connectionState": "\(connectionState)",
-            "isActiveState": isActiveState,
-            "isUsableState": isUsableState,
-            "canRetryConnection": canRetryConnection
+            "connectionState": "\(await connectionState)",
+            "isActiveState": await isActiveState,
+            "isUsableState": await isUsableState,
+            "canRetryConnection": await canRetryConnection
         ]
     }
     
@@ -186,10 +189,10 @@ extension YFWebSocketManager {
     ///   - newState: 전환할 상태
     ///   - reason: 전환 이유
     /// - Returns: 전환 성공 여부
-    public func testForceStateTransition(to newState: ConnectionState, reason: String) -> Bool {
-        let oldState = _connectionState
+    public func testForceStateTransition(to newState: ConnectionState, reason: String) async -> Bool {
+        let oldState = await connectionState
         if isValidStateTransition(from: oldState, to: newState) {
-            changeConnectionState(to: newState, reason: "Test: \(reason)")
+            await changeConnectionState(to: newState, reason: "Test: \(reason)")
             return true
         } else {
             return false
@@ -238,15 +241,15 @@ extension YFWebSocketManager {
     ///   - success: 성공 여부
     ///   - error: 에러 여부
     ///   - message: 메시지 수신 여부
-    public func testUpdateConnectionQuality(success: Bool = false, error: Bool = false, message: Bool = false) {
+    public func testUpdateConnectionQuality(success: Bool = false, error: Bool = false, message: Bool = false) async {
         if success {
-            connectionQuality.recordSuccess()
+            await internalState.recordConnectionSuccess()
         }
         if error {
-            connectionQuality.recordError()
+            await internalState.recordError()
         }
         if message {
-            connectionQuality.recordMessageReceived()
+            await internalState.recordMessageReceived()
         }
     }
     
@@ -257,8 +260,8 @@ extension YFWebSocketManager {
     /// - Parameters:
     ///   - error: 추가할 에러
     ///   - context: 에러 컨텍스트
-    public func testAddErrorLog(_ error: Error, context: String) {
-        logError(error, context: context)
+    public func testAddErrorLog(_ error: Error, context: String) async {
+        await logError(error, context: context)
     }
     
     // MARK: - Validation Testing
@@ -296,18 +299,18 @@ extension YFWebSocketManager {
     /// 연결 실패 시뮬레이션 (테스트용)
     ///
     /// DEBUG 빌드에서만 사용할 수 있는 연결 실패 시뮬레이션 메서드입니다.
-    public func testSimulateConnectionFailure() {
-        consecutiveFailures += 1
-        changeConnectionState(to: .failed, reason: "Test: Simulated connection failure")
+    public func testSimulateConnectionFailure() async {
+        await internalState.incrementConsecutiveFailures()
+        await changeConnectionState(to: .failed, reason: "Test: Simulated connection failure")
     }
     
     /// 연결 상태 초기화 (테스트용)
     ///
     /// DEBUG 빌드에서만 사용할 수 있는 상태 초기화 메서드입니다.
-    public func testResetConnectionState() {
-        consecutiveFailures = 0
-        _connectionState = .disconnected
-        subscriptions.removeAll()
+    public func testResetConnectionState() async {
+        await internalState.resetConsecutiveFailures()
+        await internalState.updateConnectionState(to: .disconnected, reason: "Test: Connection state reset")
+        await internalState.clearSubscriptions()
         messageContinuation?.finish()
         messageContinuation = nil
         webSocketTask?.cancel()

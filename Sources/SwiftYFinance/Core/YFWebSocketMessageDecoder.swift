@@ -19,7 +19,7 @@ import SwiftProtobuf
 ///
 /// - SeeAlso: `YFWebSocketMessage` WebSocket 메시지 데이터
 /// - SeeAlso: yfinance-reference/yfinance/live.py _decode_message()
-public class YFWebSocketMessageDecoder {
+public final class YFWebSocketMessageDecoder: Sendable {
     
     /// YFWebSocketMessageDecoder 초기화
     ///

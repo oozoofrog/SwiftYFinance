@@ -13,7 +13,10 @@ struct YFWebSocketManagerTests {
         #expect(manager != nil)
         
         #if DEBUG
-        #expect(manager.testGetConnectionState() == .disconnected)
+        Task {
+            let state = await manager.testGetConnectionState()
+            #expect(state == .disconnected)
+        }
         #endif
     }
     
@@ -24,11 +27,14 @@ struct YFWebSocketManagerTests {
         
         #if DEBUG
         // When & Then - Initial state
-        #expect(manager.testGetConnectionState() == .disconnected)
-        
-        // Connection states should be trackable
-        let initialState = manager.testGetConnectionState()
-        #expect(initialState == .disconnected || initialState == .connecting || initialState == .connected)
+        Task {
+            let state = await manager.testGetConnectionState()
+            #expect(state == .disconnected)
+            
+            // Connection states should be trackable
+            let initialState = await manager.testGetConnectionState()
+            #expect(initialState == .disconnected || initialState == .connecting || initialState == .connected)
+        }
         #endif
     }
     
@@ -63,8 +69,10 @@ struct YFWebSocketManagerTests {
         // Then - Manager should have default Yahoo Finance WebSocket URL
         #if DEBUG
         // Default URL should be accessible for testing
-        let state = manager.testGetConnectionState()
-        #expect(state == .disconnected) // Should start disconnected
+        Task {
+            let state = await manager.testGetConnectionState()
+            #expect(state == .disconnected) // Should start disconnected
+        }
         #endif
     }
     

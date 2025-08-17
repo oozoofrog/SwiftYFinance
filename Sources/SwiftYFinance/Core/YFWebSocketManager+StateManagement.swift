@@ -16,8 +16,8 @@ extension YFWebSocketManager {
     /// - Parameters:
     ///   - newState: 변경할 새로운 상태
     ///   - reason: 상태 변경 이유
-    internal func changeConnectionState(to newState: ConnectionState, reason: String) {
-        let oldState = _connectionState
+    internal func changeConnectionState(to newState: ConnectionState, reason: String) async {
+        let oldState = await connectionState
         
         // 상태 전환 유효성 검사
         guard isValidStateTransition(from: oldState, to: newState) else {
@@ -25,26 +25,11 @@ extension YFWebSocketManager {
             return
         }
         
-        // 상태 변경
-        _connectionState = newState
-        
-        // 상태 전환 로그 기록
-        let transition = YFWebSocketStateTransition(
-            fromState: oldState,
-            toState: newState,
-            timestamp: Date(),
-            reason: reason
-        )
-        
-        stateTransitionLog.append(transition)
-        
-        // 로그 크기 제한
-        if stateTransitionLog.count > maxStateTransitionEntries {
-            stateTransitionLog.removeFirst()
-        }
+        // Actor를 통한 상태 변경
+        await internalState.updateConnectionState(to: newState, reason: reason)
         
         // 상태 변경 이벤트 처리
-        handleStateChangeEffects(from: oldState, to: newState)
+        await handleStateChangeEffects(from: oldState, to: newState)
         
         print("🔄 State changed: \(oldState) -> \(newState) (\(reason))")
     }
@@ -88,7 +73,7 @@ extension YFWebSocketManager {
     /// - Parameters:
     ///   - fromState: 이전 상태
     ///   - toState: 새로운 상태
-    internal func handleStateChangeEffects(from fromState: ConnectionState, to toState: ConnectionState) {
+    internal func handleStateChangeEffects(from fromState: ConnectionState, to toState: ConnectionState) async {
         switch toState {
         case .disconnected:
             // 연결 해제 시 정리 작업
@@ -103,14 +88,14 @@ extension YFWebSocketManager {
         case .connected:
             // 연결 성공 시 카운터 초기화
             if fromState != .connected {
-                consecutiveFailures = 0
-                connectionQuality.recordSuccess()
+                await internalState.resetConsecutiveFailures()
+                await internalState.recordConnectionSuccess()
             }
             
         case .failed:
             // 영구적 실패 시 정리
             messageContinuation?.finish()
-            connectionQuality.recordError()
+            await internalState.recordError()
             
         case .suspended:
             // 일시 중단 시 정리
@@ -127,24 +112,11 @@ extension YFWebSocketManager {
     /// - Parameters:
     ///   - error: 발생한 에러
     ///   - context: 에러 발생 컨텍스트
-    internal func logError(_ error: Error, context: String) {
-        let entry = YFWebSocketErrorLogEntry(
-            timestamp: Date(),
-            error: error,
-            context: context,
-            connectionState: connectionState,
-            consecutiveFailures: consecutiveFailures
-        )
+    internal func logError(_ error: Error, context: String) async {
+        let currentState = await connectionState
+        let failures = await consecutiveFailures
         
-        errorLog.append(entry)
-        
-        // 로그 크기 제한
-        if errorLog.count > maxErrorLogEntries {
-            errorLog.removeFirst()
-        }
-        
-        // 연결 품질 업데이트
-        connectionQuality.recordError()
+        await internalState.addErrorLog(error, context: context, connectionState: currentState, consecutiveFailures: failures)
         
         print("📝 Error logged: \(error) in \(context)")
     }
@@ -152,16 +124,16 @@ extension YFWebSocketManager {
     /// 연결 성공 기록
     ///
     /// 연결 품질 메트릭을 업데이트합니다.
-    internal func recordConnectionSuccess() {
-        connectionQuality.recordSuccess()
+    internal func recordConnectionSuccess() async {
+        await internalState.recordConnectionSuccess()
         print("✅ Connection success recorded")
     }
     
     /// 메시지 수신 기록
     ///
     /// 연결 품질 메트릭을 업데이트합니다.
-    internal func recordMessageReceived() {
-        connectionQuality.recordMessageReceived()
+    internal func recordMessageReceived() async {
+        await internalState.recordMessageReceived()
     }
     
     // MARK: - Connection Quality Management
@@ -171,25 +143,25 @@ extension YFWebSocketManager {
     /// 현재 연결 품질과 성능 메트릭을 반환합니다.
     ///
     /// - Returns: 연결 품질 통계 딕셔너리
-    internal func getConnectionQualityStats() -> [String: Any] {
+    internal func getConnectionQualityStats() async -> [String: Any] {
+        let quality = await internalState.getConnectionQuality()
         return [
-            "totalConnections": connectionQuality.totalConnections,
-            "successfulConnections": connectionQuality.successfulConnections,
-            "totalErrors": connectionQuality.totalErrors,
-            "messagesReceived": connectionQuality.messagesReceived,
-            "successRate": connectionQuality.successRate,
-            "errorRate": connectionQuality.errorRate,
-            "lastSuccessTime": connectionQuality.lastSuccessTime?.timeIntervalSince1970 ?? 0,
-            "lastErrorTime": connectionQuality.lastErrorTime?.timeIntervalSince1970 ?? 0
+            "totalConnections": quality.totalConnections,
+            "successfulConnections": quality.successfulConnections,
+            "totalErrors": quality.totalErrors,
+            "messagesReceived": quality.messagesReceived,
+            "successRate": quality.successRate,
+            "errorRate": quality.errorRate,
+            "lastSuccessTime": quality.lastSuccessTime?.timeIntervalSince1970 ?? 0,
+            "lastErrorTime": quality.lastErrorTime?.timeIntervalSince1970 ?? 0
         ]
     }
     
     /// 연결 품질 메트릭 초기화
     ///
     /// 모든 연결 품질 메트릭을 초기 상태로 재설정합니다.
-    internal func resetConnectionQuality() {
-        connectionQuality = YFWebSocketConnectionQuality()
-        errorLog.removeAll()
+    internal func resetConnectionQuality() async {
+        await internalState.resetAllStateData()
         print("🔄 Connection quality metrics reset")
     }
     
@@ -200,8 +172,8 @@ extension YFWebSocketManager {
     /// 상태 전환 패턴과 빈도를 분석할 수 있는 통계를 반환합니다.
     ///
     /// - Returns: 상태 전환 통계 딕셔너리
-    internal func getStateTransitionStats() -> [String: Any] {
-        let transitions = stateTransitionLog
+    internal func getStateTransitionStats() async -> [String: Any] {
+        let transitions = await internalState.getStateTransitionLog()
         
         // 상태별 전환 횟수 계산
         var transitionCounts: [String: Int] = [:]
@@ -224,7 +196,7 @@ extension YFWebSocketManager {
             "totalTransitions": transitions.count,
             "transitionCounts": transitionCounts,
             "recentTransitions": recentTransitions,
-            "currentState": "\(connectionState)"
+            "currentState": "\(await connectionState)"
         ]
     }
     
@@ -233,26 +205,27 @@ extension YFWebSocketManager {
     /// 전체 시스템 상태와 성능 메트릭을 포함한 종합 진단 정보를 반환합니다.
     ///
     /// - Returns: 종합 진단 정보 딕셔너리
-    internal func getComprehensiveDiagnostics() -> [String: Any] {
+    internal func getComprehensiveDiagnostics() async -> [String: Any] {
         var diagnostics: [String: Any] = [:]
         
         // 기본 상태 정보
-        diagnostics["connectionState"] = "\(connectionState)"
-        diagnostics["subscriptions"] = Array(subscriptions)
-        diagnostics["isUsableState"] = isUsableState
-        diagnostics["isActiveState"] = isActiveState
-        diagnostics["canRetryConnection"] = canRetryConnection
+        diagnostics["connectionState"] = "\(await connectionState)"
+        diagnostics["subscriptions"] = Array(await subscriptions)
+        diagnostics["isUsableState"] = await isUsableState
+        diagnostics["isActiveState"] = await isActiveState
+        diagnostics["canRetryConnection"] = await canRetryConnection
         
         // 연결 정보
-        diagnostics["consecutiveFailures"] = consecutiveFailures
+        diagnostics["consecutiveFailures"] = await consecutiveFailures
         
         // 연결 품질 정보
-        diagnostics["connectionQuality"] = getConnectionQualityStats()
+        diagnostics["connectionQuality"] = await getConnectionQualityStats()
         
         // 상태 전환 정보
-        diagnostics["stateTransitions"] = getStateTransitionStats()
+        diagnostics["stateTransitions"] = await getStateTransitionStats()
         
         // 최근 에러 로그 (최대 10개)
+        let errorLog = await internalState.getErrorLog()
         let recentErrors = Array(errorLog.suffix(10)).map { entry in
             [
                 "timestamp": entry.timestamp.timeIntervalSince1970,
@@ -265,8 +238,8 @@ extension YFWebSocketManager {
         
         // 구성 정보
         diagnostics["configuration"] = [
-            "connectionTimeout": connectionTimeout,
-            "messageTimeout": messageTimeout
+            "connectionTimeout": await connectionTimeout,
+            "messageTimeout": await internalState.getMessageTimeout()
         ]
         
         return diagnostics
@@ -279,11 +252,12 @@ extension YFWebSocketManager {
     /// 현재 연결 상태와 품질 메트릭을 기반으로 전체적인 건강도를 평가합니다.
     ///
     /// - Returns: 건강도 점수 (0.0 ~ 1.0)
-    internal func evaluateConnectionHealth() -> Double {
+    internal func evaluateConnectionHealth() async -> Double {
         var score: Double = 0.0
         
         // 현재 연결 상태 점수 (40%)
-        switch connectionState {
+        let currentState = await connectionState
+        switch currentState {
         case .connected:
             score += 0.4
         case .connecting:
@@ -295,15 +269,17 @@ extension YFWebSocketManager {
         }
         
         // 성공률 점수 (30%)
-        let successRate = connectionQuality.successRate
+        let quality = await internalState.getConnectionQuality()
+        let successRate = quality.successRate
         score += successRate * 0.3
         
         // 연속 실패 점수 (20%)
-        let failureScore = consecutiveFailures == 0 ? 1.0 : max(0.0, 1.0 - Double(consecutiveFailures) / 10.0)
+        let failures = await consecutiveFailures
+        let failureScore = failures == 0 ? 1.0 : max(0.0, 1.0 - Double(failures) / 10.0)
         score += failureScore * 0.2
         
         // 에러율 점수 (10%)
-        let errorRate = connectionQuality.errorRate
+        let errorRate = quality.errorRate
         let errorScore = max(0.0, 1.0 - errorRate)
         score += errorScore * 0.1
         
@@ -315,10 +291,12 @@ extension YFWebSocketManager {
     /// 현재 상태와 메트릭을 기반으로 개선 권장 사항을 생성합니다.
     ///
     /// - Returns: 권장 사항 문자열 배열
-    internal func generateConnectionRecommendations() -> [String] {
+    internal func generateConnectionRecommendations() async -> [String] {
         var recommendations: [String] = []
         
-        let health = evaluateConnectionHealth()
+        let health = await evaluateConnectionHealth()
+        let quality = await internalState.getConnectionQuality()
+        let failures = await consecutiveFailures
         
         if health < 0.3 {
             recommendations.append("Connection health is critical. Consider restarting the connection.")
@@ -326,15 +304,15 @@ extension YFWebSocketManager {
             recommendations.append("Connection health is poor. Monitor for frequent disconnections.")
         }
         
-        if consecutiveFailures >= 3 {
+        if failures >= 3 {
             recommendations.append("Multiple consecutive failures detected. Check network connectivity.")
         }
         
-        if connectionQuality.errorRate > 0.5 {
+        if quality.errorRate > 0.5 {
             recommendations.append("High error rate detected. Review error logs for patterns.")
         }
         
-        if connectionQuality.successRate < 0.7 {
+        if quality.successRate < 0.7 {
             recommendations.append("Low connection success rate. Consider adjusting timeout settings.")
         }
         
@@ -350,11 +328,8 @@ extension YFWebSocketManager {
     /// 모든 상태 관리 데이터 초기화
     ///
     /// 상태 전환 로그, 에러 로그, 연결 품질 메트릭을 모두 초기화합니다.
-    internal func resetAllStateData() {
-        stateTransitionLog.removeAll()
-        errorLog.removeAll()
-        connectionQuality = YFWebSocketConnectionQuality()
-        consecutiveFailures = 0
+    internal func resetAllStateData() async {
+        await internalState.resetAllStateData()
         
         print("🔄 All state management data reset")
     }
@@ -362,19 +337,8 @@ extension YFWebSocketManager {
     /// 이전 세션 데이터 정리
     ///
     /// 새로운 연결 세션을 시작하기 전에 이전 세션의 임시 데이터를 정리합니다.
-    internal func cleanupPreviousSession() {
-        // 연결 관련 임시 상태만 정리 (품질 메트릭은 유지)
-        consecutiveFailures = 0
-        
-        // 오래된 상태 전환 로그 정리 (최근 10개만 유지)
-        if stateTransitionLog.count > 10 {
-            stateTransitionLog = Array(stateTransitionLog.suffix(10))
-        }
-        
-        // 오래된 에러 로그 정리 (최근 20개만 유지)
-        if errorLog.count > 20 {
-            errorLog = Array(errorLog.suffix(20))
-        }
+    internal func cleanupPreviousSession() async {
+        await internalState.cleanupPreviousSession()
         
         print("🧹 Previous session data cleaned up")
     }

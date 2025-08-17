@@ -15,7 +15,7 @@ struct WebSocketConnectionTests {
             
             #if DEBUG
             // Verify connection state changed
-            let state = manager.testGetConnectionState()
+            let state = await manager.testGetConnectionState()
             #expect(state == .connected || state == .connecting, "Connection should be established or in progress")
             #endif
             
@@ -24,7 +24,7 @@ struct WebSocketConnectionTests {
             
             #if DEBUG
             // Verify disconnection
-            let finalState = manager.testGetConnectionState()
+            let finalState = await manager.testGetConnectionState()
             #expect(finalState == .disconnected, "Should be disconnected after cleanup")
             #endif
             
@@ -34,7 +34,7 @@ struct WebSocketConnectionTests {
             
             // But connection state should be properly managed
             #if DEBUG
-            let state = manager.testGetConnectionState()
+            let state = await manager.testGetConnectionState()
             #expect(state == .disconnected, "Should be disconnected after failure")
             #endif
         } catch {
@@ -56,7 +56,7 @@ struct WebSocketConnectionTests {
             try await manager.testConnectWithCustomURL(localTestURL)
             
             // If successful, verify state
-            let state = manager.testGetConnectionState()
+            let state = await manager.testGetConnectionState()
             #expect(state == .connected || state == .connecting)
             
             // Cleanup
@@ -67,7 +67,7 @@ struct WebSocketConnectionTests {
             #expect(message.contains("localhost") || message.contains("connection") || !message.isEmpty)
             
             // Verify proper error state
-            let state = manager.testGetConnectionState()
+            let state = await manager.testGetConnectionState()
             #expect(state == .disconnected)
         } catch {
             // Other connection errors are acceptable
@@ -83,7 +83,7 @@ struct WebSocketConnectionTests {
         
         #if DEBUG
         // When & Then - Initial state
-        let initialState = manager.testGetConnectionState()
+        let initialState = await manager.testGetConnectionState()
         #expect(initialState == .disconnected, "Should start disconnected")
         
         // Test connection attempt (may fail due to network)
@@ -91,17 +91,17 @@ struct WebSocketConnectionTests {
             try await manager.connect()
             
             // State should change during connection
-            let connectionState = manager.testGetConnectionState()
+            let connectionState = await manager.testGetConnectionState()
             #expect(connectionState == .connected || connectionState == .connecting)
             
             // Disconnect should change state back
             await manager.disconnect()
-            let disconnectedState = manager.testGetConnectionState()
+            let disconnectedState = await manager.testGetConnectionState()
             #expect(disconnectedState == .disconnected)
             
         } catch {
             // If connection fails, state should still be properly managed
-            let errorState = manager.testGetConnectionState()
+            let errorState = await manager.testGetConnectionState()
             #expect(errorState == .disconnected, "Should be disconnected after connection failure")
         }
         #endif
@@ -119,17 +119,17 @@ struct WebSocketConnectionTests {
                 try await manager.connect()
                 
                 // Should be connected or connecting
-                let state = manager.testGetConnectionState()
+                let state = await manager.testGetConnectionState()
                 #expect(state == .connected || state == .connecting, "Attempt \(i) should show proper state")
                 
                 // Disconnect before next attempt
                 await manager.disconnect()
-                let disconnectedState = manager.testGetConnectionState()
+                let disconnectedState = await manager.testGetConnectionState()
                 #expect(disconnectedState == .disconnected, "Should be disconnected between attempts")
                 
             } catch {
                 // Connection failures are acceptable, but state should be consistent
-                let errorState = manager.testGetConnectionState()
+                let errorState = await manager.testGetConnectionState()
                 #expect(errorState == .disconnected, "State should be disconnected after failure in attempt \(i)")
             }
         }
@@ -163,7 +163,7 @@ struct WebSocketConnectionTests {
                 #expect(message.contains(invalidURL) || message.contains("Invalid"), "Error should reference the invalid URL")
                 
                 // State should be disconnected after failure
-                let state = manager.testGetConnectionState()
+                let state = await manager.testGetConnectionState()
                 #expect(state == .disconnected, "Should be disconnected after invalid URL")
                 
             } catch YFError.webSocketError(.connectionFailed(let message)) {
@@ -171,7 +171,7 @@ struct WebSocketConnectionTests {
                 #expect(!message.isEmpty, "Connection failure message should be descriptive for: \(invalidURL)")
                 
                 // State should be disconnected after failure
-                let state = manager.testGetConnectionState()
+                let state = await manager.testGetConnectionState()
                 #expect(state == .disconnected, "Should be disconnected after connection failure")
                 
             } catch {
@@ -179,7 +179,7 @@ struct WebSocketConnectionTests {
                 print("Unexpected error for \(invalidURL): \(error)")
                 
                 // But state should still be properly managed
-                let state = manager.testGetConnectionState()
+                let state = await manager.testGetConnectionState()
                 #expect(state == .disconnected, "Should be disconnected after any error")
             }
         }
@@ -212,7 +212,7 @@ struct WebSocketConnectionTests {
                 #expect(message.contains(unreachableURL) || message.contains("Failed"), "Error should reference the URL or failure")
                 
                 // State should be disconnected after failure
-                let state = manager.testGetConnectionState()
+                let state = await manager.testGetConnectionState()
                 #expect(state == .disconnected, "Should be disconnected after connection failure")
                 
             } catch YFError.webSocketError(.invalidURL(let message)) {
@@ -224,7 +224,7 @@ struct WebSocketConnectionTests {
                 print("Network error for \(unreachableURL): \(error)")
                 
                 // State should still be properly managed
-                let state = manager.testGetConnectionState()
+                let state = await manager.testGetConnectionState()
                 #expect(state == .disconnected, "Should be disconnected after network error")
             }
         }
@@ -252,7 +252,7 @@ struct WebSocketConnectionTests {
             #expect(!message.isEmpty, "Timeout error message should be descriptive")
             
             // State should be disconnected after timeout
-            let state = manager.testGetConnectionState()
+            let state = await manager.testGetConnectionState()
             #expect(state == .disconnected, "Should be disconnected after timeout")
             
         } catch {
@@ -260,7 +260,7 @@ struct WebSocketConnectionTests {
             print("Timeout test error: \(error)")
             
             // State should be properly managed
-            let state = manager.testGetConnectionState()
+            let state = await manager.testGetConnectionState()
             #expect(state == .disconnected, "Should be disconnected after timeout error")
         }
         #endif
