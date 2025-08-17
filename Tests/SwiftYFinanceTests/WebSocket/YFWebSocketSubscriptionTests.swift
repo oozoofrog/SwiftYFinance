@@ -92,11 +92,11 @@ struct YFWebSocketSubscriptionTests {
         let symbols = ["AAPL", "TSLA"]
         
         // When - Create subscription message
-        let message = YFWebSocketManager.createSubscriptionMessage(symbols: symbols)
+        let message = YFSubscriptionRegistry.createSubscriptionMessage(symbols: symbols)
         
         // Then - Should be valid JSON format
         do {
-            let jsonData = message.data(using: .utf8)!
+            let jsonData = message.data(using: String.Encoding.utf8)!
             let jsonObject = try JSONSerialization.jsonObject(with: jsonData) as! [String: Any]
             
             #expect(jsonObject["subscribe"] != nil, "Should have 'subscribe' key")
@@ -234,11 +234,11 @@ struct YFWebSocketSubscriptionTests {
         let symbols = ["AAPL", "TSLA"]
         
         // When - Create unsubscription message
-        let message = YFWebSocketManager.createUnsubscriptionMessage(symbols: symbols)
+        let message = YFSubscriptionRegistry.createUnsubscriptionMessage(symbols: symbols)
         
         // Then - Should be valid JSON format
         do {
-            let jsonData = message.data(using: .utf8)!
+            let jsonData = message.data(using: String.Encoding.utf8)!
             let jsonObject = try JSONSerialization.jsonObject(with: jsonData) as! [String: Any]
             
             #expect(jsonObject["unsubscribe"] != nil, "Should have 'unsubscribe' key")

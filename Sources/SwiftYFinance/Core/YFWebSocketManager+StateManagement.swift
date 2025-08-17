@@ -78,7 +78,9 @@ extension YFWebSocketManager {
         case .disconnected:
             // 연결 해제 시 정리 작업
             if fromState != .disconnected {
-                messageContinuation?.finish()
+                Task {
+                    await messageProcessor.clearMessageContinuation()
+                }
             }
             
         case .connecting:
@@ -94,12 +96,15 @@ extension YFWebSocketManager {
             
         case .failed:
             // 영구적 실패 시 정리
-            messageContinuation?.finish()
+            Task {
+                await messageProcessor.clearMessageContinuation()
+            }
             await internalState.recordError()
             
         case .suspended:
             // 일시 중단 시 정리
-            webSocketTask?.cancel(with: .goingAway, reason: nil)
+            let task = await webSocketTask
+            task?.cancel(with: .goingAway, reason: nil)
         }
     }
     

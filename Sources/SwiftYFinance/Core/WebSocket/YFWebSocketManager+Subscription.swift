@@ -19,23 +19,11 @@ extension YFWebSocketManager {
     /// try await manager.subscribe(to: ["AAPL", "TSLA"])
     /// ```
     public func subscribe(to symbols: [String]) async throws {
-        guard await isUsableState else {
-            let currentState = await connectionState
-            throw YFError.webSocketError(.notConnected("Must be connected to WebSocket before subscribing (current state: \(currentState))"))
-        }
-        
-        guard !symbols.isEmpty else {
-            throw YFError.webSocketError(.invalidSubscription("Cannot subscribe to empty symbol list"))
-        }
-        
-        // 중복 제거 및 구독 목록 업데이트
-        let uniqueSymbols = Set(symbols)
-        await internalState.addSubscriptions(uniqueSymbols)
-        
-        // JSON 구독 메시지 생성 및 전송
-        let currentSubscriptions = await subscriptions
-        let message = Self.createSubscriptionMessage(symbols: Array(currentSubscriptions))
-        try await sendMessage(message)
+        try await subscriptionRegistry.subscribe(
+            to: symbols,
+            isUsableState: { await self.isUsableState },
+            sendMessage: { message in try await self.sendMessage(message) }
+        )
     }
     
     /// 심볼 구독 취소
@@ -45,57 +33,26 @@ extension YFWebSocketManager {
     /// - Parameter symbols: 구독 취소할 심볼 배열
     /// - Throws: `YFError.webSocketError` 연결 또는 구독 관련 오류
     public func unsubscribe(from symbols: [String]) async throws {
-        guard await isUsableState else {
-            let currentState = await connectionState
-            throw YFError.webSocketError(.notConnected("Must be connected to WebSocket before unsubscribing (current state: \(currentState))"))
-        }
-        
-        guard !symbols.isEmpty else {
-            return // 빈 배열 무시
-        }
-        
-        // 구독 목록에서 제거
-        let symbolsToRemove = Set(symbols)
-        await internalState.removeSubscriptions(symbolsToRemove)
-        
-        // JSON 구독 취소 메시지 생성 및 전송
-        let message = Self.createUnsubscriptionMessage(symbols: symbols)
-        try await sendMessage(message)
+        try await subscriptionRegistry.unsubscribe(
+            from: symbols,
+            isUsableState: { await self.isUsableState },
+            sendMessage: { message in try await self.sendMessage(message) }
+        )
     }
     
-    // MARK: - Message Creation
+    // MARK: - State Access
     
-    /// 구독 JSON 메시지 생성
+    /// 현재 구독 목록 조회
     ///
-    /// Yahoo Finance WebSocket 프로토콜에 맞는 구독 메시지를 생성합니다.
-    ///
-    /// - Parameter symbols: 구독할 심볼 배열
-    /// - Returns: JSON 형식의 구독 메시지 문자열
-    static func createSubscriptionMessage(symbols: [String]) -> String {
-        let subscriptionData: [String: [String]] = ["subscribe": symbols]
-        
-        do {
-            let jsonData = try JSONSerialization.data(withJSONObject: subscriptionData, options: [])
-            return String(data: jsonData, encoding: .utf8) ?? "{\"subscribe\":[]}"
-        } catch {
-            return "{\"subscribe\":[]}"
+    /// - Returns: 현재 구독 중인 심볼들의 Set
+    public var subscriptions: Set<String> {
+        get async {
+            return await subscriptionRegistry.getSubscriptions()
         }
     }
     
-    /// 구독 취소 JSON 메시지 생성
-    ///
-    /// Yahoo Finance WebSocket 프로토콜에 맞는 구독 취소 메시지를 생성합니다.
-    ///
-    /// - Parameter symbols: 구독 취소할 심볼 배열
-    /// - Returns: JSON 형식의 구독 취소 메시지 문자열
-    static func createUnsubscriptionMessage(symbols: [String]) -> String {
-        let unsubscriptionData: [String: [String]] = ["unsubscribe": symbols]
-        
-        do {
-            let jsonData = try JSONSerialization.data(withJSONObject: unsubscriptionData, options: [])
-            return String(data: jsonData, encoding: .utf8) ?? "{\"unsubscribe\":[]}"
-        } catch {
-            return "{\"unsubscribe\":[]}"
-        }
+    /// 구독 목록 초기화
+    public func clearSubscriptions() async {
+        await subscriptionRegistry.clearSubscriptions()
     }
 }

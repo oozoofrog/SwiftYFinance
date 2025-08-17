@@ -54,7 +54,8 @@ extension YFWebSocketManager {
     /// DEBUG 빌드에서만 사용할 수 있는 연결 손실 시뮬레이션 메서드입니다.
     public func testSimulateConnectionLoss() async {
         if await isUsableState {
-            webSocketTask?.cancel()
+            let task = await webSocketTask
+            task?.cancel()
             await changeConnectionState(to: .disconnected, reason: "Test: Simulated connection loss")
         }
     }
@@ -218,7 +219,7 @@ extension YFWebSocketManager {
     /// - Parameter symbols: 구독할 심볼 배열
     /// - Returns: 생성된 JSON 메시지
     public func testCreateSubscriptionMessage(symbols: [String]) -> String {
-        return Self.createSubscriptionMessage(symbols: symbols)
+        return YFSubscriptionRegistry.createSubscriptionMessage(symbols: symbols)
     }
     
     /// 구독 취소 메시지 생성 테스트 (테스트용)
@@ -228,7 +229,7 @@ extension YFWebSocketManager {
     /// - Parameter symbols: 구독 취소할 심볼 배열
     /// - Returns: 생성된 JSON 메시지
     public func testCreateUnsubscriptionMessage(symbols: [String]) -> String {
-        return Self.createUnsubscriptionMessage(symbols: symbols)
+        return YFSubscriptionRegistry.createUnsubscriptionMessage(symbols: symbols)
     }
     
     // MARK: - Internal State Manipulation
@@ -283,8 +284,8 @@ extension YFWebSocketManager {
     /// DEBUG 빌드에서만 사용할 수 있는 WebSocket task 확인 메서드입니다.
     ///
     /// - Returns: WebSocket task가 존재하는지 여부
-    public func testHasWebSocketTask() -> Bool {
-        return webSocketTask != nil
+    public func testHasWebSocketTask() async -> Bool {
+        return await webSocketTask != nil
     }
     
     /// 메시지 컨티뉴에이션 존재 확인 (테스트용)
@@ -292,8 +293,8 @@ extension YFWebSocketManager {
     /// DEBUG 빌드에서만 사용할 수 있는 메시지 컨티뉴에이션 확인 메서드입니다.
     ///
     /// - Returns: 메시지 컨티뉴에이션이 존재하는지 여부
-    public func testHasMessageContinuation() -> Bool {
-        return messageContinuation != nil
+    public func testHasMessageContinuation() async -> Bool {
+        return await messageProcessor.hasMessageContinuation()
     }
     
     /// 연결 실패 시뮬레이션 (테스트용)
@@ -311,10 +312,10 @@ extension YFWebSocketManager {
         await internalState.resetConsecutiveFailures()
         await internalState.updateConnectionState(to: .disconnected, reason: "Test: Connection state reset")
         await internalState.clearSubscriptions()
-        messageContinuation?.finish()
-        messageContinuation = nil
-        webSocketTask?.cancel()
-        webSocketTask = nil
+        await messageProcessor.clearMessageContinuation()
+        let task = await connection.webSocketTask
+        task?.cancel()
+        await connection.setWebSocketTask(nil)
     }
 }
 #endif

@@ -1,8 +1,37 @@
 import Foundation
 
-// MARK: - Connection Management
-
-extension YFWebSocketManager {
+/// WebSocket 연결 관리 전용 Actor
+///
+/// Yahoo Finance WebSocket 서버와의 연결 생성, 관리, 해제를 담당합니다.
+/// Single Responsibility Principle에 따라 연결 관련 기능만 제공합니다.
+internal actor YFWebSocketConnection {
+    
+    // MARK: - Properties
+    
+    /// URLSession for WebSocket connections
+    internal let urlSession: URLSession
+    
+    /// 현재 WebSocket task
+    internal var webSocketTask: URLSessionWebSocketTask?
+    
+    // MARK: - Dependencies
+    
+    /// 상태 관리 Actor (외부 주입)
+    private let stateManager: YFWebSocketInternalState
+    
+    // MARK: - Initialization
+    
+    /// WebSocket 연결 관리자 초기화
+    ///
+    /// - Parameters:
+    ///   - urlSession: WebSocket 연결에 사용할 URLSession
+    ///   - stateManager: 상태 관리를 담당하는 Actor
+    internal init(urlSession: URLSession, stateManager: YFWebSocketInternalState) {
+        self.urlSession = urlSession
+        self.stateManager = stateManager
+    }
+    
+    // MARK: - Connection Management
     
     /// 지정된 URL로 WebSocket 연결 시도
     ///
@@ -13,7 +42,7 @@ extension YFWebSocketManager {
         
         #if DEBUG
         // 테스트용 잘못된 연결 모드
-        if await testInvalidConnectionMode {
+        if await stateManager.getTestInvalidConnectionMode() {
             await changeConnectionState(to: .failed, reason: "Test invalid connection mode enabled")
             throw YFError.webSocketError(.connectionFailed("Test invalid connection mode enabled"))
         }
@@ -21,7 +50,7 @@ extension YFWebSocketManager {
         
         do {
             // 타임아웃과 함께 연결 시도
-            let currentTimeout = await connectionTimeout
+            let currentTimeout = await stateManager.getConnectionTimeout()
             
             // 연결과 타임아웃 중 먼저 완료되는 것을 기다림
             // Race condition: 타임아웃과 연결 시도를 동시에 실행
@@ -77,17 +106,11 @@ extension YFWebSocketManager {
             await changeConnectionState(to: .connected, reason: "WebSocket connection established")
             
             // 연결 성공 기록
-            await recordConnectionSuccess()
+            await stateManager.recordConnectionSuccess()
             
-            // 메시지 스트림이 활성화되어 있다면 메시지 수신 시작
-            if messageContinuation != nil {
-                Task {
-                    await startMessageListening()
-                }
-            }
         } catch let error as YFError {
             await changeConnectionState(to: .disconnected, reason: "Connection failed: \(error)")
-            await internalState.incrementConsecutiveFailures()
+            await stateManager.incrementConsecutiveFailures()
             webSocketTask?.cancel()
             webSocketTask = nil
             
@@ -96,7 +119,7 @@ extension YFWebSocketManager {
             throw error
         } catch {
             await changeConnectionState(to: .disconnected, reason: "Connection failed: \(error)")
-            await internalState.incrementConsecutiveFailures()
+            await stateManager.incrementConsecutiveFailures()
             webSocketTask?.cancel()
             webSocketTask = nil
             
@@ -106,6 +129,25 @@ extension YFWebSocketManager {
             throw yfError
         }
     }
+    
+    /// WebSocket 연결 해제
+    ///
+    /// 활성 WebSocket 연결을 정상적으로 종료합니다.
+    internal func disconnect() async {
+        await changeConnectionState(to: .disconnected, reason: "User requested disconnect")
+        
+        webSocketTask?.cancel(with: .goingAway, reason: nil)
+        webSocketTask = nil
+    }
+    
+    /// WebSocket task 직접 설정 (테스트용)
+    ///
+    /// - Parameter task: 설정할 WebSocket task
+    internal func setWebSocketTask(_ task: URLSessionWebSocketTask?) {
+        webSocketTask = task
+    }
+    
+    // MARK: - Private Methods
     
     /// WebSocket 연결 수행 (Actor-safe)
     ///
@@ -119,5 +161,25 @@ extension YFWebSocketManager {
             let testMessage = URLSessionWebSocketTask.Message.string("")
             try await task.send(testMessage)
         }
+    }
+    
+    /// 연결 상태 변경
+    ///
+    /// - Parameters:
+    ///   - newState: 새로운 상태
+    ///   - reason: 상태 변경 이유
+    private func changeConnectionState(to newState: YFWebSocketConnectionState, reason: String) async {
+        await stateManager.updateConnectionState(to: newState, reason: reason)
+    }
+    
+    /// 에러 로깅
+    ///
+    /// - Parameters:
+    ///   - error: 로깅할 에러
+    ///   - context: 에러 발생 컨텍스트
+    private func logError(_ error: Error, context: String) async {
+        let currentState = await stateManager.getConnectionState()
+        let failures = await stateManager.getConsecutiveFailures()
+        await stateManager.addErrorLog(error, context: context, connectionState: currentState, consecutiveFailures: failures)
     }
 }
