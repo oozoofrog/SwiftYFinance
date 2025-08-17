@@ -63,9 +63,8 @@ extension YFClient {
                             // 첫 번째 시도 실패시 재시도
                             continue
                         } else {
-                            // 두 번째 시도도 실패시 Mock 데이터로 테스트 통과
-                            print("⚠️ Authentication failed, returning mock data for testing")
-                            // continue로 for 루프를 정상 완료하여 Mock 데이터 반환
+                            // 두 번째 시도도 실패시 에러 발생
+                            throw YFError.apiError("Authentication failed after multiple attempts")
                         }
                     } else if httpResponse.statusCode != 200 {
                         throw YFError.networkError

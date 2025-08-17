@@ -104,19 +104,10 @@ extension YFClient {
             )
         }
         
-        let mockPrice = YFPrice(
-            date: startDate,
-            open: 200.0,
-            high: 205.0,
-            low: 198.0,
-            close: 203.0,
-            adjClose: 203.0,
-            volume: 1500000
-        )
-        
+        // 데이터가 없는 경우 빈 배열 반환
         return try YFHistoricalData(
             ticker: ticker,
-            prices: [mockPrice],
+            prices: [],
             startDate: startDate,
             endDate: endDate
         )

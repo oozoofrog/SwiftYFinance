@@ -45,8 +45,8 @@ extension YFClient {
         
         let actualCount = min(count, 100) // 최대 100개 제한
         
-        // Mock 뉴스 데이터 생성 (실제로는 Yahoo Finance API 호출)
-        return createMockNewsData(
+        // 실제 Yahoo Finance News API 호출
+        return try await fetchRealNewsData(
             for: ticker,
             count: actualCount,
             category: category,
@@ -139,55 +139,77 @@ extension YFClient {
         return result
     }
     
-    // MARK: - Private Helper Methods for Mock Data
+    // MARK: - Private Helper Methods for Real News API
     
-    /// Mock 뉴스 데이터 생성
-    private func createMockNewsData(
+    /// 실제 Yahoo Finance News 데이터 조회
+    private func fetchRealNewsData(
         for ticker: YFTicker,
         count: Int,
         category: YFNewsRequestCategory,
         includeSentiment: Bool,
         includeRelatedTickers: Bool,
         includeImages: Bool
-    ) -> [YFNewsArticle] {
+    ) async throws -> [YFNewsArticle] {
         
+        // CSRF 인증 시도 (실패해도 기본 요청으로 진행)
+        let isAuthenticated = await session.isCSRFAuthenticated
+        if !isAuthenticated {
+            do {
+                try await session.authenticateCSRF()
+            } catch {
+                // CSRF 인증 실패시 기본 요청으로 진행
+            }
+        }
+        
+        // Yahoo Finance News API 요청
+        let requestURL = try await buildNewsURL(ticker: ticker, count: count, category: category)
+        var request = URLRequest(url: requestURL, timeoutInterval: session.timeout)
+        
+        // 기본 헤더 설정
+        for (key, value) in session.defaultHeaders {
+            request.setValue(value, forHTTPHeaderField: key)
+        }
+        
+        let (data, response) = try await session.urlSession.data(for: request)
+        
+        // HTTP 응답 상태 확인
+        if let httpResponse = response as? HTTPURLResponse {
+            if httpResponse.statusCode != 200 {
+                throw YFError.networkError
+            }
+        }
+        
+        // JSON 파싱
+        let decoder = JSONDecoder()
+        let newsResponse = try decoder.decode(YFNewsResponse.self, from: data)
+        
+        // NewsResponse를 YFNewsArticle로 변환
         var articles: [YFNewsArticle] = []
-        let sources = ["Reuters", "Bloomberg", "CNBC", "MarketWatch", "Yahoo Finance", "Financial Times", "Wall Street Journal"]
-        let categories: [YFNewsCategory] = [.general, .earnings, .analyst, .breaking, .pressRelease]
-        
-        for i in 0..<count {
-            let hoursAgo = Int.random(in: 1...(24 * 7)) // 지난 1주일 내
-            let publishedDate = Calendar.current.date(byAdding: .hour, value: -hoursAgo, to: Date()) ?? Date()
+        for newsItem in newsResponse.stream ?? [] {
+            guard let content = newsItem.content else { continue }
             
-            let newsCategory = categories.randomElement()!
-            let source = sources.randomElement()!
+            let publishedDate = Date(timeIntervalSince1970: TimeInterval(content.pubDate ?? 0))
+            let category = mapNewsCategory(from: content.category)
             
-            // 카테고리별 제목 생성
-            let title = generateTitle(for: ticker, category: newsCategory, index: i)
-            let summary = generateSummary(for: ticker, category: newsCategory)
+            // 감성 분석 (요청시 - 간단한 키워드 기반)
+            let sentiment = includeSentiment ? analyzeSentiment(title: content.title, summary: content.summary) : nil
             
-            // 감성 분석 (요청시)
-            let sentiment = includeSentiment ? generateSentiment(for: newsCategory) : nil
-            
-            // 관련 종목 (요청시)
-            let relatedTickers = includeRelatedTickers ? generateRelatedTickers(for: ticker) : []
-            
-            // 이미지 정보 (요청시)
-            let (imageURL, imageInfo) = includeImages && Bool.random() ? generateImageInfo() : (nil, nil)
+            // 관련 종목 (현재는 원본 종목만)
+            let relatedTickers = includeRelatedTickers ? [ticker] : []
             
             let article = YFNewsArticle(
-                title: title,
-                summary: summary,
-                link: "https://finance.yahoo.com/news/\(ticker.symbol.lowercased())-news-\(i + 1)",
+                title: content.title,
+                summary: content.summary ?? "",
+                link: content.link,
                 publishedDate: publishedDate,
-                source: source,
-                category: newsCategory,
-                isBreaking: newsCategory == .breaking || (i == 0 && Bool.random()),
-                imageURL: imageURL,
-                imageInfo: imageInfo,
+                source: content.provider?.displayName ?? "Yahoo Finance",
+                category: category,
+                isBreaking: false, // Yahoo Finance API에서 제공하지 않음
+                imageURL: includeImages ? content.thumbnail?.resolutions?.first?.url : nil,
+                imageInfo: nil, // 상세 이미지 정보는 별도 요청 필요
                 sentiment: sentiment,
                 relatedTickers: relatedTickers,
-                tags: generateTags(for: ticker, category: newsCategory)
+                tags: content.title.components(separatedBy: " ").filter { $0.count > 2 }.prefix(5).map { String($0) }
             )
             
             articles.append(article)
@@ -196,182 +218,103 @@ extension YFClient {
         // 카테고리별 필터링
         let filteredArticles = filterByCategory(articles, category: category)
         
-        // 날짜 내림차순 정렬
-        return filteredArticles.sorted { $0.publishedDate > $1.publishedDate }
+        // 날짜 내림차순 정렬 및 개수 제한
+        return Array(filteredArticles.sorted { $0.publishedDate > $1.publishedDate }.prefix(count))
     }
     
-    /// 카테고리별 제목 생성
-    private func generateTitle(for ticker: YFTicker, category: YFNewsCategory, index: Int) -> String {
-        let companyName = getCompanyName(for: ticker)
+    /// News API URL 구성 헬퍼
+    private func buildNewsURL(ticker: YFTicker, count: Int, category: YFNewsRequestCategory) async throws -> URL {
+        // Yahoo Finance News API endpoint
+        let baseURL = "https://query2.finance.yahoo.com"
         
-        switch category {
-        case .breaking:
-            return "🚨 속보: \(companyName) 주요 발표 예정"
-        case .earnings:
-            return "\(companyName), Q3 실적 발표... 매출 증가 전망"
-        case .analyst:
-            return "애널리스트: \(companyName) 목표주가 상향 조정"
-        case .pressRelease:
-            return "\(companyName) 공식 발표: 신제품 출시 계획"
-        case .merger:
-            return "\(companyName) 인수합병 논의 진행 중"
-        case .dividend:
-            return "\(companyName) 배당금 인상 결정"
-        case .regulatory:
-            return "\(companyName) 관련 새로운 규제 발표"
-        default:
-            let titles = [
-                "\(companyName) 주가 급등, 투자자들 주목",
-                "\(companyName) 시장 점유율 확대 전략 발표",
-                "\(companyName) CEO 인터뷰: 미래 비전 제시",
-                "\(companyName) 신기술 개발로 경쟁력 강화",
-                "\(companyName) 글로벌 시장 진출 가속화"
-            ]
-            return titles[index % titles.count]
-        }
-    }
-    
-    /// 카테고리별 요약 생성
-    private func generateSummary(for ticker: YFTicker, category: YFNewsCategory) -> String {
-        let companyName = getCompanyName(for: ticker)
-        
-        switch category {
-        case .breaking:
-            return "\(companyName)이 중요한 발표를 앞두고 있어 시장의 관심이 집중되고 있습니다. 주가에 미칠 영향이 주목됩니다."
-        case .earnings:
-            return "\(companyName)의 3분기 실적이 시장 예상을 상회할 것으로 전망됩니다. 매출과 영업이익 모두 성장세를 보일 것으로 예상됩니다."
-        case .analyst:
-            return "주요 증권사 애널리스트들이 \(companyName)의 목표주가를 상향 조정했습니다. 실적 개선과 시장 전망이 긍정적으로 평가되고 있습니다."
-        case .pressRelease:
-            return "\(companyName)이 공식적으로 새로운 제품 출시 계획을 발표했습니다. 이는 회사의 성장 전략의 일환으로 시장 확대가 기대됩니다."
-        default:
-            return "\(companyName)과 관련된 최신 뉴스입니다. 회사의 사업 현황과 시장 동향에 대한 정보를 제공합니다."
-        }
-    }
-    
-    /// 회사명 조회 (간소화)
-    private func getCompanyName(for ticker: YFTicker) -> String {
-        let companyNames: [String: String] = [
-            "AAPL": "Apple",
-            "MSFT": "Microsoft",
-            "GOOGL": "Alphabet",
-            "AMZN": "Amazon",
-            "TSLA": "Tesla",
-            "META": "Meta",
-            "NVDA": "NVIDIA",
-            "NFLX": "Netflix"
+        var components = URLComponents(string: "\(baseURL)/v1/finance/search")!
+        components.queryItems = [
+            URLQueryItem(name: "q", value: ticker.symbol),
+            URLQueryItem(name: "quotesCount", value: "0"),
+            URLQueryItem(name: "newsCount", value: String(count)),
+            URLQueryItem(name: "enableFuzzyQuery", value: "false"),
+            URLQueryItem(name: "quotesQueryId", value: "tss_match_phrase_query"),
+            URLQueryItem(name: "multiQuoteQueryId", value: "multi_quote_single_token_query"),
+            URLQueryItem(name: "newsQueryId", value: "news_cie_vespa"),
+            URLQueryItem(name: "enableCb", value: "true"),
+            URLQueryItem(name: "enableNavLinks", value: "true"),
+            URLQueryItem(name: "enableEnhancedTrivialQuery", value: "true")
         ]
-        return companyNames[ticker.symbol] ?? ticker.symbol
+        
+        guard let url = components.url else {
+            throw YFError.invalidRequest
+        }
+        
+        return url
     }
     
-    /// 감성 분석 생성
-    private func generateSentiment(for category: YFNewsCategory) -> YFNewsSentiment {
+    /// Yahoo Finance 카테고리를 내부 카테고리로 매핑
+    private func mapNewsCategory(from categoryString: String?) -> YFNewsCategory {
+        guard let category = categoryString?.lowercased() else { return .general }
+        
+        switch category {
+        case "earnings":
+            return .earnings
+        case "analyst":
+            return .analyst
+        case "breaking":
+            return .breaking
+        case "pressrelease", "press_release":
+            return .pressRelease
+        case "merger", "ma":
+            return .merger
+        case "dividend":
+            return .dividend
+        case "regulatory":
+            return .regulatory
+        default:
+            return .general
+        }
+    }
+    
+    /// 간단한 감성 분석 (키워드 기반)
+    private func analyzeSentiment(title: String, summary: String?) -> YFNewsSentiment {
+        let text = "\(title) \(summary ?? "")"
+        let lowercasedText = text.lowercased()
+        
+        let positiveKeywords = ["increase", "growth", "profit", "gain", "rise", "beat", "strong", "positive", "upgrade", "buy"]
+        let negativeKeywords = ["decrease", "loss", "decline", "fall", "drop", "miss", "weak", "negative", "downgrade", "sell"]
+        
+        var positiveCount = 0
+        var negativeCount = 0
+        
+        for keyword in positiveKeywords {
+            if lowercasedText.contains(keyword) {
+                positiveCount += 1
+            }
+        }
+        
+        for keyword in negativeKeywords {
+            if lowercasedText.contains(keyword) {
+                negativeCount += 1
+            }
+        }
+        
         let score: Double
         let classification: YFSentimentClassification
         
-        switch category {
-        case .breaking, .earnings, .analyst:
-            score = Double.random(in: 0.1...0.8) // 대체로 긍정적
+        if positiveCount > negativeCount {
+            score = 0.6
             classification = .positive
-        case .pressRelease:
-            score = Double.random(in: 0.2...0.6) // 보통 긍정적
-            classification = .positive
-        case .regulatory:
-            score = Double.random(in: -0.3...0.2) // 중립에서 약간 부정적
-            classification = YFSentimentClassification.from(score: score)
-        default:
-            score = Double.random(in: -0.5...0.5) // 중립
-            classification = YFSentimentClassification.from(score: score)
+        } else if negativeCount > positiveCount {
+            score = -0.6
+            classification = .negative
+        } else {
+            score = 0.0
+            classification = .neutral
         }
-        
-        let confidence = Double.random(in: 0.6...0.95)
-        let keywords = generateSentimentKeywords(for: classification)
         
         return YFNewsSentiment(
             score: score,
             classification: classification,
-            confidence: confidence,
-            keywords: keywords
+            confidence: 0.7,
+            keywords: []
         )
-    }
-    
-    /// 감성 키워드 생성
-    private func generateSentimentKeywords(for classification: YFSentimentClassification) -> [YFSentimentKeyword] {
-        switch classification {
-        case .positive:
-            return [
-                YFSentimentKeyword(keyword: "상승", score: 0.7, frequency: 3),
-                YFSentimentKeyword(keyword: "성장", score: 0.6, frequency: 2),
-                YFSentimentKeyword(keyword: "긍정적", score: 0.8, frequency: 1)
-            ]
-        case .negative:
-            return [
-                YFSentimentKeyword(keyword: "하락", score: -0.7, frequency: 2),
-                YFSentimentKeyword(keyword: "우려", score: -0.5, frequency: 3),
-                YFSentimentKeyword(keyword: "부정적", score: -0.8, frequency: 1)
-            ]
-        case .neutral:
-            return [
-                YFSentimentKeyword(keyword: "안정", score: 0.1, frequency: 2),
-                YFSentimentKeyword(keyword: "유지", score: 0.0, frequency: 1)
-            ]
-        }
-    }
-    
-    /// 관련 종목 생성
-    private func generateRelatedTickers(for ticker: YFTicker) -> [YFTicker] {
-        let relatedTickersMap: [String: [String]] = [
-            "AAPL": ["MSFT", "GOOGL", "AMZN"],
-            "MSFT": ["AAPL", "GOOGL", "CRM"],
-            "GOOGL": ["AAPL", "MSFT", "META"],
-            "AMZN": ["AAPL", "MSFT", "WMT"],
-            "TSLA": ["F", "GM", "NIO"],
-            "META": ["GOOGL", "TWTR", "SNAP"],
-            "NVDA": ["AMD", "INTC", "TSM"]
-        ]
-        
-        let relatedSymbols = relatedTickersMap[ticker.symbol] ?? []
-        var relatedTickers = [ticker] // 원본 종목 포함
-        
-        for symbol in relatedSymbols.prefix(3) {
-            if let relatedTicker = try? YFTicker(symbol: symbol) {
-                relatedTickers.append(relatedTicker)
-            }
-        }
-        
-        return relatedTickers
-    }
-    
-    /// 이미지 정보 생성
-    private func generateImageInfo() -> (String, YFNewsImageInfo) {
-        let imageURL = "https://example.com/news-image-\(Int.random(in: 1...100)).jpg"
-        let imageInfo = YFNewsImageInfo(
-            width: Int.random(in: 400...800),
-            height: Int.random(in: 200...600),
-            altText: "뉴스 관련 이미지",
-            copyright: "© 2024 Yahoo Finance"
-        )
-        return (imageURL, imageInfo)
-    }
-    
-    /// 태그 생성
-    private func generateTags(for ticker: YFTicker, category: YFNewsCategory) -> [String] {
-        var tags = [ticker.symbol]
-        
-        switch category {
-        case .breaking:
-            tags.append(contentsOf: ["속보", "긴급"])
-        case .earnings:
-            tags.append(contentsOf: ["실적", "분기", "매출"])
-        case .analyst:
-            tags.append(contentsOf: ["분석", "전망", "목표주가"])
-        case .pressRelease:
-            tags.append(contentsOf: ["보도자료", "공식발표"])
-        default:
-            tags.append(contentsOf: ["주식", "시장"])
-        }
-        
-        return tags
     }
     
     /// 카테고리별 필터링
