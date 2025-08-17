@@ -26,7 +26,7 @@ import Foundation
 /// ```
 ///
 /// - SeeAlso: yfinance-reference/yfinance/data.py의 BeautifulSoup 로직
-class YFHTMLParser {
+final class YFHTMLParser: Sendable {
     
     /// HTML에서 CSRF 토큰을 추출합니다
     /// 

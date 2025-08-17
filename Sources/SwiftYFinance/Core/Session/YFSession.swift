@@ -43,26 +43,26 @@ public enum CookieStrategy: Sendable {
 /// ```
 public final actor YFSession {
     // MARK: - Public Properties
-    public let urlSession: URLSession
-    public let baseURL: URL
-    public let timeout: TimeInterval
+    nonisolated public let urlSession: URLSession
+    nonisolated public let baseURL: URL
+    nonisolated public let timeout: TimeInterval
     public let proxy: [String: Any]?
     
     // MARK: - Private Properties
-    private let additionalHeaders: [String: String]
+    nonisolated private let additionalHeaders: [String: String]
     
     // 상태 관리 (Thread-safe actor)
     internal let sessionState = YFSessionState()
     
     // Immutable components
-    internal let htmlParser = YFHTMLParser()
-    internal let browserImpersonator = YFBrowserImpersonator()
-    internal let networkLogger = YFNetworkLogger.shared
+    nonisolated internal let htmlParser = YFHTMLParser()
+    nonisolated internal let browserImpersonator = YFBrowserImpersonator()
+    nonisolated internal let networkLogger = YFNetworkLogger.shared
     
     // MARK: - Computed Properties
     
     /// Chrome 브라우저 완전 모방 HTTP 헤더 (YFBrowserImpersonator 활용)
-    public var defaultHeaders: [String: String] {
+    nonisolated public var defaultHeaders: [String: String] {
         var headers = browserImpersonator.getChrome136Headers()
         
         // 추가 헤더 적용

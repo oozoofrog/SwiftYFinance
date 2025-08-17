@@ -1,6 +1,7 @@
 import Foundation
+import os
 
-/// Yahoo Finance API 접근을 위한 브라우저 모방 기능
+/// Yahoo Finance API 접근을 위한 브라우저 모방 기능 (Thread-Safe)
 /// 
 /// curl_cffi의 Chrome 136 설정을 Swift URLSession에 적용하여
 /// Yahoo Finance의 탐지 시스템을 우회합니다.
@@ -8,18 +9,20 @@ import Foundation
 /// ## 기능
 /// - **Chrome 136 모방**: 최신 Chrome 브라우저 시그니처 사용
 /// - **Header 최적화**: 브라우저와 동일한 헤더 순서 및 값
-/// - **User-Agent 로테이션**: 탐지 방지를 위한 다중 User-Agent
+/// - **User-Agent 로테이션**: 탐지 방지를 위한 다중 User-Agent (Thread-Safe)
 /// - **URLSession 설정**: Chrome과 유사한 네트워크 설정
+/// - **동시성 안전성**: Swift Sendable 프로토콜 준수
 ///
 /// ## 사용 예시
 /// ```swift
 /// let impersonator = YFBrowserImpersonator()
 /// let session = impersonator.createConfiguredURLSession()
 /// let headers = impersonator.getChrome136Headers()
+/// await impersonator.rotateUserAgent()  // Thread-safe rotation
 /// ```
 ///
 /// - SeeAlso: curl_cffi-reference/curl_cffi/requests/impersonate.py
-public class YFBrowserImpersonator {
+public final class YFBrowserImpersonator: Sendable {
     
     // MARK: - Chrome 136 User-Agent (curl_cffi DEFAULT_CHROME = "chrome136")
     
@@ -35,30 +38,36 @@ public class YFBrowserImpersonator {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
     ]
     
-    private var currentUserAgentIndex = 0
+    private let currentUserAgentIndex = OSAllocatedUnfairLock(initialState: 0)
     
     // MARK: - Initialization
     
     public init() {
         // 초기화 시 랜덤 User-Agent 선택 (탐지 방지)
-        self.currentUserAgentIndex = Int.random(in: 0..<Self.chrome136UserAgents.count)
+        currentUserAgentIndex.withLock { $0 = Int.random(in: 0..<Self.chrome136UserAgents.count) }
     }
     
     // MARK: - User-Agent Management
     
     /// 현재 User-Agent 반환
     public func getCurrentUserAgent() -> String {
-        return Self.chrome136UserAgents[currentUserAgentIndex]
+        return currentUserAgentIndex.withLock { index in
+            Self.chrome136UserAgents[index]
+        }
     }
     
     /// User-Agent 로테이션 (탐지 방지)
     public func rotateUserAgent() {
-        currentUserAgentIndex = (currentUserAgentIndex + 1) % Self.chrome136UserAgents.count
+        currentUserAgentIndex.withLock { index in
+            index = (index + 1) % Self.chrome136UserAgents.count
+        }
     }
     
     /// 랜덤 User-Agent 선택
     public func randomizeUserAgent() {
-        currentUserAgentIndex = Int.random(in: 0..<Self.chrome136UserAgents.count)
+        currentUserAgentIndex.withLock { index in
+            index = Int.random(in: 0..<Self.chrome136UserAgents.count)
+        }
     }
     
     // MARK: - Chrome 136 Headers

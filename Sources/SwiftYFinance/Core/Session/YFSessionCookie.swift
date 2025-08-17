@@ -9,7 +9,7 @@ extension YFSession {
     /// Chrome 브라우저의 최신 버전을 모방합니다.
     ///
     /// - Returns: 현재 설정된 User-Agent 문자열
-    internal func getCurrentUserAgent() -> String {
+    nonisolated internal func getCurrentUserAgent() -> String {
         return browserImpersonator.getCurrentUserAgent()
     }
     
@@ -21,9 +21,9 @@ extension YFSession {
     /// ## 사용 예시
     /// ```swift
     /// // 정기적으로 User-Agent 변경
-    /// await session.rotateUserAgent()
+    /// session.rotateUserAgent()
     /// ```
-    public func rotateUserAgent() {
+    nonisolated public func rotateUserAgent() {
         browserImpersonator.rotateUserAgent()
     }
     
@@ -35,9 +35,9 @@ extension YFSession {
     /// ## 사용 예시
     /// ```swift
     /// // 무작위 User-Agent로 변경
-    /// await session.randomizeUserAgent()
+    /// session.randomizeUserAgent()
     /// ```
-    public func randomizeUserAgent() {
+    nonisolated public func randomizeUserAgent() {
         browserImpersonator.randomizeUserAgent()
     }
 }
