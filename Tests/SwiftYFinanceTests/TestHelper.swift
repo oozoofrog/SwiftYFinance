@@ -2,15 +2,6 @@ import Foundation
 import Testing
 @testable import SwiftYFinance
 
-/// Skip test with message for unimplemented APIs
-public struct SkipTest: Error {
-    public let message: String
-    
-    public init(message: String) {
-        self.message = message
-    }
-}
-
 /// 테스트 격리를 위한 공통 유틸리티
 /// 
 /// Swift Testing 환경에서 테스트 간 상태 간섭을 방지하기 위한 정리 및 초기화 기능을 제공합니다.
