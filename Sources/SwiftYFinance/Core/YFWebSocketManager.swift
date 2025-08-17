@@ -309,31 +309,65 @@ public final class YFWebSocketManager: @unchecked Sendable {
         do {
             // 타임아웃과 함께 연결 시도
             let currentTimeout = await connectionTimeout
-            let timeoutTask = Task {
-                try await Task.sleep(nanoseconds: UInt64(currentTimeout * 1_000_000_000))
-                throw YFError.webSocketError(.connectionTimeout("Connection timeout after \(currentTimeout) seconds"))
-            }
-            
-            let connectionTask = Task {
-                webSocketTask = urlSession.webSocketTask(with: url)
-                webSocketTask?.resume()
-                
-                // WebSocket 연결 확인을 위한 간단한 핑 테스트
-                // URLSessionWebSocketTask의 경우 resume() 호출만으로는 실제 연결이 보장되지 않음
-                if let task = webSocketTask {
-                    // 연결 테스트를 위한 핑 메시지 (비어있는 문자열)
-                    let testMessage = URLSessionWebSocketTask.Message.string("")
-                    try await task.send(testMessage)
-                }
-            }
             
             // 연결과 타임아웃 중 먼저 완료되는 것을 기다림
-            do {
-                try await connectionTask.value
-                timeoutTask.cancel()
-            } catch {
-                connectionTask.cancel()
-                timeoutTask.cancel()
+            // Race condition: 타임아웃과 연결 시도를 동시에 실행
+            let result = await withTaskGroup(of: Result<Void, Error>.self) { group in
+                // 타임아웃 태스크 추가
+                group.addTask {
+                    do {
+                        try await Task.sleep(nanoseconds: UInt64(currentTimeout * 1_000_000_000))
+                        return .failure(YFError.webSocketError(.connectionTimeout("Connection timeout after \(currentTimeout) seconds")))
+                    } catch {
+                        return .failure(error)  // Task cancelled
+                    }
+                }
+                
+                // 연결 태스크 추가
+                group.addTask { [weak self] in
+                    guard let self = self else {
+                        return .failure(YFError.webSocketError(.connectionFailed("Self was deallocated")))
+                    }
+                    
+                    do {
+                        self.webSocketTask = self.urlSession.webSocketTask(with: url)
+                        self.webSocketTask?.resume()
+                        
+                        if let task = self.webSocketTask {
+                            let testMessage = URLSessionWebSocketTask.Message.string("")
+                            try await task.send(testMessage)
+                        }
+                        return .success(())
+                    } catch {
+                        return .failure(error)
+                    }
+                }
+                
+                // 첫 번째 완료된 태스크의 결과를 가져옴
+                guard let firstResult = await group.next() else {
+                    return Result<Void, Error>.failure(YFError.webSocketError(.connectionFailed("No task completed")))
+                }
+                
+                // 나머지 태스크 취소
+                group.cancelAll()
+                
+                // WebSocket task도 명시적으로 취소 (타임아웃의 경우)
+                if case .failure(let error) = firstResult {
+                    if case YFError.webSocketError(.connectionTimeout) = error {
+                        self.webSocketTask?.cancel()
+                        self.webSocketTask = nil
+                    }
+                }
+                
+                return firstResult
+            }
+            
+            // 결과 처리
+            switch result {
+            case .success:
+                // 연결 성공
+                break
+            case .failure(let error):
                 throw error
             }
             
