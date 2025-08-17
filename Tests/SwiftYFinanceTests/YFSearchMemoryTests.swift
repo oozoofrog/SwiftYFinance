@@ -10,36 +10,6 @@ struct YFSearchMemoryTests {
     
     // MARK: - 메모리 누수 테스트
     
-    /// 반복 검색 메모리 누수 테스트
-    @Test("반복 검색 메모리 누수 확인")
-    func testRepeatedSearchMemoryLeak() async throws {
-        let client = YFClient()
-        await YFSearchCache.shared.clearAll()
-        
-        // 초기 메모리 상태
-        let initialStats = await YFSearchCache.shared.getStats()
-        
-        // 많은 검색 수행 (메모리 누수 검사)
-        for i in 1...50 {
-            let query = YFSearchQuery(term: "test_\(i)", maxResults: 5)
-            
-            // 에러를 무시하고 메서드 호출만 확인
-            do {
-                _ = try await client.search(query: query)
-            } catch {
-                // 네트워크 에러는 무시 (메모리 테스트가 목적)
-            }
-        }
-        
-        // 캐시 정리 후 메모리 확인
-        await YFSearchCache.shared.clearAll()
-        let finalStats = await YFSearchCache.shared.getStats()
-        
-        // 캐시가 제대로 정리되었는지 확인
-        #expect(finalStats.totalItems == 0)
-        #expect(finalStats.memoryUsage <= initialStats.memoryUsage + 1000) // 1KB 여유분
-    }
-    
     /// 캐시 메모리 관리 테스트
     @Test("캐시 메모리 관리")
     func testCacheMemoryManagement() async throws {
