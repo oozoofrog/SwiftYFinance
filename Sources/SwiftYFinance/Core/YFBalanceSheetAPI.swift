@@ -53,7 +53,7 @@ extension YFClient {
                     request.setValue(value, forHTTPHeaderField: key)
                 }
                 
-                let (_, response) = try await session.urlSession.data(for: request)
+                let (data, response) = try await session.urlSession.data(for: request)
                 
                 // HTTP 응답 상태 확인
                 if let httpResponse = response as? HTTPURLResponse {
@@ -71,8 +71,76 @@ extension YFClient {
                     }
                 }
                 
-                // TODO: 실제 API 응답 파싱 구현 필요
-                throw YFError.apiError("Balance Sheet API implementation not yet completed")
+                // JSON 파싱
+                print("📊 [DEBUG] Balance Sheet API 응답 데이터 크기: \(data.count) bytes")
+                if let responseString = String(data: data, encoding: .utf8) {
+                    print("📊 [DEBUG] Balance Sheet API 응답 내용: \(responseString)")
+                }
+                
+                // Balance Sheet 전용 응답 구조 파싱
+                let decoder = JSONDecoder()
+                let quoteSummaryResponse = try decoder.decode(QuoteSummaryResponse.self, from: data)
+                
+                // 에러 응답 처리
+                if let error = quoteSummaryResponse.quoteSummary.error {
+                    throw YFError.apiError(error.description)
+                }
+                
+                // 결과 데이터 처리
+                guard let results = quoteSummaryResponse.quoteSummary.result,
+                      let result = results.first else {
+                    throw YFError.apiError("No balance sheet data available")
+                }
+                
+                // Balance Sheet 결과로 재파싱
+                let balanceSheetResult = try decoder.decode(BalanceSheetQuoteSummaryResult.self, from: try JSONEncoder().encode(result))
+                
+                // Annual reports 변환
+                var annualReports: [YFBalanceSheetReport] = []
+                if let statements = balanceSheetResult.balanceSheetHistory?.balanceSheetStatements {
+                    annualReports = statements.compactMap { statement -> YFBalanceSheetReport? in
+                        guard let endDateRaw = statement.endDate?.raw else { return nil }
+                        
+                        return YFBalanceSheetReport(
+                            reportDate: Date(timeIntervalSince1970: TimeInterval(endDateRaw)),
+                            totalCurrentAssets: statement.totalCurrentAssets?.raw ?? 0,
+                            totalCurrentLiabilities: statement.totalCurrentLiabilities?.raw ?? 0,
+                            totalStockholderEquity: statement.totalStockholderEquity?.raw ?? 0,
+                            retainedEarnings: statement.retainedEarnings?.raw ?? 0,
+                            totalAssets: statement.totalAssets?.raw,
+                            totalLiabilities: statement.totalLiab?.raw,
+                            cash: statement.cash?.raw,
+                            shortTermInvestments: statement.shortTermInvestments?.raw
+                        )
+                    }
+                }
+                
+                // Quarterly reports 변환
+                var quarterlyReports: [YFBalanceSheetReport] = []
+                if let statements = balanceSheetResult.balanceSheetHistoryQuarterly?.balanceSheetStatements {
+                    quarterlyReports = statements.compactMap { statement -> YFBalanceSheetReport? in
+                        guard let endDateRaw = statement.endDate?.raw else { return nil }
+                        
+                        return YFBalanceSheetReport(
+                            reportDate: Date(timeIntervalSince1970: TimeInterval(endDateRaw)),
+                            totalCurrentAssets: statement.totalCurrentAssets?.raw ?? 0,
+                            totalCurrentLiabilities: statement.totalCurrentLiabilities?.raw ?? 0,
+                            totalStockholderEquity: statement.totalStockholderEquity?.raw ?? 0,
+                            retainedEarnings: statement.retainedEarnings?.raw ?? 0,
+                            totalAssets: statement.totalAssets?.raw,
+                            totalLiabilities: statement.totalLiab?.raw,
+                            cash: statement.cash?.raw,
+                            shortTermInvestments: statement.shortTermInvestments?.raw
+                        )
+                    }
+                }
+                
+                // YFBalanceSheet 객체 생성 및 반환
+                return YFBalanceSheet(
+                    ticker: ticker,
+                    annualReports: annualReports,
+                    quarterlyReports: quarterlyReports
+                )
                 
             } catch {
                 lastError = error
@@ -100,9 +168,9 @@ extension YFClient {
         
         var components = URLComponents(string: "\(baseURL)/v10/finance/quoteSummary/\(ticker.symbol)")!
         components.queryItems = [
-            URLQueryItem(name: "modules", value: "price"),
+            URLQueryItem(name: "modules", value: "balanceSheetHistory,balanceSheetHistoryQuarterly"),
             URLQueryItem(name: "corsDomain", value: "finance.yahoo.com"),
-            URLQueryItem(name: "formatted", value: "false")
+            URLQueryItem(name: "formatted", value: "true")
         ]
         
         guard let url = components.url else {

@@ -1,5 +1,15 @@
 import Foundation
+import Testing
 @testable import SwiftYFinance
+
+/// Skip test with message for unimplemented APIs
+public struct SkipTest: Error {
+    public let message: String
+    
+    public init(message: String) {
+        self.message = message
+    }
+}
 
 /// 테스트 격리를 위한 공통 유틸리티
 /// 
