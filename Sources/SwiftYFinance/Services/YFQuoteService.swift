@@ -18,7 +18,9 @@ public final class YFQuoteService: YFBaseService {
         await ensureCSRFAuthentication(client: client)
         
         // 요청 URL 구성 및 인증된 요청 수행
-        let requestURL = try await buildQuoteSummaryURL(ticker: ticker)
+        let requestURL = try await apiBuilder()
+            .quoteSummary(for: ticker)
+            .build()
         let (data, _) = try await authenticatedURLRequest(url: requestURL)
         
         // API 응답 디버깅 로그 (공통 메서드 사용)
@@ -60,28 +62,4 @@ public final class YFQuoteService: YFBaseService {
         return quote
     }
     
-    
-    // MARK: - Private Helper Methods
-    private func buildQuoteSummaryURL(ticker: YFTicker) async throws -> URL {
-        let client = try validateClientReference()
-        // CSRF 인증 상태에 따라 base URL 선택
-        let isAuthenticated = await client.session.isCSRFAuthenticated
-        let baseURL = isAuthenticated ? 
-            client.session.baseURL.absoluteString : 
-            "https://query1.finance.yahoo.com"
-        
-        var components = URLComponents(string: "\(baseURL)/v10/finance/quoteSummary/\(ticker.symbol)")!
-        components.queryItems = [
-            URLQueryItem(name: "modules", value: "price,summaryDetail"),
-            URLQueryItem(name: "corsDomain", value: "finance.yahoo.com"),
-            URLQueryItem(name: "formatted", value: "false")
-        ]
-        
-        guard let url = components.url else {
-            throw YFError.invalidRequest
-        }
-        
-        // CSRF 인증된 경우 crumb 추가
-        return isAuthenticated ? await client.session.addCrumbIfNeeded(to: url) : url
-    }
 }

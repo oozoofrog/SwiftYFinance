@@ -20,13 +20,13 @@ public final class YFHistoryService: YFBaseService {
         await ensureCSRFAuthentication(client: client)
         
         // Yahoo Finance API 호출
-        let request = try client.requestBuilder
-            .path("/v8/finance/chart/\(ticker.symbol)")
-            .queryParam("interval", interval.stringValue)
-            .queryParam("range", client.dateHelper.periodToRangeString(period))
+        let requestURL = try await apiBuilder()
+            .chart(for: ticker)
+            .parameter("interval", interval.stringValue)
+            .parameter("range", client.dateHelper.periodToRangeString(period))
             .build()
         
-        let (data, _) = try await authenticatedURLRequest(url: request.url!)
+        let (data, _) = try await authenticatedURLRequest(url: requestURL)
         
         // API 응답 디버깅 로그
         logAPIResponse(data, serviceName: "History")
@@ -75,14 +75,14 @@ public final class YFHistoryService: YFBaseService {
         let startTimestamp = Int(startDate.timeIntervalSince1970)
         let endTimestamp = Int(endDate.timeIntervalSince1970)
         
-        let request = try client.requestBuilder
-            .path("/v8/finance/chart/\(ticker.symbol)")
-            .queryParam("period1", String(startTimestamp))
-            .queryParam("period2", String(endTimestamp))
-            .queryParam("interval", "1d")
+        let requestURL = try await apiBuilder()
+            .chart(for: ticker)
+            .parameter("period1", String(startTimestamp))
+            .parameter("period2", String(endTimestamp))
+            .parameter("interval", "1d")
             .build()
         
-        let (data, _) = try await authenticatedURLRequest(url: request.url!)
+        let (data, _) = try await authenticatedURLRequest(url: requestURL)
         
         // API 응답 디버깅 로그
         logAPIResponse(data, serviceName: "History")

@@ -187,6 +187,18 @@ public class YFBaseService {
         return url
     }
     
+    /// YFAPIBuilder 인스턴스를 생성합니다
+    ///
+    /// Builder 패턴을 사용하여 URL 구성의 단일 책임을 분리하고 유창한 인터페이스를 제공합니다.
+    /// 체이닝을 통해 호스트, 경로, 파라미터를 설정하고 최종적으로 build()를 호출하여 URL을 생성합니다.
+    ///
+    /// - Returns: 클라이언트 세션을 사용하는 YFAPIBuilder 인스턴스
+    /// - Throws: 클라이언트 참조가 유효하지 않은 경우 YFError.apiError
+    func apiBuilder() throws -> YFAPIBuilder {
+        let client = try validateClientReference()
+        return YFAPIBuilder(session: client.session)
+    }
+    
     /// 클라이언트 참조가 유효한지 확인하고 반환합니다
     ///
     /// 서비스 메서드 시작 시 클라이언트 참조 유효성을 검증하고 검증된 클라이언트를 반환합니다.

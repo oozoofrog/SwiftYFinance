@@ -97,11 +97,11 @@ public final actor YFSession {
     
     /// YFSession 초기화 (Phase 4.5.3 네트워크 최적화)
     /// - Parameters:
-    ///   - baseURL: 기본 API URL (기본값: query2.finance.yahoo.com)
+    ///   - baseURL: 기본 API URL (기본값: YFHosts.default)
     ///   - timeout: 요청 타임아웃 (기본값: 15초로 단축)
     ///   - additionalHeaders: 추가 HTTP 헤더
     public init(
-        baseURL: URL = URL(string: "https://query2.finance.yahoo.com")!,
+        baseURL: URL = YFHosts.default,
         timeout: TimeInterval = 15.0,  // Phase 4.5.3: 30초 → 15초 단축
         additionalHeaders: [String: String] = [:]
     ) {
@@ -122,4 +122,5 @@ public final actor YFSession {
     public func resetState() async {
         await sessionState.reset()
     }
+    
 }

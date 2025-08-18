@@ -106,7 +106,7 @@ public final class YFSearchService: YFBaseService {
         // CSRF 인증 시도 (공통 메서드 사용)
         await ensureCSRFAuthentication(client: client)
         
-        let url = try buildSearchURL(for: query)
+        let url = try await buildSearchURL(for: query)
         let (data, _) = try await authenticatedRequest(url: url)
         
         // API 응답 디버깅 로그
@@ -116,10 +116,12 @@ public final class YFSearchService: YFBaseService {
     }
     
     /// 검색 URL 구성
-    private func buildSearchURL(for query: YFSearchQuery) throws -> URL {
-        let baseURL = "https://query2.finance.yahoo.com/v1/finance/search"
+    private func buildSearchURL(for query: YFSearchQuery) async throws -> URL {
         let parameters = query.toURLParameters()
-        return try buildURL(baseURL: baseURL, parameters: parameters)
+        return try await apiBuilder()
+            .search()
+            .parameters(parameters)
+            .build()
     }
     
     /// 검색 응답 JSON 파싱

@@ -66,7 +66,8 @@ client.{domain}.{method}(...)
 - [x] YFChartConverter 클래스 생성 (convertToPrices)
 - [x] YFClient에서 YFDateHelper 사용으로 변경
 
-### Phase 2: Core API 서비스 클래스 생성
+### Phase 2: Core API 서비스 클래스 생성 ✅
+- [x] YFBaseService 부모 클래스 생성 (공통 기능 통합)
 - [x] YFQuoteService 클래스 생성 (fetch 메서드들만 유지)
 - [x] YFQuoteService에서 하위 호환성 fetchQuote 메서드 제거 (새 규칙 적용)
 - [x] YFQuoteAPI.swift 파일 완전 제거
@@ -75,6 +76,10 @@ client.{domain}.{method}(...)
 - [x] 순환 참조 방지를 위한 weak reference 적용
 - [x] YFHistoryService 클래스 생성 (fetchHistory, fetchPriceHistory)
 - [x] YFSearchService 클래스 생성 (search, searchSuggestions)
+- [x] Template Method 패턴 구현 (표준 API 워크플로우)
+- [x] CSRF 인증 로직 모든 서비스에 통합
+- [x] 공통 에러 처리 및 디버깅 로그 통합
+- [x] API 대칭성 달성 (모든 서비스 일관된 구조)
 
 ### Phase 3: Financial API 서비스 클래스 생성
 - [ ] YFFinancialsService 클래스 생성 (fetchFinancials)
@@ -96,8 +101,9 @@ client.{domain}.{method}(...)
 
 ### Phase 6: 기존 파일 정리
 - [x] YFQuoteAPI.swift 제거
-- [ ] YFHistoryAPI.swift 제거
-- [ ] YFSearchAPI.swift 제거
+- [x] YFHistoryAPI.swift 제거
+- [x] YFSearchAPI.swift 제거
+- [x] YFAPIHelper.swift 제거 (기능을 YFBaseService로 통합)
 - [ ] YFFinancialsAPI.swift 제거
 - [ ] YFBalanceSheetAPI.swift 제거
 - [ ] YFCashFlowAPI.swift 제거
@@ -125,9 +131,10 @@ client.{domain}.{method}(...)
 
 ### ✅ 완료된 구성 요소
 - **YFClient**: 메인 클라이언트 (모든 서비스의 진입점)
+- **YFBaseService**: 모든 서비스의 공통 기능 부모 클래스 (인증, 에러 처리, 디버깅)
 - **YFDateHelper**: 날짜 변환 유틸리티 (period 계산, timestamp 변환)
 - **YFChartConverter**: 차트 데이터 변환 유틸리티 (ChartResult → YFPrice[])
-- **YFQuoteService**: 주식 시세 조회 서비스 (기본/실시간 시세)
+- **YFQuoteService**: 주식 시세 조회 서비스
 - **YFHistoryService**: 과거 가격 데이터 조회 서비스 (일간/분간 OHLCV)
 - **YFSearchService**: 종목 검색 및 자동완성 서비스
 
@@ -178,7 +185,6 @@ let result = try await client.{service}.{method}({parameters})
 #### Quote 서비스 (시세)
 ```swift
 client.quote.fetch(ticker: {ticker})                    // 기본 시세
-client.quote.fetch(ticker: {ticker}, realtime: {bool})  // 실시간 시세
 ```
 
 #### History 서비스 (과거 데이터)
@@ -227,32 +233,36 @@ client.screening.screen(criteria: {criteria})          // 스크리닝
 
 ### 🎯 API 명명 규칙
 - **일관된 메서드명**: 모든 서비스에서 `fetch()` 메서드 사용
-- **명확한 파라미터**: ticker, period, realtime 등 명시적 파라미터명
+- **명확한 파라미터**: ticker, period 등 명시적 파라미터명
 - **반환 타입 일관성**: YF[Domain] 형태의 반환 타입 (YFQuote, YFHistory 등)
 
 ### 🔧 확장 가이드라인
 #### 새로운 서비스 추가 시:
 ```swift
-// 1. 서비스 클래스 생성
-public final class YF[Domain]Service {
-    private weak var client: YFClient?
-    
-    public init(client: YFClient) {
-        self.client = client
-    }
+// 1. 서비스 클래스 생성 (YFBaseService 상속)
+public final class YF[Domain]Service: YFBaseService {
     
     public func fetch(...) async throws -> YF[Domain] {
-        guard let client = client else { 
-            throw YFError.apiError("YFClient reference is nil") 
-        }
-        // client.session, client.requestBuilder, client.responseParser 사용
+        let client = try validateClientReference()
+        
+        // CSRF 인증 시도
+        await ensureCSRFAuthentication(client: client)
+        
+        // API 요청 및 응답 처리
+        let url = try buildURL(baseURL: "...", parameters: [...])
+        let (data, _) = try await authenticatedRequest(url: url)
+        
+        // 디버깅 로그
+        logAPIResponse(data, serviceName: "[Domain]")
+        
+        // JSON 파싱 및 반환
+        let response = try parseJSON(data: data, type: [Response].self)
+        return [Domain](from: response)
     }
 }
 
 // 2. YFClient에 lazy property 추가
-public lazy var [domain]: YF[Domain]Service = {
-    return YF[Domain]Service(client: self)
-}()
+public lazy var [domain] = YF[Domain]Service(client: self, debugEnabled: debugEnabled)
 ```
 
 ### ⚠️ 중요한 제약사항
