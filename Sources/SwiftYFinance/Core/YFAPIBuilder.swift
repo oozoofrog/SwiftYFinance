@@ -144,32 +144,30 @@ public struct YFAPIBuilder: Sendable {
         return isAuthenticated ? await session.addCrumbIfNeeded(to: url) : url
     }
     
-    // MARK: - Convenience Methods
-    
-    /// Quote Summary API URL 구성을 위한 편의 메서드
-    /// - Parameter ticker: 주식 심볼
-    /// - Returns: 새로운 Builder 인스턴스 (체이닝을 위함)
-    public func quoteSummary(for ticker: YFTicker) -> YFAPIBuilder {
-        return host(YFHosts.query2)
-            .path(YFPaths.quoteSummary + "/\(ticker.symbol)")
-            .parameter("modules", "price,summaryDetail")
-            .parameter("corsDomain", "finance.yahoo.com")
-            .parameter("formatted", "false")
+    /// 설정된 값들로 URLRequest를 구성합니다
+    ///
+    /// URL 구성과 함께 세션의 기본 헤더, 타임아웃 등을 포함한 완전한 URLRequest를 생성합니다.
+    /// CSRF 인증된 경우 자동으로 crumb 파라미터를 추가합니다.
+    ///
+    /// - Parameter additionalHeaders: 추가할 HTTP 헤더 (기본값: 빈 딕셔너리)
+    /// - Returns: 완전히 구성된 URLRequest
+    /// - Throws: URL 구성에 실패한 경우
+    public func buildRequest(additionalHeaders: [String: String] = [:]) async throws -> URLRequest {
+        let url = try await build()
+        
+        var request = URLRequest(url: url)
+        request.timeoutInterval = session.timeout
+        
+        // 세션의 기본 헤더 적용
+        for (key, value) in session.defaultHeaders {
+            request.setValue(value, forHTTPHeaderField: key)
+        }
+        
+        // 추가 헤더 적용
+        for (key, value) in additionalHeaders {
+            request.setValue(value, forHTTPHeaderField: key)
+        }
+        
+        return request
     }
-    
-    /// Chart API URL 구성을 위한 편의 메서드
-    /// - Parameter ticker: 주식 심볼
-    /// - Returns: 새로운 Builder 인스턴스 (체이닝을 위함)
-    public func chart(for ticker: YFTicker) -> YFAPIBuilder {
-        return host(YFHosts.query2)
-            .path(YFPaths.chart + "/\(ticker.symbol)")
-    }
-    
-    /// Search API URL 구성을 위한 편의 메서드
-    /// - Returns: 새로운 Builder 인스턴스 (체이닝을 위함)
-    public func search() -> YFAPIBuilder {
-        return host(YFHosts.query2)
-            .path(YFPaths.search)
-    }
-    
 }

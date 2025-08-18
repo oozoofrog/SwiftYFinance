@@ -4,7 +4,8 @@ import Foundation
 ///
 /// 주식 시세 조회 기능을 제공합니다.
 /// 단일 책임 원칙에 따라 시세 조회 관련 로직만 담당합니다.
-public final class YFQuoteService: YFBaseService {
+/// Sendable 프로토콜을 준수하여 concurrent 환경에서 안전하게 사용할 수 있습니다.
+public final class YFQuoteService: YFBaseService, @unchecked Sendable {
     
     /// 주식 시세 조회
     ///
@@ -19,7 +20,11 @@ public final class YFQuoteService: YFBaseService {
         
         // 요청 URL 구성 및 인증된 요청 수행
         let requestURL = try await apiBuilder()
-            .quoteSummary(for: ticker)
+            .host(YFHosts.query2)
+            .path(YFPaths.quoteSummary + "/\(ticker.symbol)")
+            .parameter("modules", "price,summaryDetail")
+            .parameter("corsDomain", "finance.yahoo.com")
+            .parameter("formatted", "false")
             .build()
         let (data, _) = try await authenticatedURLRequest(url: requestURL)
         

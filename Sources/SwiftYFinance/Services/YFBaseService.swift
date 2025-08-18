@@ -4,10 +4,12 @@ import Foundation
 ///
 /// 인증된 요청, 에러 처리, 응답 파싱 등의 공통 로직을 포함합니다.
 /// 모든 서비스 클래스는 이 클래스를 상속받아 일관된 동작을 보장합니다.
-public class YFBaseService {
+/// @unchecked Sendable을 준수하여 concurrent 환경에서 안전하게 사용할 수 있습니다.
+/// 모든 프로퍼티가 let이고 불변이므로 thread-safe합니다.
+public class YFBaseService: @unchecked Sendable {
     
-    /// YFClient에 대한 약한 참조 (순환 참조 방지)
-    public weak var client: YFClient?
+    /// YFClient 참조 (struct이므로 순환 참조 없음)
+    public let client: YFClient?
     
     /// 기본 재시도 횟수
     private let maxRetryAttempts = 2
@@ -256,6 +258,98 @@ public class YFBaseService {
         if let error = errorDescription {
             throw YFError.apiError(error)
         }
+    }
+    
+    /// 표준화된 API 요청을 수행합니다
+    ///
+    /// 모든 서비스에서 사용하는 표준 API 요청 패턴을 제공합니다.
+    /// 클라이언트 검증, CSRF 인증, URL 구성, 요청 수행, 로깅을 일괄 처리합니다.
+    ///
+    /// ## 사용 예시
+    /// ```swift
+    /// let data = try await performAPIRequest(
+    ///     path: "/v10/finance/quoteSummary/AAPL",
+    ///     parameters: ["modules": "price,summaryDetail"],
+    ///     serviceName: "Quote"
+    /// )
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - host: API 호스트 (기본값: YFHosts.query2)
+    ///   - path: API 경로
+    ///   - parameters: 쿼리 파라미터 (기본값: 빈 딕셔너리)
+    ///   - serviceName: 로깅용 서비스 이름
+    /// - Returns: API 응답 데이터
+    /// - Throws: API 호출 중 발생하는 에러
+    func performAPIRequest(
+        host: URL = YFHosts.query2,
+        path: String,
+        parameters: [String: String] = [:],
+        serviceName: String
+    ) async throws -> Data {
+        let client = try validateClientReference()
+        
+        // CSRF 인증 시도 (공통 메서드 사용)
+        await ensureCSRFAuthentication(client: client)
+        
+        // API 요청 URL 구성 및 요청 수행
+        let requestURL = try await apiBuilder()
+            .host(host)
+            .path(path)
+            .parameters(parameters)
+            .build()
+        let (data, _) = try await authenticatedURLRequest(url: requestURL)
+        
+        // API 응답 디버깅 로그
+        logAPIResponse(data, serviceName: serviceName)
+        
+        return data
+    }
+    
+    /// 표준화된 API 요청을 수행합니다 (URLRequest 기반)
+    ///
+    /// YFAPIBuilder를 사용하여 URLRequest를 구성하고 요청을 수행합니다.
+    /// URL과 URLRequest를 분리해서 생성할 필요 없이 한 번에 처리합니다.
+    ///
+    /// - Parameters:
+    ///   - host: API 호스트 (기본값: YFHosts.query2)
+    ///   - path: API 경로
+    ///   - parameters: 쿼리 파라미터 (기본값: 빈 딕셔너리)
+    ///   - additionalHeaders: 추가 HTTP 헤더 (기본값: 빈 딕셔너리)
+    ///   - serviceName: 로깅용 서비스 이름
+    /// - Returns: API 응답 데이터
+    /// - Throws: API 호출 중 발생하는 에러
+    func performAPIRequestWithBuilder(
+        host: URL = YFHosts.query2,
+        path: String,
+        parameters: [String: String] = [:],
+        additionalHeaders: [String: String] = [:],
+        serviceName: String
+    ) async throws -> Data {
+        let client = try validateClientReference()
+        
+        // CSRF 인증 시도 (공통 메서드 사용)
+        await ensureCSRFAuthentication(client: client)
+        
+        // URLRequest 구성 및 요청 수행
+        let request = try await apiBuilder()
+            .host(host)
+            .path(path)
+            .parameters(parameters)
+            .buildRequest(additionalHeaders: additionalHeaders)
+        
+        let (data, response) = try await client.session.urlSession.data(for: request)
+        
+        // HTTP 응답 검증 (기본 검증 로직 추가)
+        if let httpResponse = response as? HTTPURLResponse,
+           !(200...299).contains(httpResponse.statusCode) {
+            throw YFError.networkErrorWithMessage("HTTP \(httpResponse.statusCode)")
+        }
+        
+        // API 응답 디버깅 로그
+        logAPIResponse(data, serviceName: serviceName)
+        
+        return data
     }
 }
 

@@ -1,9 +1,10 @@
 import Foundation
 
-/// SwiftYFinance의 메인 클라이언트 클래스
+/// SwiftYFinance의 메인 클라이언트 구조체
 ///
 /// Yahoo Finance API와 상호작용하여 금융 데이터를 조회하는 핵심 인터페이스입니다.
 /// Python yfinance 라이브러리의 Swift 포팅 버전으로, 동일한 API를 제공합니다.
+/// Sendable 프로토콜을 준수하여 concurrent 환경에서 안전하게 사용할 수 있습니다.
 ///
 /// ## 주요 기능
 /// - **과거 가격 데이터**: 일간/분간 OHLCV 데이터
@@ -16,49 +17,31 @@ import Foundation
 /// ```swift
 /// let client = YFClient()
 /// 
-/// // 애플 주식 1년간 일간 데이터
-/// let history = try await client.fetchPriceHistory(
-///     symbol: "AAPL", 
-///     period: .oneYear
-/// )
-/// 
-/// // 실시간 시세 조회
-/// let quote = try await client.fetchQuote(symbol: "AAPL")
+/// // 시세 조회 (서비스 기반)
+/// let quote = try await client.quote.fetch(ticker: ticker)
 /// print("현재가: \(quote.regularMarketPrice)")
 /// 
-/// // WebSocket 실시간 스트리밍
-/// let stream = try await client.startRealTimeStreaming(symbols: ["AAPL", "TSLA"])
-/// for await quote in stream {
-///     print("\(quote.symbol): $\(quote.price)")
-/// }
+/// // 과거 데이터 조회
+/// let history = try await client.history.fetch(ticker: ticker, period: .oneYear)
+/// 
+/// // 종목 검색
+/// let results = try await client.search.find(companyName: "Apple")
 /// ```
-public class YFClient {
+public struct YFClient: Sendable {
     /// 네트워크 세션 관리자
-    internal let session: YFSession
-    
-    /// HTTP 요청 빌더
-    internal let requestBuilder: YFRequestBuilder
+    public let session: YFSession
     
     /// API 응답 파서
     internal let responseParser: YFResponseParser
     
     /// 차트 데이터 변환기
-    internal let chartConverter: YFChartConverter
+    public let chartConverter: YFChartConverter
     
     /// 날짜 변환 헬퍼
-    internal let dateHelper: YFDateHelper
+    public let dateHelper: YFDateHelper
     
     /// 디버깅 모드 플래그
     private let debugEnabled: Bool
-    
-    /// 시세 조회 서비스
-    public lazy var quote = YFQuoteService(client: self, debugEnabled: debugEnabled)
-    
-    /// 과거 가격 데이터 조회 서비스
-    public lazy var history = YFHistoryService(client: self, debugEnabled: debugEnabled)
-    
-    /// 종목 검색 및 자동완성 서비스
-    public lazy var search = YFSearchService(client: self, debugEnabled: debugEnabled)
     
     /// YFClient 초기화
     ///
@@ -69,10 +52,26 @@ public class YFClient {
     public init(debugEnabled: Bool = false) {
         self.debugEnabled = debugEnabled
         self.session = YFSession()
-        self.requestBuilder = YFRequestBuilder(session: session)
         self.responseParser = YFResponseParser()
         self.chartConverter = YFChartConverter()
         self.dateHelper = YFDateHelper()
+    }
+    
+    // MARK: - Services
+    
+    /// 시세 조회 서비스
+    public var quote: YFQuoteService {
+        YFQuoteService(client: self, debugEnabled: debugEnabled)
+    }
+    
+    /// 과거 가격 데이터 조회 서비스
+    public var history: YFHistoryService {
+        YFHistoryService(client: self, debugEnabled: debugEnabled)
+    }
+    
+    /// 종목 검색 및 자동완성 서비스
+    public var search: YFSearchService {
+        YFSearchService(client: self, debugEnabled: debugEnabled)
     }
 }
 

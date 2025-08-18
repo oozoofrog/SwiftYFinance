@@ -4,10 +4,7 @@ import Foundation
 ///
 /// ChartResult를 YFPrice 배열로 변환하는 기능을 제공합니다.
 /// 단일 책임 원칙에 따라 차트 데이터 변환 로직만 담당합니다.
-public final class YFChartConverter {
-    
-    /// YFChartConverter 초기화
-    public init() {}
+public struct YFChartConverter: Sendable {
     
     /// ChartResult를 YFPrice 배열로 변환합니다
     ///

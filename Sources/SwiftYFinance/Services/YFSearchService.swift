@@ -4,7 +4,8 @@ import Foundation
 ///
 /// Yahoo Finance API를 통해 종목 검색, 자동완성 제안 등의 기능을 제공합니다.
 /// 검색 결과는 캐시되어 성능을 최적화합니다.
-public final class YFSearchService: YFBaseService {
+/// Sendable 프로토콜을 준수하여 concurrent 환경에서 안전하게 사용할 수 있습니다.
+public final class YFSearchService: YFBaseService, @unchecked Sendable {
     
     /// 회사명으로 검색을 수행합니다
     /// 
@@ -119,7 +120,8 @@ public final class YFSearchService: YFBaseService {
     private func buildSearchURL(for query: YFSearchQuery) async throws -> URL {
         let parameters = query.toURLParameters()
         return try await apiBuilder()
-            .search()
+            .host(YFHosts.query2)
+            .path(YFPaths.search)
             .parameters(parameters)
             .build()
     }

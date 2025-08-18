@@ -4,7 +4,8 @@ import Foundation
 ///
 /// Yahoo Finance API를 통해 주식의 과거 가격 데이터를 조회하는 기능을 제공합니다.
 /// 기간별 조회와 날짜 범위 조회를 지원하며, 다양한 시간 간격으로 데이터를 가져올 수 있습니다.
-public final class YFHistoryService: YFBaseService {
+/// Sendable 프로토콜을 준수하여 concurrent 환경에서 안전하게 사용할 수 있습니다.
+public final class YFHistoryService: YFBaseService, @unchecked Sendable {
     
     /// 고해상도 가격 히스토리 데이터를 조회합니다.
     /// - Parameters:
@@ -21,7 +22,8 @@ public final class YFHistoryService: YFBaseService {
         
         // Yahoo Finance API 호출
         let requestURL = try await apiBuilder()
-            .chart(for: ticker)
+            .host(YFHosts.query2)
+            .path(YFPaths.chart + "/\(ticker.symbol)")
             .parameter("interval", interval.stringValue)
             .parameter("range", client.dateHelper.periodToRangeString(period))
             .build()
@@ -76,7 +78,8 @@ public final class YFHistoryService: YFBaseService {
         let endTimestamp = Int(endDate.timeIntervalSince1970)
         
         let requestURL = try await apiBuilder()
-            .chart(for: ticker)
+            .host(YFHosts.query2)
+            .path(YFPaths.chart + "/\(ticker.symbol)")
             .parameter("period1", String(startTimestamp))
             .parameter("period2", String(endTimestamp))
             .parameter("interval", "1d")

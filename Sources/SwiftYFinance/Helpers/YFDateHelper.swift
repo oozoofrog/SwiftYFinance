@@ -4,10 +4,7 @@ import Foundation
 ///
 /// YFPeriod를 날짜와 타임스탬프로 변환하는 헬퍼 메서드들을 제공합니다.
 /// 단일 책임 원칙에 따라 날짜 변환 로직만 담당합니다.
-public final class YFDateHelper {
-    
-    /// YFDateHelper 초기화
-    public init() {}
+public struct YFDateHelper: Sendable {
     
     /// 주어진 기간에 해당하는 시작 타임스탬프를 반환합니다
     ///

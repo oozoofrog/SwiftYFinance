@@ -22,7 +22,7 @@ import Foundation
 ///
 /// ### 에러 타입
 /// - ``YFErrorResponse``
-public class YFResponseParser {
+public struct YFResponseParser: Sendable {
     /// JSON 디코더 인스턴스
     private let decoder: JSONDecoder
     

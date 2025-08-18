@@ -80,6 +80,7 @@ client.{domain}.{method}(...)
 - [x] CSRF 인증 로직 모든 서비스에 통합
 - [x] 공통 에러 처리 및 디버깅 로그 통합
 - [x] API 대칭성 달성 (모든 서비스 일관된 구조)
+- [x] YFAPIBuilder Sendable struct로 개선 (thread-safe, immutable pattern)
 
 ### Phase 3: Financial API 서비스 클래스 생성
 - [ ] YFFinancialsService 클래스 생성 (fetchFinancials)
@@ -132,17 +133,20 @@ client.{domain}.{method}(...)
 ### ✅ 완료된 구성 요소
 - **YFClient**: 메인 클라이언트 (모든 서비스의 진입점)
 - **YFBaseService**: 모든 서비스의 공통 기능 부모 클래스 (인증, 에러 처리, 디버깅)
+- **YFAPIBuilder**: Sendable URL 구성 Builder (thread-safe, immutable pattern)
 - **YFDateHelper**: 날짜 변환 유틸리티 (period 계산, timestamp 변환)
 - **YFChartConverter**: 차트 데이터 변환 유틸리티 (ChartResult → YFPrice[])
 - **YFQuoteService**: 주식 시세 조회 서비스
 - **YFHistoryService**: 과거 가격 데이터 조회 서비스 (일간/분간 OHLCV)
 - **YFSearchService**: 종목 검색 및 자동완성 서비스
 
-### 🚧 구현 예정 서비스들
+### 🚧 구현 예정 서비스들 (Phase 3)
 - **YFFinancialsService**: 재무제표 데이터
 - **YFBalanceSheetService**: 대차대조표
 - **YFCashFlowService**: 현금흐름표
 - **YFEarningsService**: 실적 데이터
+
+### 🚧 구현 예정 서비스들 (Phase 4+)
 - **YFNewsService**: 뉴스 데이터
 - **YFOptionsService**: 옵션 체인 데이터
 - **YFWebSocketService**: 실시간 스트리밍
@@ -243,17 +247,12 @@ client.screening.screen(criteria: {criteria})          // 스크리닝
 public final class YF[Domain]Service: YFBaseService {
     
     public func fetch(...) async throws -> YF[Domain] {
-        let client = try validateClientReference()
-        
-        // CSRF 인증 시도
-        await ensureCSRFAuthentication(client: client)
-        
-        // API 요청 및 응답 처리
-        let url = try buildURL(baseURL: "...", parameters: [...])
-        let (data, _) = try await authenticatedRequest(url: url)
-        
-        // 디버깅 로그
-        logAPIResponse(data, serviceName: "[Domain]")
+        // 표준화된 API 요청 패턴 (YFBaseService 공통 메서드 활용)
+        let data = try await performAPIRequest(
+            path: "/api/endpoint/path",
+            parameters: ["key1": "value1", "key2": "value2"],
+            serviceName: "[Domain]"
+        )
         
         // JSON 파싱 및 반환
         let response = try parseJSON(data: data, type: [Response].self)
@@ -262,7 +261,7 @@ public final class YF[Domain]Service: YFBaseService {
 }
 
 // 2. YFClient에 lazy property 추가
-public lazy var [domain] = YF[Domain]Service(client: self, debugEnabled: debugEnabled)
+public lazy var [domain] = YF[Domain]Service(client: self)
 ```
 
 ### ⚠️ 중요한 제약사항
