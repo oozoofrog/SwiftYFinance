@@ -247,8 +247,3 @@ extension YFClient {
         }
     }
 }
-
-// MARK: - Private Helper Methods
-/// YFClient의 내부 헬퍼 메서드들을 위한 확장
-extension YFClient {
-}
