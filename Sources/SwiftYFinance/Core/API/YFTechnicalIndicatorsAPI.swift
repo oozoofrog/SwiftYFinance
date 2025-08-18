@@ -21,7 +21,7 @@ extension YFClient {
             throw YFError.apiError("Invalid symbol: INVALID")
         }
         
-        let historicalData = try await fetchPriceHistory(
+        let historicalData = try await history.fetch(
             ticker: ticker,
             period: .oneYear,
             interval: .oneDay
@@ -56,7 +56,7 @@ extension YFClient {
             throw YFError.apiError("Invalid symbol: INVALID")
         }
         
-        let historicalData = try await fetchPriceHistory(
+        let historicalData = try await history.fetch(
             ticker: ticker,
             period: .oneYear,
             interval: .oneDay
@@ -91,7 +91,7 @@ extension YFClient {
             throw YFError.apiError("Invalid symbol: INVALID")
         }
         
-        let historicalData = try await fetchPriceHistory(
+        let historicalData = try await history.fetch(
             ticker: ticker,
             period: .oneYear,
             interval: .oneDay
@@ -134,7 +134,7 @@ extension YFClient {
             throw YFError.apiError("Invalid symbol: INVALID")
         }
         
-        let historicalData = try await fetchPriceHistory(
+        let historicalData = try await history.fetch(
             ticker: ticker,
             period: .oneYear,
             interval: .oneDay
@@ -181,7 +181,7 @@ extension YFClient {
             throw YFError.apiError("Invalid symbol: INVALID")
         }
         
-        let historicalData = try await fetchPriceHistory(
+        let historicalData = try await history.fetch(
             ticker: ticker,
             period: .oneYear,
             interval: .oneDay
@@ -230,7 +230,7 @@ extension YFClient {
             throw YFError.apiError("Invalid symbol: INVALID")
         }
         
-        let historicalData = try await fetchPriceHistory(
+        let historicalData = try await history.fetch(
             ticker: ticker,
             period: .oneYear,
             interval: .oneDay

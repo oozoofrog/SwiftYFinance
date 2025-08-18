@@ -11,7 +11,7 @@ struct PriceHistoryTests {
         let endDate = Date()
         let startDate = Calendar.current.date(byAdding: .day, value: -1, to: endDate)!
         
-        let history = try await client.fetchHistory(ticker: ticker, period: .oneDay)
+        let history = try await client.history.fetch(ticker: ticker, period: .oneDay)
         
         #expect(history.prices.count > 0)
         #expect(history.ticker.symbol == "AAPL")
@@ -23,7 +23,7 @@ struct PriceHistoryTests {
         let client = YFClient()
         let ticker = YFTicker(symbol: "MSFT")
         
-        let history = try await client.fetchHistory(ticker: ticker, period: .oneWeek)
+        let history = try await client.history.fetch(ticker: ticker, period: .oneWeek)
         
         #expect(history.prices.count > 0)
         #expect(history.ticker.symbol == "MSFT")
@@ -42,7 +42,7 @@ struct PriceHistoryTests {
         let endDate = Date()
         let startDate = Calendar.current.date(byAdding: .month, value: -3, to: endDate)!
         
-        let history = try await client.fetchHistory(ticker: ticker, startDate: startDate, endDate: endDate)
+        let history = try await client.history.fetch(ticker: ticker, from: startDate, to: endDate)
         
         #expect(history.prices.count > 0)
         #expect(history.ticker.symbol == "GOOGL")
@@ -63,7 +63,7 @@ struct PriceHistoryTests {
         // 실제 API는 invalid symbol에 대해 다양한 응답을 할 수 있음
         // 에러를 던지거나, 빈 결과를 반환할 수 있음
         do {
-            let history = try await client.fetchHistory(ticker: ticker, period: .oneDay)
+            let history = try await client.history.fetch(ticker: ticker, period: .oneDay)
             // 빈 결과가 반환된 경우
             #expect(history.prices.isEmpty)
         } catch {
@@ -83,7 +83,7 @@ struct PriceHistoryTests {
         
         // 실제 API는 미래 날짜에 대해 에러를 던지거나 빈 결과를 반환할 수 있음
         do {
-            let history = try await client.fetchHistory(ticker: ticker, startDate: futureDate, endDate: moreFutureDate)
+            let history = try await client.history.fetch(ticker: ticker, from: futureDate, to: moreFutureDate)
             // 빈 결과가 반환된 경우
             #expect(history.prices.isEmpty)
         } catch {

@@ -49,9 +49,10 @@ public class YFClient {
     internal let dateHelper: YFDateHelper
     
     /// 시세 조회 서비스
-    public lazy var quote: YFQuoteService = {
-        return YFQuoteService(client: self)
-    }()
+    public lazy var quote = YFQuoteService(client: self)
+    
+    /// 과거 가격 데이터 조회 서비스
+    public lazy var history = YFHistoryService(client: self)
     
     /// YFClient 초기화
     ///

@@ -73,7 +73,7 @@ client.{domain}.{method}(...)
 - [x] YFClient에서 fetchQuote 위임 메서드 제거 (서비스 기반으로 완전 전환)
 - [x] YFQuoteService가 YFClient를 인수로 받도록 구조 변경 (더 깔끔한 설계)
 - [x] 순환 참조 방지를 위한 weak reference 적용
-- [ ] YFHistoryService 클래스 생성 (fetchHistory, fetchPriceHistory)
+- [x] YFHistoryService 클래스 생성 (fetchHistory, fetchPriceHistory)
 - [ ] YFSearchService 클래스 생성 (search, searchSuggestions)
 
 ### Phase 3: Financial API 서비스 클래스 생성
@@ -284,13 +284,10 @@ Sources/SwiftYFinance/
 ├── Core/
 │   └── YFClient.swift              # 메인 클라이언트
 ├── Services/                       # 서비스 클래스들
-│   ├── YFQuoteService.swift
-│   ├── YFHistoryService.swift
 │   └── YF[Domain]Service.swift
 ├── Helpers/                        # 공통 유틸리티
 │   ├── YFDateHelper.swift
 │   └── YFChartConverter.swift
 └── Models/                         # 데이터 모델들
-    ├── YFQuote.swift
     └── YF[Domain].swift
 ```
