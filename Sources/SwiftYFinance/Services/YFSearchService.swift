@@ -24,7 +24,7 @@ public final class YFSearchService: YFBaseService {
     /// - Returns: 검색 결과 배열
     /// - Throws: 검색 실패 시 YFError
     public func find(companyName: String) async throws -> [YFSearchResult] {
-        try validateClientReference()
+        _ = try validateClientReference()
         
         let query = YFSearchQuery(term: companyName)
         return try await find(query: query)
@@ -50,7 +50,7 @@ public final class YFSearchService: YFBaseService {
     /// - Returns: 검색 결과 배열
     /// - Throws: 검색 실패 시 YFError
     public func find(query: YFSearchQuery) async throws -> [YFSearchResult] {
-        try validateClientReference()
+        _ = try validateClientReference()
         
         // 캐시에서 먼저 확인
         let cacheKey = query.term
@@ -103,6 +103,9 @@ public final class YFSearchService: YFBaseService {
         
         let url = try buildSearchURL(for: query)
         let (data, _) = try await authenticatedRequest(url: url)
+        
+        // API 응답 디버깅 로그
+        logAPIResponse(data, serviceName: "Search")
         
         return try parseSearchResponse(data)
     }

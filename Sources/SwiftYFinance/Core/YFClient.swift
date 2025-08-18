@@ -48,20 +48,26 @@ public class YFClient {
     /// 날짜 변환 헬퍼
     internal let dateHelper: YFDateHelper
     
+    /// 디버깅 모드 플래그
+    private let debugEnabled: Bool
+    
     /// 시세 조회 서비스
-    public lazy var quote = YFQuoteService(client: self)
+    public lazy var quote = YFQuoteService(client: self, debugEnabled: debugEnabled)
     
     /// 과거 가격 데이터 조회 서비스
-    public lazy var history = YFHistoryService(client: self)
+    public lazy var history = YFHistoryService(client: self, debugEnabled: debugEnabled)
     
     /// 종목 검색 및 자동완성 서비스
-    public lazy var search = YFSearchService(client: self)
+    public lazy var search = YFSearchService(client: self, debugEnabled: debugEnabled)
     
     /// YFClient 초기화
     ///
     /// 기본 설정으로 Yahoo Finance API 클라이언트를 생성합니다.
     /// 내부적으로 네트워크 세션, 요청 빌더, 응답 파서를 초기화합니다.
-    public init() {
+    ///
+    /// - Parameter debugEnabled: 디버깅 로그 활성화 여부 (기본값: false)
+    public init(debugEnabled: Bool = false) {
+        self.debugEnabled = debugEnabled
         self.session = YFSession()
         self.requestBuilder = YFRequestBuilder(session: session)
         self.responseParser = YFResponseParser()

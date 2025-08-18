@@ -14,8 +14,7 @@ public final class YFHistoryService: YFBaseService {
     /// - Returns: 가격 히스토리 데이터
     /// - Throws: API 호출 중 발생하는 에러
     public func fetch(ticker: YFTicker, period: YFPeriod, interval: YFInterval = .oneDay) async throws -> YFHistoricalData {
-        try validateClientReference()
-        guard let client = client else { fatalError("Client validated but is nil") }
+        let client = try validateClientReference()
         
         // Yahoo Finance API 호출
         let request = try client.requestBuilder
@@ -25,6 +24,9 @@ public final class YFHistoryService: YFBaseService {
             .build()
         
         let (data, _) = try await authenticatedURLRequest(url: request.url!)
+        
+        // API 응답 디버깅 로그
+        logAPIResponse(data, serviceName: "History")
         
         // JSON 파싱
         let chartResponse = try parseJSON(data: data, type: ChartResponse.self)
@@ -63,8 +65,7 @@ public final class YFHistoryService: YFBaseService {
     
     /// 날짜 범위 기반 가격 히스토리 데이터 조회
     public func fetch(ticker: YFTicker, from startDate: Date, to endDate: Date) async throws -> YFHistoricalData {
-        try validateClientReference()
-        guard let client = client else { fatalError("Client validated but is nil") }
+        let client = try validateClientReference()
         
         // Yahoo Finance API 호출
         let startTimestamp = Int(startDate.timeIntervalSince1970)
@@ -78,6 +79,9 @@ public final class YFHistoryService: YFBaseService {
             .build()
         
         let (data, _) = try await authenticatedURLRequest(url: request.url!)
+        
+        // API 응답 디버깅 로그
+        logAPIResponse(data, serviceName: "History")
         
         // JSON 파싱
         let chartResponse = try parseJSON(data: data, type: ChartResponse.self)

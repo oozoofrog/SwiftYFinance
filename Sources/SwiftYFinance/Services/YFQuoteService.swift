@@ -12,12 +12,9 @@ public final class YFQuoteService: YFBaseService {
     /// - Returns: 주식 시세 데이터
     /// - Throws: API 호출 중 발생하는 에러
     public func fetch(ticker: YFTicker) async throws -> YFQuote {
-        try validateClientReference()
+        let client = try validateClientReference()
         
         // CSRF 인증 시도 (실패해도 기본 요청으로 진행)
-        guard let client = client else {
-            throw YFError.apiError("YFClient reference is nil")
-        }
         
         let isAuthenticated = await client.session.isCSRFAuthenticated
         if !isAuthenticated {
@@ -32,13 +29,8 @@ public final class YFQuoteService: YFBaseService {
         let requestURL = try await buildQuoteSummaryURL(ticker: ticker)
         let (data, _) = try await authenticatedURLRequest(url: requestURL)
         
-        // JSON 파싱 (디버깅 로그 추가)
-        print("📋 [DEBUG] Quote API 응답 데이터 크기: \(data.count) bytes")
-        if let responseString = String(data: data, encoding: .utf8) {
-            print("📋 [DEBUG] Quote API 응답 내용 (처음 500자): \(responseString.prefix(500))")
-        } else {
-            print("❌ [DEBUG] Quote API 응답을 UTF-8로 디코딩 실패")
-        }
+        // API 응답 디버깅 로그 (공통 메서드 사용)
+        logAPIResponse(data, serviceName: "Quote")
         
         let quoteSummaryResponse = try parseJSON(data: data, type: QuoteSummaryResponse.self)
         
@@ -81,9 +73,7 @@ public final class YFQuoteService: YFBaseService {
     
     // MARK: - Private Helper Methods
     private func buildQuoteSummaryURL(ticker: YFTicker) async throws -> URL {
-        guard let client = client else {
-            throw YFError.apiError("YFClient reference is nil")
-        }
+        let client = try validateClientReference()
         // CSRF 인증 상태에 따라 base URL 선택
         let isAuthenticated = await client.session.isCSRFAuthenticated
         let baseURL = isAuthenticated ? 
