@@ -4,12 +4,7 @@ import Foundation
 ///
 /// Yahoo Finance API를 통해 종목 검색, 자동완성 제안 등의 기능을 제공합니다.
 /// 검색 결과는 캐시되어 성능을 최적화합니다.
-public final class YFSearchService {
-    private weak var client: YFClient?
-    
-    public init(client: YFClient) {
-        self.client = client
-    }
+public final class YFSearchService: YFBaseService {
     
     /// 회사명으로 검색을 수행합니다
     /// 
@@ -29,9 +24,7 @@ public final class YFSearchService {
     /// - Returns: 검색 결과 배열
     /// - Throws: 검색 실패 시 YFError
     public func find(companyName: String) async throws -> [YFSearchResult] {
-        guard let client = client else {
-            throw YFError.apiError("YFClient reference is nil")
-        }
+        try validateClientReference()
         
         let query = YFSearchQuery(term: companyName)
         return try await find(query: query)
@@ -57,9 +50,7 @@ public final class YFSearchService {
     /// - Returns: 검색 결과 배열
     /// - Throws: 검색 실패 시 YFError
     public func find(query: YFSearchQuery) async throws -> [YFSearchResult] {
-        guard let client = client else {
-            throw YFError.apiError("YFClient reference is nil")
-        }
+        try validateClientReference()
         
         // 캐시에서 먼저 확인
         let cacheKey = query.term
@@ -68,7 +59,7 @@ public final class YFSearchService {
         }
         
         // Rate limiting과 함께 API 호출
-        let results = try await performSearch(query: query, client: client)
+        let results = try await performSearch(query: query)
         
         // 결과를 캐시에 저장
         await YFSearchCache.shared.set(results, for: cacheKey)
@@ -102,61 +93,31 @@ public final class YFSearchService {
     // MARK: - Private Search Implementation
     
     /// 실제 검색 API 호출을 수행합니다 (인증된 세션 사용)
-    /// - Parameters:
-    ///   - query: 검색 쿼리
-    ///   - client: YFClient 인스턴스
+    /// - Parameter query: 검색 쿼리
     /// - Returns: 검색 결과 배열
     /// - Throws: 네트워크 또는 파싱 에러
-    private func performSearch(query: YFSearchQuery, client: YFClient) async throws -> [YFSearchResult] {
+    private func performSearch(query: YFSearchQuery) async throws -> [YFSearchResult] {
         guard query.isValid else {
             throw YFError.invalidParameter("검색어가 유효하지 않습니다")
         }
         
         let url = try buildSearchURL(for: query)
-        let (data, response) = try await client.session.makeAuthenticatedRequest(url: url)
+        let (data, _) = try await authenticatedRequest(url: url)
         
-        try validateHTTPResponse(response)
         return try parseSearchResponse(data)
     }
     
     /// 검색 URL 구성
     private func buildSearchURL(for query: YFSearchQuery) throws -> URL {
         let baseURL = "https://query2.finance.yahoo.com/v1/finance/search"
-        guard var urlComponents = URLComponents(string: baseURL) else {
-            throw YFError.invalidURL
-        }
-        
         let parameters = query.toURLParameters()
-        urlComponents.queryItems = parameters.map { key, value in
-            URLQueryItem(name: key, value: value)
-        }
-        
-        guard let url = urlComponents.url else {
-            throw YFError.invalidURL
-        }
-        
-        return url
-    }
-    
-    /// HTTP 응답 검증
-    private func validateHTTPResponse(_ response: URLResponse) throws {
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw YFError.networkErrorWithMessage("Invalid response type")
-        }
-        
-        guard httpResponse.statusCode == 200 else {
-            throw YFError.networkErrorWithMessage("HTTP \(httpResponse.statusCode)")
-        }
+        return try buildURL(baseURL: baseURL, parameters: parameters)
     }
     
     /// 검색 응답 JSON 파싱
     private func parseSearchResponse(_ data: Data) throws -> [YFSearchResult] {
-        do {
-            let searchResponse = try JSONDecoder().decode(YFSearchResponse.self, from: data)
-            return searchResponse.quotes ?? []
-        } catch {
-            throw YFError.parsingErrorWithMessage("검색 결과 파싱 실패: \(error.localizedDescription)")
-        }
+        let searchResponse = try parseJSON(data: data, type: YFSearchResponse.self)
+        return searchResponse.quotes ?? []
     }
 }
 

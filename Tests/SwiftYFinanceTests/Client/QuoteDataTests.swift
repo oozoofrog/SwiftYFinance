@@ -18,15 +18,15 @@ struct QuoteDataTests {
     }
     
     @Test
-    func testFetchQuoteRealtime() async throws {
+    func testFetchQuoteWithoutRealtime() async throws {
         let client = YFClient()
         let ticker = YFTicker(symbol: "TSLA")
         
-        let quote = try await client.quote.fetch(ticker: ticker, realtime: true)
+        let quote = try await client.quote.fetch(ticker: ticker)
         
         #expect(quote.ticker.symbol == "TSLA")
         #expect(quote.regularMarketPrice > 0)
-        #expect(quote.isRealtime == true)
+        #expect(quote.isRealtime == false) // realtime 플래그 제거로 항상 false
         
         // 시장 시간 데이터 유효성 검증 (과거 데이터일 수 있으므로 현재 시간과 비교하지 않음)
         #expect(quote.regularMarketTime > Date(timeIntervalSince1970: 0)) // 유효한 타임스탬프
