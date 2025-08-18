@@ -1,63 +1,78 @@
 # YFClient Refactoring Task
 
 ## 목표
-YFClient의 extension 기반 구조를 OOP 원칙에 따라 개별 Service 클래스로 분리
+YFClient의 extension 기반 구조를 Protocol + Struct 패턴으로 리팩토링
 
 ## 핵심 원칙
-- **NO Extensions**: YFClient에 extension 사용 금지
-- **NO Protocols**: 프로토콜 사용 금지  
-- **Single Responsibility**: 각 API는 독립적인 객체
+- **Protocol + Struct**: Extension 대신 Protocol + Struct 아키텍처 사용
+- **Sendable 준수**: @unchecked 없이 완전한 thread-safety 구현  
+- **Composition**: 상속 대신 YFServiceCore를 통한 합성 패턴
+- **Single Responsibility**: 각 서비스는 독립적인 도메인 담당
 - **OOP**: 객체 지향 설계 원칙 준수
 - **TDD**: Test-Driven Development
 - **Tidy First**: 구조 변경을 먼저, 기능 변경은 나중에
 
-## 구조 변화
+## 아키텍처 패턴
 
-### 🔄 Before vs After
+### 🔄 구조 변화 (Before vs After)
 
-#### 기존 구조 (Extension 기반)
+**기존**: Extension 기반으로 모든 API가 YFClient에 직접 구현
 ```swift
-// 문제점: 모든 API가 YFClient에 직접 구현
 extension YFClient {
-    func fetch{Domain}(...) { ... }  // 각 도메인별 메서드들이 확장에 분산
+    func fetch{Domain}(...) { ... }
 }
-
-// 사용법
 let result = try await client.fetch{Domain}(...)
 ```
 
-#### 새로운 구조 (Service 기반)
+**현재**: Protocol + Struct 기반으로 도메인별 서비스 분리
 ```swift
-// 해결: 도메인별 독립적인 서비스 클래스
-class YFClient {
-    lazy var {domain} = YF{Domain}Service(client: self)
+public struct YFClient: Sendable {
+    public var {domain}: YF{Domain}Service { 
+        YF{Domain}Service(client: self, debugEnabled: debugEnabled) 
+    }
 }
+let result = try await client.{domain}.{method}(...)
+```
 
-class YF{Domain}Service {
-    private weak var client: YFClient?  // 순환 참조 방지
+### 🔧 새로운 서비스 추가 패턴
+
+```swift
+// 1. 서비스 구조체 정의
+public struct YF{Domain}Service: YFService {
+    public let client: YFClient
+    public let debugEnabled: Bool
+    private let core: YFServiceCore
     
-    init(client: YFClient) {
+    public init(client: YFClient, debugEnabled: Bool = false) {
         self.client = client
+        self.debugEnabled = debugEnabled
+        self.core = YFServiceCore(client: client, debugEnabled: debugEnabled)
     }
     
-    func {method}(...) async throws -> YF{Domain} {
-        guard let client = client else { 
-            throw YFError.apiError("Client reference is nil") 
-        }
-        // client.session, client.requestBuilder, client.responseParser 사용
-        // ... API 구현
+    public func fetch(...) async throws -> YF{Domain} {
+        let data = try await core.performAPIRequest(
+            path: "/api/endpoint/path",
+            parameters: ["key": "value"],
+            serviceName: "{Domain}"
+        )
+        return try core.parseJSON(data: data, type: YF{Domain}.self)
     }
 }
+
+// 2. YFClient에 computed property 추가
+public var {domain}: YF{Domain}Service {
+    YF{Domain}Service(client: self, debugEnabled: debugEnabled)
+}
+
+// 3. 사용법
+let client = YFClient()
+let result = try await client.{domain}.{method}({parameters})
 ```
 
-#### 사용법 변화
-```swift
-// Before: 직접 호출
-client.fetch{Domain}(...)
-
-// After: 서비스를 통한 호출
-client.{domain}.{method}(...)
-```
+**핵심 변화**:
+- Extension → Protocol + Struct 패턴
+- 직접 호출 → 서비스를 통한 호출  
+- Class 상속 → Composition 패턴 (YFServiceCore)
 
 ## 구현 체크리스트
 
@@ -66,21 +81,26 @@ client.{domain}.{method}(...)
 - [x] YFChartConverter 클래스 생성 (convertToPrices)
 - [x] YFClient에서 YFDateHelper 사용으로 변경
 
-### Phase 2: Core API 서비스 클래스 생성 ✅
-- [x] YFBaseService 부모 클래스 생성 (공통 기능 통합)
-- [x] YFQuoteService 클래스 생성 (fetch 메서드들만 유지)
+### Phase 2: Core API 서비스 Protocol + Struct 구조 생성 ✅
+- [x] YFService 프로토콜 생성 (공통 인터페이스 정의)
+- [x] YFServiceCore struct 생성 (Composition 패턴으로 공통 기능 통합)
+- [x] YFQuoteService struct 생성 (Protocol + Struct 패턴, fetch 메서드들만 유지)
 - [x] YFQuoteService에서 하위 호환성 fetchQuote 메서드 제거 (새 규칙 적용)
 - [x] YFQuoteAPI.swift 파일 완전 제거
 - [x] YFClient에서 fetchQuote 위임 메서드 제거 (서비스 기반으로 완전 전환)
-- [x] YFQuoteService가 YFClient를 인수로 받도록 구조 변경 (더 깔끔한 설계)
-- [x] 순환 참조 방지를 위한 weak reference 적용
-- [x] YFHistoryService 클래스 생성 (fetchHistory, fetchPriceHistory)
-- [x] YFSearchService 클래스 생성 (search, searchSuggestions)
+- [x] Protocol + Struct 아키텍처 도입 (완전한 Sendable 준수, @unchecked 제거)
+- [x] Composition over Inheritance 패턴 적용 (YFServiceCore 활용)
+- [x] YFHistoryService struct 생성 (fetchHistory, fetchPriceHistory)
+- [x] YFSearchService struct 생성 (search, searchSuggestions)
 - [x] Template Method 패턴 구현 (표준 API 워크플로우)
 - [x] CSRF 인증 로직 모든 서비스에 통합
 - [x] 공통 에러 처리 및 디버깅 로그 통합
 - [x] API 대칭성 달성 (모든 서비스 일관된 구조)
 - [x] YFAPIBuilder Sendable struct로 개선 (thread-safe, immutable pattern)
+- [x] Codable → Decodable 변환 완료 (성능 최적화, encoding 기능 제거)
+- [x] isRealtime 속성 제거 (YFQuote 간소화)
+- [x] QuoteSummaryResponse 중간 모델 제거 (YFQuote 직접 파싱)
+- [x] Mock 사용 제거 (실제 API 테스트로 변경)
 
 ### Phase 3: Financial API 서비스 클래스 생성
 - [ ] YFFinancialsService 클래스 생성 (fetchFinancials)
@@ -131,12 +151,13 @@ client.{domain}.{method}(...)
 ## 구현 현황 및 로드맵
 
 ### ✅ 완료된 구성 요소
-- **YFClient**: 메인 클라이언트 (모든 서비스의 진입점)
-- **YFBaseService**: 모든 서비스의 공통 기능 부모 클래스 (인증, 에러 처리, 디버깅)
+- **YFClient**: 메인 클라이언트 (모든 서비스의 진입점, Sendable struct)
+- **YFService Protocol**: 모든 서비스의 공통 인터페이스 (Sendable 준수)
+- **YFServiceCore**: 공통 기능 제공 구조체 (Composition 패턴, 인증/에러 처리/디버깅)
 - **YFAPIBuilder**: Sendable URL 구성 Builder (thread-safe, immutable pattern)
 - **YFDateHelper**: 날짜 변환 유틸리티 (period 계산, timestamp 변환)
 - **YFChartConverter**: 차트 데이터 변환 유틸리티 (ChartResult → YFPrice[])
-- **YFQuoteService**: 주식 시세 조회 서비스
+- **YFQuoteService**: 주식 시세 조회 서비스 (Protocol + Struct, Decodable 최적화)
 - **YFHistoryService**: 과거 가격 데이터 조회 서비스 (일간/분간 OHLCV)
 - **YFSearchService**: 종목 검색 및 자동완성 서비스
 
@@ -153,150 +174,35 @@ client.{domain}.{method}(...)
 - **YFScreeningService**: 종목 스크리닝
 - **YFTechnicalIndicatorsService**: 기술적 지표
 
-### 🎯 최종 목표 구조
-```swift
-// 단일 진입점을 통한 모든 기능 접근
-YFClient()
-  ├── .{service1}.{method}(...)    // 각 도메인별 서비스
-  ├── .{service2}.{method}(...)    // 독립적인 책임과 구현
-  ├── .{service3}.{method}(...)    // 일관된 인터페이스
-  └── .{serviceN}.{method}(...)    // 확장 가능한 구조
+## 설계 가이드라인
 
-// 서비스 패턴 예시:
-// client.quote.fetch(...)         ← 시세 조회
-// client.history.fetch(...)       ← 과거 데이터
-// client.search.find(...)         ← 검색 기능
-// client.financials.fetch(...)    ← 재무 데이터
-// client.webSocket.stream(...)    ← 실시간 스트리밍
-```
+### 🏗️ 아키텍처 원칙
+- **Protocol + Struct**: Extension/Class 대신 Protocol + Struct 패턴
+- **Composition over Inheritance**: YFServiceCore를 통한 합성 패턴
+- **완전한 Sendable 준수**: @unchecked 없이 순수 thread-safety 구현
+- **단일 책임**: 각 서비스는 특정 도메인만 담당
+- **경량 인스턴스**: computed property로 struct의 경량성 활용
 
-## 사용 패턴 템플릿
+### 📏 파일 관리
+- **250줄 초과**: 분리 검토, **300줄 초과**: 강제 분리
+- **테스트 파일**: 15개 메서드 초과 검토, 20개 초과 분리
+- **의존성 단방향 유지**, **public 인터페이스 보존**
 
-### 🏁 기본 사용 패턴
-```swift
-// 1. 클라이언트 초기화
-let client = YFClient()
+### 🎯 명명 규칙
+- **일관된 메서드명**: fetch(), find(), suggestions()
+- **명확한 파라미터**: ticker, period 등 명시적 이름
+- **반환 타입**: YF[Domain] 형태 (YFQuote, YFHistory 등)
 
-// 2. 서비스를 통한 API 호출
-let result = try await client.{service}.{method}({parameters})
+### 📈 성능 최적화
+- **Decodable 우선**: encoding 기능 제거로 성능 향상
+- **중간 모델 제거**: 불필요한 Response Wrapper 제거
+- **struct 활용**: Reference Counting 오버헤드 제거
 
-// 3. 결과 활용
-// result는 YF{Domain} 타입의 구조화된 데이터
-```
 
-### 📋 서비스별 사용 템플릿
-
-#### Quote 서비스 (시세)
-```swift
-client.quote.fetch(ticker: {ticker})                    // 기본 시세
-```
-
-#### History 서비스 (과거 데이터)
-```swift
-client.history.fetch(ticker: {ticker}, period: {period})           // 기간별
-client.history.fetch(ticker: {ticker}, from: {date}, to: {date})   // 날짜 범위
-```
-
-#### Search 서비스 (검색)
-```swift
-client.search.find({query})           // 종목 검색
-client.search.suggestions({prefix})   // 자동완성
-```
-
-#### Financial 서비스들 (재무 데이터)
-```swift
-client.financials.fetch(ticker: {ticker})      // 재무제표
-client.balanceSheet.fetch(ticker: {ticker})    // 대차대조표
-client.cashFlow.fetch(ticker: {ticker})        // 현금흐름표
-client.earnings.fetch(ticker: {ticker})        // 실적
-```
-
-#### 기타 서비스들
-```swift
-client.news.fetch(ticker: {ticker})                    // 뉴스
-client.options.fetchChain(ticker: {ticker})            // 옵션
-client.webSocket.startStreaming(symbols: {symbols})    // 실시간 스트리밍
-client.screening.screen(criteria: {criteria})          // 스크리닝
-```
-
-## 장점
-1. **명확한 책임 분리**: 각 서비스가 단일 책임
-2. **코드 탐색 용이**: 기능별로 파일 분리
-3. **테스트 용이**: 각 서비스 독립 테스트 가능
-4. **유지보수 향상**: 변경 영향 범위 제한
-5. **확장성**: 새 서비스 추가 용이
-
-## 설계 원칙 및 주의사항
-
-### 🏗️ 아키텍처 설계 원칙
-- **서비스 기반 구조**: Extension 대신 독립적인 Service 클래스 사용
-- **단일 책임 원칙**: 각 서비스는 특정 도메인만 담당
-- **의존성 주입**: 모든 서비스는 `YFClient(client:)` 생성자로 클라이언트 주입
-- **순환 참조 방지**: 서비스에서 `weak var client` 사용으로 메모리 안전성 보장
-- **지연 초기화**: `lazy var`로 필요할 때만 서비스 인스턴스 생성
-
-### 🎯 API 명명 규칙
-- **일관된 메서드명**: 모든 서비스에서 `fetch()` 메서드 사용
-- **명확한 파라미터**: ticker, period 등 명시적 파라미터명
-- **반환 타입 일관성**: YF[Domain] 형태의 반환 타입 (YFQuote, YFHistory 등)
-
-### 🔧 확장 가이드라인
-#### 새로운 서비스 추가 시:
-```swift
-// 1. 서비스 클래스 생성 (YFBaseService 상속)
-public final class YF[Domain]Service: YFBaseService {
-    
-    public func fetch(...) async throws -> YF[Domain] {
-        // 표준화된 API 요청 패턴 (YFBaseService 공통 메서드 활용)
-        let data = try await performAPIRequest(
-            path: "/api/endpoint/path",
-            parameters: ["key1": "value1", "key2": "value2"],
-            serviceName: "[Domain]"
-        )
-        
-        // JSON 파싱 및 반환
-        let response = try parseJSON(data: data, type: [Response].self)
-        return [Domain](from: response)
-    }
-}
-
-// 2. YFClient에 lazy property 추가
-public lazy var [domain] = YF[Domain]Service(client: self)
-```
-
-### ⚠️ 중요한 제약사항
-- **Extension 금지**: YFClient에 extension 추가 금지
-- **Protocol 금지**: 프로토콜 사용 금지 (구체 클래스만 사용)
-- **하위 호환성 없음**: 기존 fetchXXX 메서드는 완전 제거됨
-- **메서드명 통일**: fetch(), find(), suggestions() 등 일관된 명명
-
-### 🧪 테스트 패턴
-```swift
-@Suite("[ServiceName] Tests")
-struct YF[Service]Tests {
-    private func createMockClient() -> YFClient {
-        return YFClient()
-    }
-    
-    @Test("서비스 초기화")
-    func testInitialization() {
-        let client = createMockClient()
-        let service = YF[Service](client: client)
-        #expect(service != nil)
-    }
-}
-```
-
-### 📦 파일 구조
-```
-Sources/SwiftYFinance/
-├── Core/
-│   └── YFClient.swift              # 메인 클라이언트
-├── Services/                       # 서비스 클래스들
-│   └── YF[Domain]Service.swift
-├── Helpers/                        # 공통 유틸리티
-│   ├── YFDateHelper.swift
-│   └── YFChartConverter.swift
-└── Models/                         # 데이터 모델들
-    └── YF[Domain].swift
-```
+## 주요 장점
+1. **완전한 Thread Safety**: @unchecked 없이 compile-time safety 보장
+2. **성능 최적화**: struct 사용으로 Reference Counting 오버헤드 제거  
+3. **메모리 효율성**: Decodable 사용으로 encoding 기능 제거
+4. **명확한 책임 분리**: 도메인별 서비스로 코드 구조화
+5. **유지보수 향상**: 변경 영향 범위 제한, 파일 크기 관리
+6. **확장성**: 표준화된 패턴으로 새 서비스 추가 용이
