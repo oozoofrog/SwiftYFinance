@@ -54,6 +54,9 @@ public class YFClient {
     /// 과거 가격 데이터 조회 서비스
     public lazy var history = YFHistoryService(client: self)
     
+    /// 종목 검색 및 자동완성 서비스
+    public lazy var search = YFSearchService(client: self)
+    
     /// YFClient 초기화
     ///
     /// 기본 설정으로 Yahoo Finance API 클라이언트를 생성합니다.
@@ -65,49 +68,6 @@ public class YFClient {
         self.chartConverter = YFChartConverter()
         self.dateHelper = YFDateHelper()
     }
-    
-    /// 주어진 기간에 해당하는 시작 타임스탬프를 반환합니다 (YFDateHelper로 위임)
-    ///
-    /// - Parameter period: 조회할 기간 (oneDay, oneWeek, oneMonth 등)
-    /// - Returns: Unix 타임스탬프 문자열 (초 단위)
-    private func periodStart(for period: YFPeriod) -> String {
-        return dateHelper.periodStart(for: period)
-    }
-    
-    /// 현재 시점의 종료 타임스탬프를 반환합니다 (YFDateHelper로 위임)
-    ///
-    /// - Returns: 현재 시점의 Unix 타임스탬프 문자열 (초 단위)
-    private func periodEnd() -> String {
-        return dateHelper.periodEnd()
-    }
-    
-    /// YFPeriod 열거형을 Yahoo Finance API의 range 파라미터 문자열로 변환합니다 (YFDateHelper로 위임)
-    ///
-    /// - Parameter period: 변환할 기간 열거형
-    /// - Returns: Yahoo Finance API에서 사용하는 range 문자열 ("1d", "1mo", "1y" 등)
-    private func periodToRangeString(_ period: YFPeriod) -> String {
-        return dateHelper.periodToRangeString(period)
-    }
-    
-    /// 주어진 기간에 해당하는 시작 날짜를 Date 객체로 반환합니다 (YFDateHelper로 위임)
-    ///
-    /// - Parameter period: 조회할 기간 (oneDay, oneWeek, oneMonth 등)
-    /// - Returns: 해당 기간의 시작점에 해당하는 Date 객체
-    private func dateFromPeriod(_ period: YFPeriod) -> Date {
-        return dateHelper.dateFromPeriod(period)
-    }
-    
-    /// Yahoo Finance Chart API 응답을 YFPrice 배열로 변환합니다
-    ///
-    /// 원시 Chart API 응답 데이터를 파싱하여 YFPrice 구조체 배열로 변환합니다.
-    /// 유효하지 않은 데이터(-1.0 값)는 자동으로 필터링되며, 결과는 날짜 순으로 정렬됩니다.
-    ///
-    /// - Parameter result: Yahoo Finance Chart API의 응답 데이터
-    /// - Returns: 파싱된 YFPrice 배열 (날짜 순 정렬)
-    private func convertToPrices(_ result: ChartResult) -> [YFPrice] {
-        return chartConverter.convertToPrices(result)
-    }
-    
 }
 
 // 실제 Yahoo Finance Chart API 응답 구조에 맞춘 구조체들

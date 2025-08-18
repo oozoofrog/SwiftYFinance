@@ -74,7 +74,7 @@ client.{domain}.{method}(...)
 - [x] YFQuoteService가 YFClient를 인수로 받도록 구조 변경 (더 깔끔한 설계)
 - [x] 순환 참조 방지를 위한 weak reference 적용
 - [x] YFHistoryService 클래스 생성 (fetchHistory, fetchPriceHistory)
-- [ ] YFSearchService 클래스 생성 (search, searchSuggestions)
+- [x] YFSearchService 클래스 생성 (search, searchSuggestions)
 
 ### Phase 3: Financial API 서비스 클래스 생성
 - [ ] YFFinancialsService 클래스 생성 (fetchFinancials)
@@ -128,10 +128,10 @@ client.{domain}.{method}(...)
 - **YFDateHelper**: 날짜 변환 유틸리티 (period 계산, timestamp 변환)
 - **YFChartConverter**: 차트 데이터 변환 유틸리티 (ChartResult → YFPrice[])
 - **YFQuoteService**: 주식 시세 조회 서비스 (기본/실시간 시세)
+- **YFHistoryService**: 과거 가격 데이터 조회 서비스 (일간/분간 OHLCV)
+- **YFSearchService**: 종목 검색 및 자동완성 서비스
 
 ### 🚧 구현 예정 서비스들
-- **YFHistoryService**: 과거 가격 데이터 조회 (일간/분간 OHLCV)
-- **YFSearchService**: 종목 검색 및 자동완성
 - **YFFinancialsService**: 재무제표 데이터
 - **YFBalanceSheetService**: 대차대조표
 - **YFCashFlowService**: 현금흐름표

@@ -16,7 +16,7 @@ struct YFSearchIntegrationTests {
     func testAppleSearch() async throws {
         let client = YFClient()
         
-        let results = try await client.search(companyName: "Apple")
+        let results = try await client.search.find(companyName: "Apple")
         
         #expect(!results.isEmpty)
         
@@ -32,7 +32,7 @@ struct YFSearchIntegrationTests {
     func testMicrosoftSearch() async throws {
         let client = YFClient()
         
-        let results = try await client.search(companyName: "Microsoft")
+        let results = try await client.search.find(companyName: "Microsoft")
         
         #expect(!results.isEmpty)
         
@@ -48,7 +48,7 @@ struct YFSearchIntegrationTests {
     func testTeslaSearch() async throws {
         let client = YFClient()
         
-        let results = try await client.search(companyName: "Tesla")
+        let results = try await client.search.find(companyName: "Tesla")
         
         #expect(!results.isEmpty)
         
@@ -72,7 +72,7 @@ struct YFSearchIntegrationTests {
             quoteTypes: [.equity]
         )
         
-        let results = try await client.search(query: query)
+        let results = try await client.search.find(query: query)
         
         // 최대 5개 결과만 반환되어야 함
         #expect(results.count <= 5)
@@ -95,7 +95,7 @@ struct YFSearchIntegrationTests {
             quoteTypes: [.etf]
         )
         
-        let results = try await client.search(query: query)
+        let results = try await client.search.find(query: query)
         
         #expect(!results.isEmpty)
         
@@ -115,7 +115,7 @@ struct YFSearchIntegrationTests {
     func testSearchSuggestions() async throws {
         let client = YFClient()
         
-        let suggestions = try await client.searchSuggestions(prefix: "App")
+        let suggestions = try await client.search.suggestions(prefix: "App")
         
         #expect(!suggestions.isEmpty)
         
@@ -129,8 +129,8 @@ struct YFSearchIntegrationTests {
     func testEmptyPrefixSuggestions() async throws {
         let client = YFClient()
         
-        let emptySuggestions = try await client.searchSuggestions(prefix: "")
-        let whitespaceSuggestions = try await client.searchSuggestions(prefix: "   ")
+        let emptySuggestions = try await client.search.suggestions(prefix: "")
+        let whitespaceSuggestions = try await client.search.suggestions(prefix: "   ")
         
         #expect(emptySuggestions.isEmpty)
         #expect(whitespaceSuggestions.isEmpty)
@@ -143,7 +143,7 @@ struct YFSearchIntegrationTests {
     func testSearchResultToTicker() async throws {
         let client = YFClient()
         
-        let results = try await client.search(companyName: "Apple")
+        let results = try await client.search.find(companyName: "Apple")
         
         #expect(!results.isEmpty)
         
@@ -167,14 +167,14 @@ struct YFSearchIntegrationTests {
         
         // 첫 번째 검색
         let startTime1 = Date()
-        let results1 = try await client.search(companyName: "AAPL")
+        let results1 = try await client.search.find(companyName: "AAPL")
         let duration1 = Date().timeIntervalSince(startTime1)
         
         #expect(!results1.isEmpty)
         
         // 두 번째 검색 (캐시된 결과)
         let startTime2 = Date()
-        let results2 = try await client.search(companyName: "AAPL")
+        let results2 = try await client.search.find(companyName: "AAPL")
         let duration2 = Date().timeIntervalSince(startTime2)
         
         #expect(!results2.isEmpty)
@@ -197,7 +197,7 @@ struct YFSearchIntegrationTests {
         
         do {
             let query = YFSearchQuery(term: "", maxResults: 10)
-            _ = try await client.search(query: query)
+            _ = try await client.search.find(query: query)
             #expect(Bool(false), "빈 검색어로 검색이 성공하면 안됨")
         } catch let error as YFError {
             switch error {

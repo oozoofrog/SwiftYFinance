@@ -10,7 +10,7 @@ struct YFSearchAPITests {
         let client = YFClient()
         
         // 컴파일 타임에 메서드 시그니처가 올바른지 확인
-        let _: (String) async throws -> [YFSearchResult] = client.search(companyName:)
+        let _: (String) async throws -> [YFSearchResult] = client.search.find(companyName:)
         
         #expect(true)
     }
@@ -21,7 +21,7 @@ struct YFSearchAPITests {
         let client = YFClient()
         
         // 컴파일 타임에 메서드 시그니처가 올바른지 확인
-        let _: (YFSearchQuery) async throws -> [YFSearchResult] = client.search(query:)
+        let _: (YFSearchQuery) async throws -> [YFSearchResult] = client.search.find(query:)
         
         #expect(true)
     }
@@ -32,7 +32,7 @@ struct YFSearchAPITests {
         let client = YFClient()
         
         // 컴파일 타임에 메서드 시그니처가 올바른지 확인
-        let _: (String) async throws -> [String] = client.searchSuggestions(prefix:)
+        let _: (String) async throws -> [String] = client.search.suggestions(prefix:)
         
         #expect(true)
     }
