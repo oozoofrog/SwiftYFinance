@@ -28,7 +28,7 @@ class YFClient {
 
 ### Phase 1: 공통 유틸리티 분리 ✅
 - [x] YFDateHelper 클래스 생성 (periodStart, periodEnd, dateFromPeriod, periodToRangeString)
-- [ ] YFChartConverter 클래스 생성 (convertToPrices)
+- [x] YFChartConverter 클래스 생성 (convertToPrices)
 
 ### Phase 2: Core API 서비스 클래스 생성
 - [ ] YFQuoteService 클래스 생성 (fetchQuote 메서드들)
@@ -82,7 +82,8 @@ class YFClient {
 
 ## 진행 상황
 - 시작: 2025-01-18
-- 현재: Phase 1 진행 중 (YFDateHelper ✅, YFChartConverter 작업 중)
+- 현재: Phase 1 완료 ✅ (YFDateHelper ✅, YFChartConverter ✅)
+- 다음: Phase 2 시작 예정
 
 ## 사용 예시 (변경 후)
 ```swift
