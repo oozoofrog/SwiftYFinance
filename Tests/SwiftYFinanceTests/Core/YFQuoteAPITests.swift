@@ -3,19 +3,19 @@ import Testing
 
 struct YFQuoteAPITests {
     
-    @Test("YFQuoteAPI file exists")
-    func testYFQuoteAPIFileExists() async {
-        // TDD Green: YFQuoteAPI.swift 파일이 존재하고 fetchQuote 메서드가 분리되어 있는지 테스트
+    @Test("YFQuoteService integration works correctly")
+    func testYFQuoteServiceIntegration() async {
+        // 새로운 서비스 기반 구조 테스트
         let client = YFClient()
         
         // INVALID 심볼로 에러 케이스 테스트 (실제 네트워크 호출 없이 구조 확인)
         let invalidTicker = YFTicker(symbol: "INVALID")
         
         do {
-            _ = try await client.fetchQuote(ticker: invalidTicker)
+            _ = try await client.quote.fetch(ticker: invalidTicker)
             Issue.record("Should have thrown API error")
         } catch YFError.apiError(_) {
-            // 예상된 에러 - YFQuoteAPI extension이 정상 동작함
+            // 예상된 에러 - YFQuoteService가 정상 동작함
             #expect(Bool(true))
         } catch {
             Issue.record("Unexpected error: \(error)")
@@ -23,10 +23,21 @@ struct YFQuoteAPITests {
         
         // realtime 파라미터가 있는 메서드도 동일하게 테스트
         do {
-            _ = try await client.fetchQuote(ticker: invalidTicker, realtime: true)
+            _ = try await client.quote.fetch(ticker: invalidTicker, realtime: true)
             Issue.record("Should have thrown API error")
         } catch YFError.apiError(_) {
-            // 예상된 에러 - YFQuoteAPI extension이 정상 동작함
+            // 예상된 에러 - YFQuoteService가 정상 동작함
+            #expect(Bool(true))
+        } catch {
+            Issue.record("Unexpected error: \(error)")
+        }
+        
+        // 새로운 fetch API도 테스트
+        do {
+            _ = try await client.quote.fetch(ticker: invalidTicker)
+            Issue.record("Should have thrown API error")
+        } catch YFError.apiError(_) {
+            // 예상된 에러 - 새로운 fetch API가 정상 동작함
             #expect(Bool(true))
         } catch {
             Issue.record("Unexpected error: \(error)")

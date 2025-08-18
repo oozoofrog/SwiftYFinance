@@ -87,7 +87,7 @@ struct OptionsDataTests {
             let chain = options.getChain(for: firstExpiry)
             
             // ATM (At The Money) 옵션 찾기
-            let currentPrice = try await client.fetchQuote(ticker: ticker).regularMarketPrice
+            let currentPrice = try await client.quote.fetch(ticker: ticker).regularMarketPrice
             let atmCall = chain.calls.min(by: { abs($0.strike - currentPrice) < abs($1.strike - currentPrice) })!
             
             // Greeks 확인

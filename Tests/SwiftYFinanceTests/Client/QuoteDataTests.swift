@@ -8,7 +8,7 @@ struct QuoteDataTests {
         let client = YFClient()
         let ticker = YFTicker(symbol: "AAPL")
         
-        let quote = try await client.fetchQuote(ticker: ticker)
+        let quote = try await client.quote.fetch(ticker: ticker)
         
         #expect(quote.ticker.symbol == "AAPL")
         #expect(quote.regularMarketPrice > 0)
@@ -22,7 +22,7 @@ struct QuoteDataTests {
         let client = YFClient()
         let ticker = YFTicker(symbol: "TSLA")
         
-        let quote = try await client.fetchQuote(ticker: ticker, realtime: true)
+        let quote = try await client.quote.fetch(ticker: ticker, realtime: true)
         
         #expect(quote.ticker.symbol == "TSLA")
         #expect(quote.regularMarketPrice > 0)
@@ -37,7 +37,7 @@ struct QuoteDataTests {
         let client = YFClient()
         let ticker = YFTicker(symbol: "NVDA")
         
-        let quote = try await client.fetchQuote(ticker: ticker)
+        let quote = try await client.quote.fetch(ticker: ticker)
         
         #expect(quote.ticker.symbol == "NVDA")
         #expect(quote.regularMarketPrice > 0)
