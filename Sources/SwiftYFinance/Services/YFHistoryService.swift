@@ -16,6 +16,9 @@ public final class YFHistoryService: YFBaseService {
     public func fetch(ticker: YFTicker, period: YFPeriod, interval: YFInterval = .oneDay) async throws -> YFHistoricalData {
         let client = try validateClientReference()
         
+        // CSRF 인증 시도 (공통 메서드 사용)
+        await ensureCSRFAuthentication(client: client)
+        
         // Yahoo Finance API 호출
         let request = try client.requestBuilder
             .path("/v8/finance/chart/\(ticker.symbol)")
@@ -31,10 +34,8 @@ public final class YFHistoryService: YFBaseService {
         // JSON 파싱
         let chartResponse = try parseJSON(data: data, type: ChartResponse.self)
         
-        // 에러 응답 처리
-        if let error = chartResponse.chart.error {
-            throw YFError.apiError(error.description)
-        }
+        // 에러 응답 처리 (공통 메서드 사용)
+        try handleYahooFinanceError(chartResponse.chart.error?.description)
         
         // 결과 데이터 처리
         guard let results = chartResponse.chart.result,
@@ -67,6 +68,9 @@ public final class YFHistoryService: YFBaseService {
     public func fetch(ticker: YFTicker, from startDate: Date, to endDate: Date) async throws -> YFHistoricalData {
         let client = try validateClientReference()
         
+        // CSRF 인증 시도 (공통 메서드 사용)
+        await ensureCSRFAuthentication(client: client)
+        
         // Yahoo Finance API 호출
         let startTimestamp = Int(startDate.timeIntervalSince1970)
         let endTimestamp = Int(endDate.timeIntervalSince1970)
@@ -86,10 +90,8 @@ public final class YFHistoryService: YFBaseService {
         // JSON 파싱
         let chartResponse = try parseJSON(data: data, type: ChartResponse.self)
         
-        // 에러 응답 처리
-        if let error = chartResponse.chart.error {
-            throw YFError.apiError(error.description)
-        }
+        // 에러 응답 처리 (공통 메서드 사용)
+        try handleYahooFinanceError(chartResponse.chart.error?.description)
         
         // 결과 데이터 처리
         guard let results = chartResponse.chart.result,

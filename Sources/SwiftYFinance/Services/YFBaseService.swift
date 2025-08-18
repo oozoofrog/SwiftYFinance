@@ -219,6 +219,32 @@ public class YFBaseService {
             print("❌ [DEBUG] \(serviceName) API 응답을 UTF-8로 디코딩 실패")
         }
     }
+    
+    /// CSRF 인증을 시도합니다
+    ///
+    /// Yahoo Finance API 요청 시 필요한 CSRF 인증을 처리합니다.
+    /// 인증이 실패해도 에러를 던지지 않고 기본 요청으로 진행할 수 있도록 합니다.
+    ///
+    /// - Parameter client: YFClient 인스턴스
+    func ensureCSRFAuthentication(client: YFClient) async {
+        let isAuthenticated = await client.session.isCSRFAuthenticated
+        if !isAuthenticated {
+            try? await client.session.authenticateCSRF()
+        }
+    }
+    
+    /// Yahoo Finance API 응답에서 공통 에러를 처리합니다
+    ///
+    /// Yahoo Finance API 응답에 포함된 에러 정보를 확인하고 적절한 예외를 던집니다.
+    /// 모든 서비스에서 일관된 에러 처리를 보장합니다.
+    ///
+    /// - Parameter errorDescription: API 응답의 에러 설명
+    /// - Throws: 에러가 있는 경우 YFError.apiError
+    func handleYahooFinanceError(_ errorDescription: String?) throws {
+        if let error = errorDescription {
+            throw YFError.apiError(error)
+        }
+    }
 }
 
 // MARK: - Yahoo Finance API Response Protocol and Error Types

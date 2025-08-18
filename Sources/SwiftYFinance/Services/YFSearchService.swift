@@ -101,6 +101,11 @@ public final class YFSearchService: YFBaseService {
             throw YFError.invalidParameter("검색어가 유효하지 않습니다")
         }
         
+        let client = try validateClientReference()
+        
+        // CSRF 인증 시도 (공통 메서드 사용)
+        await ensureCSRFAuthentication(client: client)
+        
         let url = try buildSearchURL(for: query)
         let (data, _) = try await authenticatedRequest(url: url)
         

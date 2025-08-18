@@ -14,16 +14,8 @@ public final class YFQuoteService: YFBaseService {
     public func fetch(ticker: YFTicker) async throws -> YFQuote {
         let client = try validateClientReference()
         
-        // CSRF 인증 시도 (실패해도 기본 요청으로 진행)
-        
-        let isAuthenticated = await client.session.isCSRFAuthenticated
-        if !isAuthenticated {
-            do {
-                try await client.session.authenticateCSRF()
-            } catch {
-                // CSRF 인증 실패시 기본 요청으로 진행
-            }
-        }
+        // CSRF 인증 시도 (공통 메서드 사용)
+        await ensureCSRFAuthentication(client: client)
         
         // 요청 URL 구성 및 인증된 요청 수행
         let requestURL = try await buildQuoteSummaryURL(ticker: ticker)
@@ -34,10 +26,8 @@ public final class YFQuoteService: YFBaseService {
         
         let quoteSummaryResponse = try parseJSON(data: data, type: QuoteSummaryResponse.self)
         
-        // 에러 응답 처리
-        if let error = quoteSummaryResponse.quoteSummary.error {
-            throw YFError.apiError(error.description)
-        }
+        // 에러 응답 처리 (공통 메서드 사용)
+        try handleYahooFinanceError(quoteSummaryResponse.quoteSummary.error?.description)
         
         // 결과 데이터 처리
         guard let results = quoteSummaryResponse.quoteSummary.result,
