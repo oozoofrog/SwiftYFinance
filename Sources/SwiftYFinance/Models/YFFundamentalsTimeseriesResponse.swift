@@ -3,19 +3,19 @@ import Foundation
 // MARK: - Fundamentals Timeseries API Response Models
 
 /// Fundamentals Timeseries API 응답 구조
-struct FundamentalsTimeseriesResponse: Codable {
+struct FundamentalsTimeseriesResponse: Decodable {
     let timeseries: TimeseriesData?
     let error: String?
 }
 
 /// Timeseries 데이터 컨테이너
-struct TimeseriesData: Codable {
+struct TimeseriesData: Decodable {
     let result: [TimeseriesResult]?
     let error: String?
 }
 
 /// 개별 Timeseries 결과
-struct TimeseriesResult: Codable {
+struct TimeseriesResult: Decodable {
     let meta: TimeseriesMeta?
     let timestamp: [Int]?
     
@@ -74,13 +74,13 @@ struct TimeseriesResult: Codable {
 }
 
 /// Timeseries 메타데이터
-struct TimeseriesMeta: Codable {
+struct TimeseriesMeta: Decodable {
     let symbol: [String]?
     let type: [String]?
 }
 
 /// Timeseries 값 구조
-struct TimeseriesValue: Codable {
+struct TimeseriesValue: Decodable {
     let dataId: Int?
     let asOfDate: String?
     let periodType: String?
@@ -89,7 +89,7 @@ struct TimeseriesValue: Codable {
 }
 
 /// 보고된 값 구조
-struct ReportedValue: Codable {
+struct ReportedValue: Decodable {
     let raw: Double?
     let fmt: String?
 }

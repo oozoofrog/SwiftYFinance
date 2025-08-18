@@ -27,7 +27,7 @@ import Foundation
 ///     print("장후 거래가: $\(postPrice)")
 /// }
 /// ```
-public struct YFQuote: Codable {
+public struct YFQuote {
     
     /// 주식 심볼 정보
     public let ticker: YFTicker
@@ -77,10 +77,6 @@ public struct YFQuote: Codable {
     /// 이전 거래일의 마지막 거래가격
     public let regularMarketPreviousClose: Double
     
-    /// 실시간 데이터 여부
-    ///
-    /// true면 실시간 데이터, false면 지연된 데이터
-    public let isRealtime: Bool
     
     // MARK: - 장후 거래 데이터
     
@@ -132,7 +128,6 @@ public struct YFQuote: Codable {
     ///   - regularMarketHigh: 정규 시장 고가
     ///   - regularMarketLow: 정규 시장 저가
     ///   - regularMarketPreviousClose: 전일 종가
-    ///   - isRealtime: 실시간 데이터 여부 (기본값: false)
     ///   - postMarketPrice: 장후 거래가 (옵셔널)
     ///   - postMarketTime: 장후 거래 시각 (옵셔널)
     ///   - postMarketChangePercent: 장후 거래 변화율 (옵셔널)
@@ -150,7 +145,6 @@ public struct YFQuote: Codable {
         regularMarketHigh: Double,
         regularMarketLow: Double,
         regularMarketPreviousClose: Double,
-        isRealtime: Bool = false,
         postMarketPrice: Double? = nil,
         postMarketTime: Date? = nil,
         postMarketChangePercent: Double? = nil,
@@ -168,7 +162,6 @@ public struct YFQuote: Codable {
         self.regularMarketHigh = regularMarketHigh
         self.regularMarketLow = regularMarketLow
         self.regularMarketPreviousClose = regularMarketPreviousClose
-        self.isRealtime = isRealtime
         self.postMarketPrice = postMarketPrice
         self.postMarketTime = postMarketTime
         self.postMarketChangePercent = postMarketChangePercent
@@ -177,3 +170,137 @@ public struct YFQuote: Codable {
         self.preMarketChangePercent = preMarketChangePercent
     }
 }
+
+// MARK: - Decodable Implementation for quoteSummary API
+
+extension YFQuote: Decodable {
+    
+    /// quoteSummary API 응답을 위한 CodingKeys
+    ///
+    /// YFQuote가 quoteSummary API 응답 구조를 직접 이해하도록 합니다.
+    /// Python yfinance의 Quote 클래스처럼 API 응답을 직접 처리합니다.
+    private enum CodingKeys: String, CodingKey {
+        case quoteSummary
+    }
+    
+    /// quoteSummary 컨테이너 CodingKeys
+    private enum QuoteSummaryKeys: String, CodingKey {
+        case result, error
+    }
+    
+    /// result 배열 내부 CodingKeys
+    private enum ResultKeys: String, CodingKey {
+        case price, summaryDetail
+    }
+    
+    /// price 데이터 CodingKeys
+    private enum PriceKeys: String, CodingKey {
+        case shortName
+        case regularMarketPrice, regularMarketVolume, marketCap
+        case regularMarketTime, regularMarketOpen
+        case regularMarketDayHigh, regularMarketDayLow
+        case regularMarketPreviousClose
+        case postMarketPrice, postMarketTime, postMarketChangePercent
+        case preMarketPrice, preMarketTime, preMarketChangePercent
+    }
+    
+    /// quoteSummary API 응답으로부터 YFQuote 디코딩
+    ///
+    /// Yahoo Finance quoteSummary API의 중첩된 JSON 구조를 직접 파싱합니다.
+    /// Python yfinance Quote 클래스와 유사한 접근 방식입니다.
+    ///
+    /// - Parameter decoder: JSON 디코더
+    /// - Throws: 디코딩 실패 시 DecodingError
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let quoteSummaryContainer = try container.nestedContainer(keyedBy: QuoteSummaryKeys.self, forKey: .quoteSummary)
+        
+        // 에러 응답 확인
+        if let errorContainer = try? quoteSummaryContainer.nestedContainer(keyedBy: ErrorKeys.self, forKey: .error) {
+            let errorDescription = try errorContainer.decode(String.self, forKey: .description)
+            throw DecodingError.dataCorrupted(DecodingError.Context(
+                codingPath: decoder.codingPath,
+                debugDescription: "API Error: \(errorDescription)"
+            ))
+        }
+        
+        // result 배열 처리
+        var resultArray = try quoteSummaryContainer.nestedUnkeyedContainer(forKey: .result)
+        let resultContainer = try resultArray.nestedContainer(keyedBy: ResultKeys.self)
+        
+        // price 데이터 파싱
+        let priceContainer = try resultContainer.nestedContainer(keyedBy: PriceKeys.self, forKey: .price)
+        
+        // 필수 데이터 추출
+        let shortName = try priceContainer.decodeIfPresent(String.self, forKey: .shortName)
+        let regularMarketPrice = try priceContainer.decodeIfPresent(Double.self, forKey: .regularMarketPrice) ?? 0.0
+        let regularMarketVolume = try priceContainer.decodeIfPresent(Int.self, forKey: .regularMarketVolume) ?? 0
+        let marketCap = try priceContainer.decodeIfPresent(Double.self, forKey: .marketCap) ?? 0.0
+        let regularMarketTimeStamp = try priceContainer.decodeIfPresent(Int.self, forKey: .regularMarketTime) ?? 0
+        let regularMarketOpen = try priceContainer.decodeIfPresent(Double.self, forKey: .regularMarketOpen) ?? 0.0
+        let regularMarketHigh = try priceContainer.decodeIfPresent(Double.self, forKey: .regularMarketDayHigh) ?? 0.0
+        let regularMarketLow = try priceContainer.decodeIfPresent(Double.self, forKey: .regularMarketDayLow) ?? 0.0
+        let regularMarketPreviousClose = try priceContainer.decodeIfPresent(Double.self, forKey: .regularMarketPreviousClose) ?? 0.0
+        
+        // 시간외 거래 데이터 (옵셔널)
+        let postMarketPrice = try priceContainer.decodeIfPresent(Double.self, forKey: .postMarketPrice)
+        let postMarketTimeStamp = try priceContainer.decodeIfPresent(Int.self, forKey: .postMarketTime)
+        let postMarketChangePercent = try priceContainer.decodeIfPresent(Double.self, forKey: .postMarketChangePercent)
+        let preMarketPrice = try priceContainer.decodeIfPresent(Double.self, forKey: .preMarketPrice)
+        let preMarketTimeStamp = try priceContainer.decodeIfPresent(Int.self, forKey: .preMarketTime)
+        let preMarketChangePercent = try priceContainer.decodeIfPresent(Double.self, forKey: .preMarketChangePercent)
+        
+        // ticker는 디코딩에서 얻을 수 없으므로, 이는 서비스에서 별도 처리 필요
+        // 임시로 빈 ticker 생성 (서비스에서 올바른 ticker로 교체됨)
+        let ticker = YFTicker(symbol: shortName ?? "UNKNOWN")
+        
+        // YFQuote 초기화
+        self.init(
+            ticker: ticker,
+            regularMarketPrice: regularMarketPrice,
+            regularMarketVolume: regularMarketVolume,
+            marketCap: marketCap,
+            shortName: shortName ?? ticker.symbol,
+            regularMarketTime: Date(timeIntervalSince1970: TimeInterval(regularMarketTimeStamp)),
+            regularMarketOpen: regularMarketOpen,
+            regularMarketHigh: regularMarketHigh,
+            regularMarketLow: regularMarketLow,
+            regularMarketPreviousClose: regularMarketPreviousClose,
+            postMarketPrice: postMarketPrice,
+            postMarketTime: postMarketTimeStamp != nil ? Date(timeIntervalSince1970: TimeInterval(postMarketTimeStamp!)) : nil,
+            postMarketChangePercent: postMarketChangePercent,
+            preMarketPrice: preMarketPrice,
+            preMarketTime: preMarketTimeStamp != nil ? Date(timeIntervalSince1970: TimeInterval(preMarketTimeStamp!)) : nil,
+            preMarketChangePercent: preMarketChangePercent
+        )
+    }
+    
+    
+    /// ticker를 올바른 값으로 업데이트하는 헬퍼 메서드
+    internal func withCorrectTicker(_ ticker: YFTicker) -> YFQuote {
+        return YFQuote(
+            ticker: ticker,
+            regularMarketPrice: self.regularMarketPrice,
+            regularMarketVolume: self.regularMarketVolume,
+            marketCap: self.marketCap,
+            shortName: self.shortName,
+            regularMarketTime: self.regularMarketTime,
+            regularMarketOpen: self.regularMarketOpen,
+            regularMarketHigh: self.regularMarketHigh,
+            regularMarketLow: self.regularMarketLow,
+            regularMarketPreviousClose: self.regularMarketPreviousClose,
+            postMarketPrice: self.postMarketPrice,
+            postMarketTime: self.postMarketTime,
+            postMarketChangePercent: self.postMarketChangePercent,
+            preMarketPrice: self.preMarketPrice,
+            preMarketTime: self.preMarketTime,
+            preMarketChangePercent: self.preMarketChangePercent
+        )
+    }
+    
+    /// 에러 CodingKeys
+    private enum ErrorKeys: String, CodingKey {
+        case code, description
+    }
+}
+

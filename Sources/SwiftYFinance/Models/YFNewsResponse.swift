@@ -3,7 +3,7 @@ import Foundation
 // MARK: - Yahoo Finance News API Response Models
 
 /// Yahoo Finance News API 응답 구조
-struct YFNewsResponse: Codable {
+struct YFNewsResponse: Decodable {
     let explains: [String]?
     let count: Int?
     let quotes: [YFQuoteResponse]?  // Dictionary 배열로 수정
@@ -28,7 +28,7 @@ struct YFNewsResponse: Codable {
 }
 
 /// Quote response item in search API
-struct YFQuoteResponse: Codable {
+struct YFQuoteResponse: Decodable {
     let symbol: String?
     let shortname: String?
     let longname: String?
@@ -40,35 +40,35 @@ struct YFQuoteResponse: Codable {
 }
 
 /// Nav response item
-struct YFNavResponse: Codable {
+struct YFNavResponse: Decodable {
     let name: String?
     let navId: String?
     let categoryType: String?
 }
 
 /// List response item  
-struct YFListResponse: Codable {
+struct YFListResponse: Decodable {
     let name: String?
     let listId: String?
     let type: String?
 }
 
 /// Research response item
-struct YFResearchResponse: Codable {
+struct YFResearchResponse: Decodable {
     let title: String?
     let reportId: String?
     let provider: String?
 }
 
 /// News stream item
-struct YFNewsStreamItem: Codable {
+struct YFNewsStreamItem: Decodable {
     let content: YFNewsContent?
     let id: String?
     let type: String?
 }
 
 /// News content
-struct YFNewsContent: Codable {
+struct YFNewsContent: Decodable {
     let clickThroughUrl: YFNewsClickThroughUrl?
     let summary: String?
     let thumbnail: YFNewsThumbnail?
@@ -82,18 +82,18 @@ struct YFNewsContent: Codable {
 }
 
 /// Click through URL
-struct YFNewsClickThroughUrl: Codable {
+struct YFNewsClickThroughUrl: Decodable {
     let desktop: String?
     let mobile: String?
 }
 
 /// Thumbnail
-struct YFNewsThumbnail: Codable {
+struct YFNewsThumbnail: Decodable {
     let resolutions: [YFNewsResolution]?
 }
 
 /// Resolution
-struct YFNewsResolution: Codable {
+struct YFNewsResolution: Decodable {
     let url: String?
     let width: Int?
     let height: Int?
@@ -101,13 +101,13 @@ struct YFNewsResolution: Codable {
 }
 
 /// Provider
-struct YFNewsProvider: Codable {
+struct YFNewsProvider: Decodable {
     let displayName: String?
     let publishTime: Int?
 }
 
 /// Legacy news response item
-struct YFNewsResponseItem: Codable {
+struct YFNewsResponseItem: Decodable {
     let uuid: String
     let title: String
     let publisher: String?

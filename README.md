@@ -240,8 +240,7 @@ SwiftYFinance/
 │   ├── Client/                     # API integration tests  
 │   ├── Models/                     # Data model tests
 │   └── Utils/                      # Utility tests
-├── docs/plans/                     # Development documentation
-└── yfinance-reference/             # Python yfinance reference
+└── docs/plans/                     # Development documentation
 ```
 
 ## 🧪 Running Tests

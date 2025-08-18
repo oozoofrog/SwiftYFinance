@@ -3,7 +3,7 @@ import Foundation
 // MARK: - Balance Sheet API Response Models
 
 /// Balance Sheet 응답을 포함하는 QuoteSummary 결과 확장
-struct BalanceSheetQuoteSummaryResult: Codable {
+struct BalanceSheetQuoteSummaryResult: Decodable {
     /// Balance Sheet History 모듈 데이터
     let balanceSheetHistory: BalanceSheetHistory?
     /// Balance Sheet History Quarterly 모듈 데이터
@@ -11,13 +11,13 @@ struct BalanceSheetQuoteSummaryResult: Codable {
 }
 
 /// Balance Sheet History 컨테이너
-struct BalanceSheetHistory: Codable {
+struct BalanceSheetHistory: Decodable {
     /// Balance Sheet 명세서 배열
     let balanceSheetStatements: [BalanceSheetStatement]?
 }
 
 /// 개별 Balance Sheet 명세서
-struct BalanceSheetStatement: Codable {
+struct BalanceSheetStatement: Decodable {
     /// 보고 날짜 (Unix timestamp)
     let endDate: TimeValue?
     
@@ -68,13 +68,13 @@ struct BalanceSheetStatement: Codable {
 }
 
 /// 날짜/시간 값을 담는 구조체
-struct TimeValue: Codable {
+struct TimeValue: Decodable {
     let raw: Int?
     let fmt: String?
 }
 
 /// Long 타입 값을 담는 구조체
-struct LongValue: Codable {
+struct LongValue: Decodable {
     let raw: Double?
     let fmt: String?
     let longFmt: String?

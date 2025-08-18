@@ -150,7 +150,7 @@ public struct YFSearchService: YFService {
 // MARK: - Search Response Models
 
 /// Yahoo Finance 검색 API 응답 구조
-private struct YFSearchResponse: Codable {
+private struct YFSearchResponse: Decodable {
     let quotes: [YFSearchResult]?
     let news: [YFSearchNewsItem]?
     let nav: [YFSearchNavItem]?
@@ -161,7 +161,7 @@ private struct YFSearchResponse: Codable {
 }
 
 /// 검색 결과에 포함된 뉴스 아이템
-private struct YFSearchNewsItem: Codable {
+private struct YFSearchNewsItem: Decodable {
     let uuid: String?
     let title: String?
     let publisher: String?
@@ -172,7 +172,7 @@ private struct YFSearchNewsItem: Codable {
 }
 
 /// 검색 결과에 포함된 네비게이션 아이템
-private struct YFSearchNavItem: Codable {
+private struct YFSearchNavItem: Decodable {
     let navName: String?
     let navUrl: String?
     

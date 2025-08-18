@@ -49,40 +49,11 @@ public struct YFQuoteService: YFService {
         // API 응답 디버깅 로그
         logAPIResponse(data, serviceName: "Quote")
         
-        let quoteSummaryResponse = try core.parseJSON(data: data, type: QuoteSummaryResponse.self)
+        // YFQuote 직접 파싱 (Python yfinance Quote 클래스 스타일)
+        let quote = try core.parseJSON(data: data, type: YFQuote.self)
         
-        // 에러 응답 처리
-        try handleYahooFinanceError(quoteSummaryResponse.quoteSummary.error?.description)
-        
-        // 결과 데이터 처리
-        guard let results = quoteSummaryResponse.quoteSummary.result,
-              let result = results.first,
-              let priceData = result.price else {
-            throw YFError.apiError("No quote data available")
-        }
-        
-        // YFQuote 객체 생성
-        let quote = YFQuote(
-            ticker: ticker,
-            regularMarketPrice: priceData.regularMarketPrice ?? 0.0,
-            regularMarketVolume: priceData.regularMarketVolume ?? 0,
-            marketCap: priceData.marketCap ?? 0.0,
-            shortName: priceData.shortName ?? ticker.symbol,
-            regularMarketTime: Date(timeIntervalSince1970: TimeInterval(priceData.regularMarketTime ?? 0)),
-            regularMarketOpen: priceData.regularMarketOpen ?? 0.0,
-            regularMarketHigh: priceData.regularMarketDayHigh ?? 0.0,
-            regularMarketLow: priceData.regularMarketDayLow ?? 0.0,
-            regularMarketPreviousClose: priceData.regularMarketPreviousClose ?? 0.0,
-            isRealtime: false,
-            postMarketPrice: priceData.postMarketPrice,
-            postMarketTime: priceData.postMarketTime != nil ? Date(timeIntervalSince1970: TimeInterval(priceData.postMarketTime!)) : nil,
-            postMarketChangePercent: priceData.postMarketChangePercent,
-            preMarketPrice: priceData.preMarketPrice,
-            preMarketTime: priceData.preMarketTime != nil ? Date(timeIntervalSince1970: TimeInterval(priceData.preMarketTime!)) : nil,
-            preMarketChangePercent: priceData.preMarketChangePercent
-        )
-        
-        return quote
+        // ticker를 올바른 값으로 교체
+        return quote.withCorrectTicker(ticker)
     }
     
 }

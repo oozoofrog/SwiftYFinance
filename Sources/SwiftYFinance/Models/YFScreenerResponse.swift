@@ -3,18 +3,18 @@ import Foundation
 // MARK: - Yahoo Finance Screener API Response Models
 
 /// Yahoo Finance Screener API 응답 구조
-struct YFScreenerResponse: Codable {
+struct YFScreenerResponse: Decodable {
     let finance: YFScreenerFinance?
 }
 
 /// Finance wrapper
-struct YFScreenerFinance: Codable {
+struct YFScreenerFinance: Decodable {
     let result: [YFScreenerResult]?
     let error: String?
 }
 
 /// Screener result
-struct YFScreenerResult: Codable {
+struct YFScreenerResult: Decodable {
     let id: String?
     let title: String?
     let description: String?
@@ -28,7 +28,7 @@ struct YFScreenerResult: Codable {
 }
 
 /// Criteria meta
-struct YFScreenerCriteriaMeta: Codable {
+struct YFScreenerCriteriaMeta: Decodable {
     let size: Int?
     let offset: Int?
     let sortField: String?
@@ -39,7 +39,7 @@ struct YFScreenerCriteriaMeta: Codable {
 }
 
 /// Criteria
-struct YFScreenerCriteria: Codable {
+struct YFScreenerCriteria: Decodable {
     let field: String?
     let operators: [String]?
     let values: [Double]?
@@ -48,7 +48,7 @@ struct YFScreenerCriteria: Codable {
 }
 
 /// Screener quote
-struct YFScreenerQuote: Codable {
+struct YFScreenerQuote: Decodable {
     let language: String?
     let region: String?
     let quoteType: String?

@@ -136,7 +136,7 @@ public struct YFResponseParser: Sendable {
 ///     description: "No data found for symbol INVALID"
 /// )
 /// ```
-public struct YFErrorResponse: Codable {
+public struct YFErrorResponse: Decodable {
     /// 에러 코드
     ///
     /// Yahoo Finance에서 정의한 에러 타입을 나타냅니다.
@@ -151,11 +151,11 @@ public struct YFErrorResponse: Codable {
 }
 
 /// 에러 응답 래퍼 (내부 사용)
-struct ErrorWrapper: Codable {
+struct ErrorWrapper: Decodable {
     let chart: ErrorChart?
 }
 
 /// 에러 차트 구조 (내부 사용)
-struct ErrorChart: Codable {
+struct ErrorChart: Decodable {
     let error: YFErrorResponse?
 }

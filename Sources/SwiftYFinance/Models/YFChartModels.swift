@@ -11,7 +11,7 @@ import Foundation
 ///
 /// ### 속성
 /// - ``chart``
-struct ChartResponse: Codable {
+struct ChartResponse: Decodable {
     /// 차트 데이터를 포함하는 컨테이너
     let chart: Chart
 }
@@ -29,7 +29,7 @@ struct ChartResponse: Codable {
 /// ## Note
 /// `result`와 `error`는 상호 배타적입니다.
 /// 성공 시에는 `result`가, 실패 시에는 `error`가 값을 가집니다.
-struct Chart: Codable {
+struct Chart: Decodable {
     /// 차트 결과 배열 (일반적으로 단일 요소)
     let result: [ChartResult]?
     
@@ -55,7 +55,7 @@ struct Chart: Codable {
 ///     description: "No data found for symbol INVALID"
 /// )
 /// ```
-struct ChartError: Codable {
+struct ChartError: Decodable {
     /// 에러 코드
     let code: String
     
@@ -79,7 +79,7 @@ struct ChartError: Codable {
 /// ## Important
 /// `timestamp` 배열의 각 요소는 Unix 타임스탬프(초 단위)이며,
 /// `indicators` 내의 가격 데이터 배열과 1:1 대응됩니다.
-struct ChartResult: Codable {
+struct ChartResult: Decodable {
     /// 차트 메타데이터 (심볼, 거래소, 통화 등)
     let meta: ChartMeta
     
@@ -124,7 +124,7 @@ struct ChartResult: Codable {
 /// - ``hasPrePostMarketData``
 /// - ``priceHint``
 /// - ``validRanges``
-struct ChartMeta: Codable {
+struct ChartMeta: Decodable {
     /// 거래 통화 (예: "USD", "KRW")
     let currency: String?
     
@@ -202,7 +202,7 @@ struct ChartMeta: Codable {
 ///
 /// ## Note
 /// 배당과 주식 분할을 반영한 조정 종가는 선택적으로 제공됩니다.
-struct ChartIndicators: Codable {
+struct ChartIndicators: Decodable {
     /// OHLCV 데이터 배열
     let quote: [ChartQuote]
     
@@ -241,7 +241,7 @@ struct ChartIndicators: Codable {
 ///     volume: [1000000, 1200000, 950000]
 /// )
 /// ```
-struct ChartQuote: Codable {
+struct ChartQuote: Decodable {
     /// 시가 배열
     let open: [Double]
     
@@ -256,6 +256,11 @@ struct ChartQuote: Codable {
     
     /// 거래량 배열
     let volume: [Int]
+    
+    /// CodingKeys for decoding
+    private enum CodingKeys: String, CodingKey {
+        case open, high, low, close, volume
+    }
     
     /// 커스텀 디코더 초기화
     ///
@@ -304,9 +309,14 @@ struct ChartQuote: Codable {
 ///     adjclose: [75.0, 76.0, 150.0, 152.0] // 2:1 분할 반영
 /// )
 /// ```
-struct ChartAdjClose: Codable {
+struct ChartAdjClose: Decodable {
     /// 조정 종가 배열
     let adjclose: [Double]
+    
+    /// CodingKeys for decoding
+    private enum CodingKeys: String, CodingKey {
+        case adjclose
+    }
     
     /// 커스텀 디코더 초기화
     ///

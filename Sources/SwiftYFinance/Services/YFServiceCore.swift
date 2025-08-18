@@ -146,7 +146,7 @@ public struct YFServiceCore: Sendable {
     ///   - type: 디코딩할 타입
     /// - Returns: 디코딩된 객체
     /// - Throws: 파싱 실패 시 YFError.parsingErrorWithMessage
-    public func parseJSON<T: Codable>(data: Data, type: T.Type) throws -> T {
+    public func parseJSON<T: Decodable>(data: Data, type: T.Type) throws -> T {
         do {
             let decoder = JSONDecoder()
             return try decoder.decode(type, from: data)
