@@ -5,7 +5,27 @@ import Foundation
 /// Yahoo Finance API를 통해 종목 검색, 자동완성 제안 등의 기능을 제공합니다.
 /// 검색 결과는 캐시되어 성능을 최적화합니다.
 /// Sendable 프로토콜을 준수하여 concurrent 환경에서 안전하게 사용할 수 있습니다.
-public final class YFSearchService: YFBaseService, @unchecked Sendable {
+/// Protocol + Struct 설계로 @unchecked 없이도 완전한 thread safety를 보장합니다.
+public struct YFSearchService: YFService {
+    
+    /// YFClient 참조
+    public let client: YFClient
+    
+    /// 디버깅 모드 활성화 여부
+    public let debugEnabled: Bool
+    
+    /// 공통 로직을 처리하는 핵심 구조체
+    private let core: YFServiceCore
+    
+    /// YFSearchService 초기화
+    /// - Parameters:
+    ///   - client: YFClient 인스턴스
+    ///   - debugEnabled: 디버깅 로그 활성화 여부 (기본값: false)
+    public init(client: YFClient, debugEnabled: Bool = false) {
+        self.client = client
+        self.debugEnabled = debugEnabled
+        self.core = YFServiceCore(client: client, debugEnabled: debugEnabled)
+    }
     
     /// 회사명으로 검색을 수행합니다
     /// 
@@ -25,8 +45,6 @@ public final class YFSearchService: YFBaseService, @unchecked Sendable {
     /// - Returns: 검색 결과 배열
     /// - Throws: 검색 실패 시 YFError
     public func find(companyName: String) async throws -> [YFSearchResult] {
-        _ = try validateClientReference()
-        
         let query = YFSearchQuery(term: companyName)
         return try await find(query: query)
     }
@@ -51,8 +69,6 @@ public final class YFSearchService: YFBaseService, @unchecked Sendable {
     /// - Returns: 검색 결과 배열
     /// - Throws: 검색 실패 시 YFError
     public func find(query: YFSearchQuery) async throws -> [YFSearchResult] {
-        _ = try validateClientReference()
-        
         // 캐시에서 먼저 확인
         let cacheKey = query.term
         if let cachedResults = await YFSearchCache.shared.get(for: cacheKey) {
@@ -102,13 +118,11 @@ public final class YFSearchService: YFBaseService, @unchecked Sendable {
             throw YFError.invalidParameter("검색어가 유효하지 않습니다")
         }
         
-        let client = try validateClientReference()
-        
-        // CSRF 인증 시도 (공통 메서드 사용)
-        await ensureCSRFAuthentication(client: client)
+        // CSRF 인증 시도
+        await ensureCSRFAuthentication()
         
         let url = try await buildSearchURL(for: query)
-        let (data, _) = try await authenticatedRequest(url: url)
+        let (data, _) = try await core.authenticatedRequest(url: url)
         
         // API 응답 디버깅 로그
         logAPIResponse(data, serviceName: "Search")
@@ -119,7 +133,7 @@ public final class YFSearchService: YFBaseService, @unchecked Sendable {
     /// 검색 URL 구성
     private func buildSearchURL(for query: YFSearchQuery) async throws -> URL {
         let parameters = query.toURLParameters()
-        return try await apiBuilder()
+        return try await core.apiBuilder()
             .host(YFHosts.query2)
             .path(YFPaths.search)
             .parameters(parameters)
@@ -128,7 +142,7 @@ public final class YFSearchService: YFBaseService, @unchecked Sendable {
     
     /// 검색 응답 JSON 파싱
     private func parseSearchResponse(_ data: Data) throws -> [YFSearchResult] {
-        let searchResponse = try parseJSON(data: data, type: YFSearchResponse.self)
+        let searchResponse = try core.parseJSON(data: data, type: YFSearchResponse.self)
         return searchResponse.quotes ?? []
     }
 }

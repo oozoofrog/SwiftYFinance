@@ -5,7 +5,27 @@ import Foundation
 /// Yahoo Finance API를 통해 주식의 과거 가격 데이터를 조회하는 기능을 제공합니다.
 /// 기간별 조회와 날짜 범위 조회를 지원하며, 다양한 시간 간격으로 데이터를 가져올 수 있습니다.
 /// Sendable 프로토콜을 준수하여 concurrent 환경에서 안전하게 사용할 수 있습니다.
-public final class YFHistoryService: YFBaseService, @unchecked Sendable {
+/// Protocol + Struct 설계로 @unchecked 없이도 완전한 thread safety를 보장합니다.
+public struct YFHistoryService: YFService {
+    
+    /// YFClient 참조
+    public let client: YFClient
+    
+    /// 디버깅 모드 활성화 여부
+    public let debugEnabled: Bool
+    
+    /// 공통 로직을 처리하는 핵심 구조체
+    private let core: YFServiceCore
+    
+    /// YFHistoryService 초기화
+    /// - Parameters:
+    ///   - client: YFClient 인스턴스
+    ///   - debugEnabled: 디버깅 로그 활성화 여부 (기본값: false)
+    public init(client: YFClient, debugEnabled: Bool = false) {
+        self.client = client
+        self.debugEnabled = debugEnabled
+        self.core = YFServiceCore(client: client, debugEnabled: debugEnabled)
+    }
     
     /// 고해상도 가격 히스토리 데이터를 조회합니다.
     /// - Parameters:
@@ -15,28 +35,26 @@ public final class YFHistoryService: YFBaseService, @unchecked Sendable {
     /// - Returns: 가격 히스토리 데이터
     /// - Throws: API 호출 중 발생하는 에러
     public func fetch(ticker: YFTicker, period: YFPeriod, interval: YFInterval = .oneDay) async throws -> YFHistoricalData {
-        let client = try validateClientReference()
-        
-        // CSRF 인증 시도 (공통 메서드 사용)
-        await ensureCSRFAuthentication(client: client)
+        // CSRF 인증 시도
+        await ensureCSRFAuthentication()
         
         // Yahoo Finance API 호출
-        let requestURL = try await apiBuilder()
+        let requestURL = try await core.apiBuilder()
             .host(YFHosts.query2)
             .path(YFPaths.chart + "/\(ticker.symbol)")
             .parameter("interval", interval.stringValue)
             .parameter("range", client.dateHelper.periodToRangeString(period))
             .build()
         
-        let (data, _) = try await authenticatedURLRequest(url: requestURL)
+        let (data, _) = try await core.authenticatedURLRequest(url: requestURL)
         
         // API 응답 디버깅 로그
         logAPIResponse(data, serviceName: "History")
         
         // JSON 파싱
-        let chartResponse = try parseJSON(data: data, type: ChartResponse.self)
+        let chartResponse = try core.parseJSON(data: data, type: ChartResponse.self)
         
-        // 에러 응답 처리 (공통 메서드 사용)
+        // 에러 응답 처리
         try handleYahooFinanceError(chartResponse.chart.error?.description)
         
         // 결과 데이터 처리
@@ -68,16 +86,14 @@ public final class YFHistoryService: YFBaseService, @unchecked Sendable {
     
     /// 날짜 범위 기반 가격 히스토리 데이터 조회
     public func fetch(ticker: YFTicker, from startDate: Date, to endDate: Date) async throws -> YFHistoricalData {
-        let client = try validateClientReference()
-        
-        // CSRF 인증 시도 (공통 메서드 사용)
-        await ensureCSRFAuthentication(client: client)
+        // CSRF 인증 시도
+        await ensureCSRFAuthentication()
         
         // Yahoo Finance API 호출
         let startTimestamp = Int(startDate.timeIntervalSince1970)
         let endTimestamp = Int(endDate.timeIntervalSince1970)
         
-        let requestURL = try await apiBuilder()
+        let requestURL = try await core.apiBuilder()
             .host(YFHosts.query2)
             .path(YFPaths.chart + "/\(ticker.symbol)")
             .parameter("period1", String(startTimestamp))
@@ -85,15 +101,15 @@ public final class YFHistoryService: YFBaseService, @unchecked Sendable {
             .parameter("interval", "1d")
             .build()
         
-        let (data, _) = try await authenticatedURLRequest(url: requestURL)
+        let (data, _) = try await core.authenticatedURLRequest(url: requestURL)
         
         // API 응답 디버깅 로그
         logAPIResponse(data, serviceName: "History")
         
         // JSON 파싱
-        let chartResponse = try parseJSON(data: data, type: ChartResponse.self)
+        let chartResponse = try core.parseJSON(data: data, type: ChartResponse.self)
         
-        // 에러 응답 처리 (공통 메서드 사용)
+        // 에러 응답 처리
         try handleYahooFinanceError(chartResponse.chart.error?.description)
         
         // 결과 데이터 처리
