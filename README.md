@@ -39,6 +39,8 @@ SwiftYFinance is a **complete Swift port** of the Python [yfinance](https://gith
 - **Swift 6.1 Compatible**: Latest Swift language features
 - **Async/Await**: Modern concurrency for all API calls
 - **Protocol-Oriented**: Flexible and testable architecture
+- **Command Line Interface**: Full-featured CLI for testing and data access
+- **JSON Samples**: Real API response samples for all commands (AAPL ticker)
 - **Documentation**: Comprehensive API documentation and examples
 
 ## 📱 Supported Platforms
@@ -65,6 +67,56 @@ dependencies: [
 3. Select version and Add Package
 
 ## 📖 Usage
+
+### 🖥️ Command Line Interface (CLI)
+
+SwiftYFinance includes a powerful CLI tool for quick data access and testing:
+
+```bash
+# Build and run CLI
+cd CLI
+swift build
+swift run swiftyfinance --help
+
+# Get real-time quote
+swift run swiftyfinance quote AAPL
+swift run swiftyfinance quote AAPL --json  # Raw JSON output
+
+# Historical data with different periods
+swift run swiftyfinance history AAPL --period 1mo
+swift run swiftyfinance history AAPL --period 1y --json
+
+# Search for stocks
+swift run swiftyfinance search Apple --limit 5
+swift run swiftyfinance search "Apple Inc" --json
+
+# Comprehensive fundamentals data
+swift run swiftyfinance fundamentals AAPL
+swift run swiftyfinance fundamentals AAPL --json
+
+# Debug mode for troubleshooting
+swift run swiftyfinance quote AAPL --debug
+```
+
+#### CLI Commands
+
+| Command | Description | Options |
+|---------|-------------|---------|
+| `quote` | Real-time stock quotes | `--json`, `--debug` |
+| `history` | Historical price data | `--period 1d/5d/1mo/3mo/6mo/1y/2y/5y/10y/ytd/max`, `--json`, `--debug` |
+| `search` | Search stocks by name | `--limit N`, `--json`, `--debug` |
+| `fundamentals` | Financial statements & metrics | `--json`, `--debug` |
+
+#### JSON Sample Files
+
+Complete JSON response samples for all CLI commands are available in `json-samples/`:
+
+- **`aapl-quote.json`** (3.2KB) - Real-time quote data
+- **`aapl-history.json`** (7.5KB) - 1-month historical data  
+- **`aapl-search.json`** (11KB) - Search results with news
+- **`aapl-fundamentals.json`** (561KB) - Complete financial data
+
+These samples provide real Yahoo Finance API responses for development, testing, and integration.
 
 ### Quick Start
 
@@ -197,6 +249,16 @@ This project follows **TDD (Test-Driven Development)** and **Tidy First** princi
 
 ```
 SwiftYFinance/
+├── CLI/                            # Command Line Interface
+│   ├── Package.swift               # CLI dependencies
+│   └── Sources/SwiftYFinanceCLI/
+│       └── SwiftYFinanceCLI.swift  # CLI implementation
+├── json-samples/                   # JSON API Response Samples
+│   ├── README.md                   # Sample documentation
+│   ├── aapl-quote.json             # Real-time quote (3.2KB)
+│   ├── aapl-history.json           # Historical data (7.5KB)
+│   ├── aapl-search.json            # Search results (11KB)
+│   └── aapl-fundamentals.json      # Financial data (561KB)
 ├── Sources/SwiftYFinance/
 │   ├── Core/                        # Core infrastructure  
 │   │   ├── YFClient.swift           # Main client API (157 lines)
