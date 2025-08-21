@@ -14,12 +14,18 @@ struct YFQuoteServiceTests {
         
         // When & Then
         do {
-            let _ = try await service.fetch(ticker: invalidTicker)
+            let quote = try await service.fetch(ticker: invalidTicker)
             // 무효한 심볼도 성공할 수 있음 (Yahoo API 특성)
-            #expect(Bool(true))
+            // 하지만 실제 데이터는 없거나 최소한이어야 함
+            let hasValidPrice = quote.regularMarketPrice > 0
+            let hasValidName = !quote.shortName.isEmpty
+            let hasValidData = hasValidPrice || hasValidName
+            
+            // 무효한 심볼은 유의미한 데이터가 없어야 함
+            #expect(!hasValidData, "Invalid ticker should not return meaningful data")
         } catch {
-            // 에러가 발생해도 정상적인 에러 처리
-            #expect(Bool(true))
+            // 에러가 발생해도 정상적인 에러 처리 (API에 따라 다를 수 있음)
+            #expect(error is YFError, "Should throw YFError for invalid symbols")
         }
     }
      
@@ -34,7 +40,6 @@ struct YFQuoteServiceTests {
         
         // Then
         #expect(quote.ticker.symbol == "AAPL")
-        #expect(client.quote != nil)
     }
     
 }

@@ -28,6 +28,9 @@ let package = Package(
             name: "SwiftYFinance",
             dependencies: [
                 .product(name: "SwiftProtobuf", package: "swift-protobuf")
+            ],
+            resources: [
+                .process("Protobuf/PricingData.proto")  // .proto 파일을 리소스로 명시
             ]
         ),
         .testTarget(

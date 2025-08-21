@@ -12,7 +12,7 @@ struct YFSearchAPITests {
         // 컴파일 타임에 메서드 시그니처가 올바른지 확인
         let _: (String) async throws -> [YFSearchResult] = client.search.find(companyName:)
         
-        #expect(true)
+        #expect(Bool(true))
     }
     
     @Test("search(query:) 메서드 시그니처 확인")
@@ -23,7 +23,7 @@ struct YFSearchAPITests {
         // 컴파일 타임에 메서드 시그니처가 올바른지 확인
         let _: (YFSearchQuery) async throws -> [YFSearchResult] = client.search.find(query:)
         
-        #expect(true)
+        #expect(Bool(true))
     }
     
     @Test("searchSuggestions(prefix:) 메서드 시그니처 확인")
@@ -34,7 +34,7 @@ struct YFSearchAPITests {
         // 컴파일 타임에 메서드 시그니처가 올바른지 확인
         let _: (String) async throws -> [String] = client.search.suggestions(prefix:)
         
-        #expect(true)
+        #expect(Bool(true))
     }
     
     @Test("YFSearchQuery 유효성 검사 로직")
