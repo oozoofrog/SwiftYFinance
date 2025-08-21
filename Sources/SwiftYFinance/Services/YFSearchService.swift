@@ -107,6 +107,37 @@ public struct YFSearchService: YFService {
         return results.compactMap { $0.longName ?? $0.shortName }
     }
     
+    /// 검색 결과 원본 JSON 조회 (회사명 기반)
+    ///
+    /// Yahoo Finance API에서 반환하는 원본 JSON 응답을 그대로 반환합니다.
+    ///
+    /// - Parameter companyName: 검색할 회사명
+    /// - Returns: 원본 JSON 응답 데이터
+    /// - Throws: API 호출 중 발생하는 에러
+    public func findRawJSON(companyName: String) async throws -> Data {
+        let query = YFSearchQuery(term: companyName)
+        return try await findRawJSON(query: query)
+    }
+    
+    /// 검색 결과 원본 JSON 조회 (고급 검색)
+    ///
+    /// Yahoo Finance API에서 반환하는 원본 JSON 응답을 그대로 반환합니다.
+    ///
+    /// - Parameter query: 검색 쿼리 조건
+    /// - Returns: 원본 JSON 응답 데이터
+    /// - Throws: API 호출 중 발생하는 에러
+    public func findRawJSON(query: YFSearchQuery) async throws -> Data {
+        guard query.isValid else {
+            throw YFError.invalidParameter("검색어가 유효하지 않습니다")
+        }
+        
+        // 요청 URL 구성
+        let url = try await buildSearchURL(for: query)
+        
+        // 공통 fetchRawJSON 메서드 사용
+        return try await performFetchRawJSON(url: url, serviceName: "Search")
+    }
+    
     // MARK: - Private Search Implementation
     
     /// 실제 검색 API 호출을 수행합니다 (인증된 세션 사용)

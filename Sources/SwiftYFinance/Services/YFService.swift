@@ -72,4 +72,54 @@ public extension YFService {
             throw YFError.apiError(error)
         }
     }
+    
+    /// 공통 API 호출 및 JSON 파싱을 수행합니다
+    ///
+    /// 모든 서비스에서 사용하는 표준화된 API 호출 패턴을 제공합니다.
+    /// CSRF 인증, URL 요청, 응답 로깅, JSON 파싱을 일괄 처리합니다.
+    ///
+    /// - Parameters:
+    ///   - url: API 요청 URL
+    ///   - type: 디코딩할 타입
+    ///   - serviceName: 로깅용 서비스 이름
+    /// - Returns: 파싱된 객체
+    /// - Throws: API 호출 또는 파싱 중 발생하는 에러
+    func performFetch<T: Decodable>(url: URL, type: T.Type, serviceName: String) async throws -> T {
+        // CSRF 인증 시도
+        await ensureCSRFAuthentication()
+        
+        // 인증된 요청 수행
+        let core = YFServiceCore(client: client, debugEnabled: debugEnabled)
+        let (data, _) = try await core.authenticatedURLRequest(url: url)
+        
+        // API 응답 디버깅 로그
+        logAPIResponse(data, serviceName: serviceName)
+        
+        // JSON 파싱
+        return try core.parseJSON(data: data, type: type)
+    }
+    
+    /// 공통 API 호출을 수행하고 원본 JSON 데이터를 반환합니다
+    ///
+    /// Yahoo Finance API에서 반환하는 원본 JSON 응답을 그대로 반환합니다.
+    /// Swift 모델로 파싱하지 않고 원시 API 응답을 제공하여 클라이언트에서 직접 처리할 수 있습니다.
+    ///
+    /// - Parameters:
+    ///   - url: API 요청 URL
+    ///   - serviceName: 로깅용 서비스 이름
+    /// - Returns: 원본 JSON 응답 데이터
+    /// - Throws: API 호출 중 발생하는 에러
+    func performFetchRawJSON(url: URL, serviceName: String) async throws -> Data {
+        // CSRF 인증 시도
+        await ensureCSRFAuthentication()
+        
+        // 인증된 요청 수행
+        let core = YFServiceCore(client: client, debugEnabled: debugEnabled)
+        let (data, _) = try await core.authenticatedURLRequest(url: url)
+        
+        // API 응답 디버깅 로그
+        logAPIResponse(data, serviceName: "\(serviceName) (Raw JSON)")
+        
+        return data
+    }
 }

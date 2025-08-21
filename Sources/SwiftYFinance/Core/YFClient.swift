@@ -51,7 +51,10 @@ public struct YFClient: Sendable {
     /// - Parameter debugEnabled: 디버깅 로그 활성화 여부 (기본값: false)
     public init(debugEnabled: Bool = false) {
         self.debugEnabled = debugEnabled
-        self.session = YFSession()
+        
+        // 전역 디버그 설정은 YFSession에서 처리
+        
+        self.session = YFSession(debugEnabled: debugEnabled)
         self.responseParser = YFResponseParser()
         self.chartConverter = YFChartConverter()
         self.dateHelper = YFDateHelper()

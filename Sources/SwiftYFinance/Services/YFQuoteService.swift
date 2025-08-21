@@ -33,27 +33,45 @@ public struct YFQuoteService: YFService {
     /// - Returns: 주식 시세 데이터
     /// - Throws: API 호출 중 발생하는 에러
     public func fetch(ticker: YFTicker) async throws -> YFQuote {
-        // CSRF 인증 시도
-        await ensureCSRFAuthentication()
+        // 요청 URL 구성
+        let requestURL = try await buildQuoteURL(ticker: ticker)
         
-        // 요청 URL 구성 및 인증된 요청 수행
-        let requestURL = try await core.apiBuilder()
+        // 공통 fetch 메서드 사용
+        let quote = try await performFetch(url: requestURL, type: YFQuote.self, serviceName: "Quote")
+        
+        // ticker를 올바른 값으로 교체
+        return quote.withCorrectTicker(ticker)
+    }
+    
+    /// 주식 시세 원본 JSON 조회
+    ///
+    /// Yahoo Finance API에서 반환하는 원본 JSON 응답을 그대로 반환합니다.
+    /// Swift 모델로 파싱하지 않고 원시 API 응답을 제공하여 클라이언트에서 직접 처리할 수 있습니다.
+    ///
+    /// - Parameter ticker: 조회할 주식 심볼
+    /// - Returns: 원본 JSON 응답 데이터
+    /// - Throws: API 호출 중 발생하는 에러
+    public func fetchRawJSON(ticker: YFTicker) async throws -> Data {
+        // 요청 URL 구성
+        let requestURL = try await buildQuoteURL(ticker: ticker)
+        
+        // 공통 fetchRawJSON 메서드 사용
+        return try await performFetchRawJSON(url: requestURL, serviceName: "Quote")
+    }
+    
+    /// Quote API 요청 URL을 구성합니다
+    ///
+    /// - Parameter ticker: 조회할 주식 심볼
+    /// - Returns: 구성된 API 요청 URL
+    /// - Throws: URL 구성 중 발생하는 에러
+    private func buildQuoteURL(ticker: YFTicker) async throws -> URL {
+        return try await core.apiBuilder()
             .host(YFHosts.query2)
             .path(YFPaths.quoteSummary + "/\(ticker.symbol)")
             .parameter("modules", "price,summaryDetail")
             .parameter("corsDomain", "finance.yahoo.com")
             .parameter("formatted", "false")
             .build()
-        let (data, _) = try await core.authenticatedURLRequest(url: requestURL)
-        
-        // API 응답 디버깅 로그
-        logAPIResponse(data, serviceName: "Quote")
-        
-        // YFQuote 직접 파싱 (Python yfinance Quote 클래스 스타일)
-        let quote = try core.parseJSON(data: data, type: YFQuote.self)
-        
-        // ticker를 올바른 값으로 교체
-        return quote.withCorrectTicker(ticker)
     }
     
 }

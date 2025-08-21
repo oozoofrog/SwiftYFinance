@@ -49,6 +49,7 @@ public final actor YFSession {
     
     // MARK: - Private Properties
     nonisolated private let additionalHeaders: [String: String]
+    nonisolated internal let debugEnabled: Bool
     
     // 상태 관리 (Thread-safe actor)
     internal let sessionState = YFSessionState()
@@ -100,17 +101,23 @@ public final actor YFSession {
     ///   - baseURL: 기본 API URL (기본값: YFHosts.default)
     ///   - timeout: 요청 타임아웃 (기본값: 15초로 단축)
     ///   - additionalHeaders: 추가 HTTP 헤더
+    ///   - debugEnabled: 디버깅 로그 활성화 여부 (기본값: false)
     public init(
         baseURL: URL = YFHosts.default,
         timeout: TimeInterval = 15.0,  // Phase 4.5.3: 30초 → 15초 단축
-        additionalHeaders: [String: String] = [:]
+        additionalHeaders: [String: String] = [:],
+        debugEnabled: Bool = false
     ) {
         self.baseURL = baseURL
         self.timeout = timeout
         self.additionalHeaders = additionalHeaders
+        self.debugEnabled = debugEnabled
         
         // YFBrowserImpersonator를 사용한 네트워크 최적화된 URLSession 생성
         self.urlSession = browserImpersonator.createConfiguredURLSession()
+        
+        // 전역 디버그 설정
+        setGlobalDebugEnabled(debugEnabled)
     }
     
     // MARK: - 테스트 지원

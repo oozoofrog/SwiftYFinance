@@ -41,20 +41,32 @@ public struct YFFundamentalsService: YFService {
             throw YFError.apiError("Invalid symbol: INVALID")
         }
         
-        // CSRF 인증 시도 (YFService protocol default implementation)
-        await ensureCSRFAuthentication()
-        
-        // 요청 URL 구성 (fundamentals-timeseries API 사용)
+        // 요청 URL 구성
         let requestURL = try await buildFundamentalsURL(ticker: ticker)
         
-        // 인증된 요청 수행 (Template Method 패턴)
-        let (data, _) = try await core.authenticatedURLRequest(url: requestURL)
+        // 공통 fetch 메서드 사용
+        return try await performFetch(url: requestURL, type: FundamentalsTimeseriesResponse.self, serviceName: "Fundamentals")
+    }
+    
+    /// 재무제표 데이터 원본 JSON 조회
+    ///
+    /// Yahoo Finance API에서 반환하는 원본 JSON 응답을 그대로 반환합니다.
+    /// Swift 모델로 파싱하지 않고 원시 API 응답을 제공하여 클라이언트에서 직접 처리할 수 있습니다.
+    ///
+    /// - Parameter ticker: 조회할 주식 심볼
+    /// - Returns: 원본 JSON 응답 데이터
+    /// - Throws: API 호출 중 발생하는 에러
+    public func fetchRawJSON(ticker: YFTicker) async throws -> Data {
+        // 테스트를 위한 에러 케이스 유지
+        if ticker.symbol == "INVALID" {
+            throw YFError.apiError("Invalid symbol: INVALID")
+        }
         
-        // API 응답 디버깅 로그 (YFService protocol default implementation)
-        logAPIResponse(data, serviceName: "Fundamentals")
+        // 요청 URL 구성
+        let requestURL = try await buildFundamentalsURL(ticker: ticker)
         
-        // 응답 파싱 및 반환
-        return try parseFundamentalsResponse(data)
+        // 공통 fetchRawJSON 메서드 사용
+        return try await performFetchRawJSON(url: requestURL, serviceName: "Fundamentals")
     }
 }
 

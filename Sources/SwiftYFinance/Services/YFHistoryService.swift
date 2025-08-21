@@ -35,24 +35,11 @@ public struct YFHistoryService: YFService {
     /// - Returns: 가격 히스토리 데이터
     /// - Throws: API 호출 중 발생하는 에러
     public func fetch(ticker: YFTicker, period: YFPeriod, interval: YFInterval = .oneDay) async throws -> YFHistoricalData {
-        // CSRF 인증 시도
-        await ensureCSRFAuthentication()
+        // 요청 URL 구성
+        let requestURL = try await buildHistoryURL(ticker: ticker, period: period, interval: interval)
         
-        // Yahoo Finance API 호출
-        let requestURL = try await core.apiBuilder()
-            .host(YFHosts.query2)
-            .path(YFPaths.chart + "/\(ticker.symbol)")
-            .parameter("interval", interval.stringValue)
-            .parameter("range", client.dateHelper.periodToRangeString(period))
-            .build()
-        
-        let (data, _) = try await core.authenticatedURLRequest(url: requestURL)
-        
-        // API 응답 디버깅 로그
-        logAPIResponse(data, serviceName: "History")
-        
-        // JSON 파싱
-        let chartResponse = try core.parseJSON(data: data, type: ChartResponse.self)
+        // 공통 fetch 메서드 사용
+        let chartResponse = try await performFetch(url: requestURL, type: ChartResponse.self, serviceName: "History")
         
         // 에러 응답 처리
         try handleYahooFinanceError(chartResponse.chart.error?.description)
@@ -86,28 +73,11 @@ public struct YFHistoryService: YFService {
     
     /// 날짜 범위 기반 가격 히스토리 데이터 조회
     public func fetch(ticker: YFTicker, from startDate: Date, to endDate: Date) async throws -> YFHistoricalData {
-        // CSRF 인증 시도
-        await ensureCSRFAuthentication()
+        // 요청 URL 구성
+        let requestURL = try await buildHistoryURL(ticker: ticker, startDate: startDate, endDate: endDate)
         
-        // Yahoo Finance API 호출
-        let startTimestamp = Int(startDate.timeIntervalSince1970)
-        let endTimestamp = Int(endDate.timeIntervalSince1970)
-        
-        let requestURL = try await core.apiBuilder()
-            .host(YFHosts.query2)
-            .path(YFPaths.chart + "/\(ticker.symbol)")
-            .parameter("period1", String(startTimestamp))
-            .parameter("period2", String(endTimestamp))
-            .parameter("interval", "1d")
-            .build()
-        
-        let (data, _) = try await core.authenticatedURLRequest(url: requestURL)
-        
-        // API 응답 디버깅 로그
-        logAPIResponse(data, serviceName: "History")
-        
-        // JSON 파싱
-        let chartResponse = try core.parseJSON(data: data, type: ChartResponse.self)
+        // 공통 fetch 메서드 사용
+        let chartResponse = try await performFetch(url: requestURL, type: ChartResponse.self, serviceName: "History")
         
         // 에러 응답 처리
         try handleYahooFinanceError(chartResponse.chart.error?.description)
@@ -132,5 +102,79 @@ public struct YFHistoryService: YFService {
             startDate: startDate,
             endDate: endDate
         )
+    }
+    
+    /// 과거 가격 데이터 원본 JSON 조회 (기간 기반)
+    ///
+    /// Yahoo Finance API에서 반환하는 원본 JSON 응답을 그대로 반환합니다.
+    ///
+    /// - Parameters:
+    ///   - ticker: 조회할 주식 심볼
+    ///   - period: 조회 기간
+    ///   - interval: 시간 간격 (기본값: 1일)
+    /// - Returns: 원본 JSON 응답 데이터
+    /// - Throws: API 호출 중 발생하는 에러
+    public func fetchRawJSON(ticker: YFTicker, period: YFPeriod, interval: YFInterval = .oneDay) async throws -> Data {
+        // 요청 URL 구성
+        let requestURL = try await buildHistoryURL(ticker: ticker, period: period, interval: interval)
+        
+        // 공통 fetchRawJSON 메서드 사용
+        return try await performFetchRawJSON(url: requestURL, serviceName: "History")
+    }
+    
+    /// 과거 가격 데이터 원본 JSON 조회 (날짜 범위 기반)
+    ///
+    /// Yahoo Finance API에서 반환하는 원본 JSON 응답을 그대로 반환합니다.
+    ///
+    /// - Parameters:
+    ///   - ticker: 조회할 주식 심볼
+    ///   - startDate: 시작 날짜
+    ///   - endDate: 종료 날짜
+    /// - Returns: 원본 JSON 응답 데이터
+    /// - Throws: API 호출 중 발생하는 에러
+    public func fetchRawJSON(ticker: YFTicker, from startDate: Date, to endDate: Date) async throws -> Data {
+        // 요청 URL 구성
+        let requestURL = try await buildHistoryURL(ticker: ticker, startDate: startDate, endDate: endDate)
+        
+        // 공통 fetchRawJSON 메서드 사용
+        return try await performFetchRawJSON(url: requestURL, serviceName: "History")
+    }
+    
+    /// History API 요청 URL을 구성합니다 (기간 기반)
+    ///
+    /// - Parameters:
+    ///   - ticker: 조회할 주식 심볼
+    ///   - period: 조회 기간
+    ///   - interval: 시간 간격
+    /// - Returns: 구성된 API 요청 URL
+    /// - Throws: URL 구성 중 발생하는 에러
+    private func buildHistoryURL(ticker: YFTicker, period: YFPeriod, interval: YFInterval) async throws -> URL {
+        return try await core.apiBuilder()
+            .host(YFHosts.query2)
+            .path(YFPaths.chart + "/\(ticker.symbol)")
+            .parameter("interval", interval.stringValue)
+            .parameter("range", client.dateHelper.periodToRangeString(period))
+            .build()
+    }
+    
+    /// History API 요청 URL을 구성합니다 (날짜 범위 기반)
+    ///
+    /// - Parameters:
+    ///   - ticker: 조회할 주식 심볼
+    ///   - startDate: 시작 날짜
+    ///   - endDate: 종료 날짜
+    /// - Returns: 구성된 API 요청 URL
+    /// - Throws: URL 구성 중 발생하는 에러
+    private func buildHistoryURL(ticker: YFTicker, startDate: Date, endDate: Date) async throws -> URL {
+        let startTimestamp = Int(startDate.timeIntervalSince1970)
+        let endTimestamp = Int(endDate.timeIntervalSince1970)
+        
+        return try await core.apiBuilder()
+            .host(YFHosts.query2)
+            .path(YFPaths.chart + "/\(ticker.symbol)")
+            .parameter("period1", String(startTimestamp))
+            .parameter("period2", String(endTimestamp))
+            .parameter("interval", "1d")
+            .build()
     }
 }
