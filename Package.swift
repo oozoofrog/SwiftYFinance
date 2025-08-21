@@ -30,7 +30,8 @@ let package = Package(
                 .product(name: "SwiftProtobuf", package: "swift-protobuf")
             ],
             resources: [
-                .process("Protobuf/PricingData.proto")  // .proto 파일을 리소스로 명시
+                .process("Protobuf/PricingData.proto"),  // .proto 파일을 리소스로 명시
+                .process("Resources")  // Resources 디렉토리를 리소스로 명시
             ]
         ),
         .testTarget(
