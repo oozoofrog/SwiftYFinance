@@ -73,6 +73,11 @@ public struct YFClient: Sendable {
     public var search: YFSearchService {
         YFSearchService(client: self, debugEnabled: debugEnabled)
     }
+    
+    /// 재무제표 조회 서비스
+    public var financials: YFFinancialsService {
+        YFFinancialsService(client: self, debugEnabled: debugEnabled)
+    }
 }
 
 // 실제 Yahoo Finance Chart API 응답 구조에 맞춘 구조체들
