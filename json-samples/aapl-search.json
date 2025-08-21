@@ -1,0 +1,324 @@
+{
+  "timeTakenForScreenerField" : 0,
+  "timeTakenForResearchReports" : 0,
+  "lists" : [
+
+  ],
+  "news" : [
+    {
+      "providerPublishTime" : 1755799426,
+      "thumbnail" : {
+        "resolutions" : [
+          {
+            "tag" : "original",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/uJ5yEqQMNrZfoJ5JXlwi4A--~B\/aD00NjQwO3c9Njk2MDthcHBpZD15dGFjaHlvbg--\/https:\/\/media.zenfs.com\/en\/techcrunch_finance_785\/f8f3d4341c2a52ca003f3e91d492f562",
+            "width" : 6960,
+            "height" : 4640
+          },
+          {
+            "tag" : "140x140",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/5J83jqlpbtsv1Td.UqFaGw--~B\/Zmk9ZmlsbDtoPTE0MDtweW9mZj0wO3c9MTQwO2FwcGlkPXl0YWNoeW9u\/https:\/\/media.zenfs.com\/en\/techcrunch_finance_785\/f8f3d4341c2a52ca003f3e91d492f562",
+            "width" : 140,
+            "height" : 140
+          }
+        ]
+      },
+      "title" : "iPhone 17, the ‘thinnest iPhone ever,’ and everything else we’re expecting out of Apple’s hardware event",
+      "uuid" : "43239746-ae7d-3e5d-b71a-c496fdf70c6e",
+      "link" : "https:\/\/finance.yahoo.com\/news\/iphone-17-thinnest-iphone-ever-162205933.html",
+      "publisher" : "TechCrunch",
+      "type" : "STORY",
+      "relatedTickers" : [
+        "AAPL"
+      ]
+    },
+    {
+      "providerPublishTime" : 1755797773,
+      "title" : "Sector Update: Tech Stocks Decline Thursday Afternoon",
+      "uuid" : "302841ab-4d71-3473-bbed-0bd8e879518f",
+      "link" : "https:\/\/finance.yahoo.com\/news\/sector-tech-stocks-decline-thursday-173613123.html",
+      "publisher" : "MT Newswires",
+      "type" : "STORY",
+      "relatedTickers" : [
+        "AAPL",
+        "GOOGL",
+        "DAY",
+        "XLK"
+      ]
+    },
+    {
+      "providerPublishTime" : 1755796486,
+      "thumbnail" : {
+        "resolutions" : [
+          {
+            "tag" : "original",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/Se55FomNBYzrBYCP2yICqQ--~B\/aD0zMzk1O3c9NjA0NDthcHBpZD15dGFjaHlvbg--\/https:\/\/s.yimg.com\/os\/creatr-uploaded-images\/2025-08\/fcfe49c0-7eb1-11f0-bf6f-4c7cfa1b702e",
+            "width" : 6044,
+            "height" : 3395
+          },
+          {
+            "tag" : "140x140",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/mDVHhDtFUFLayVAqg4.mWA--~B\/Zmk9ZmlsbDtoPTE0MDtweW9mZj0wO3c9MTQwO2FwcGlkPXl0YWNoeW9u\/https:\/\/s.yimg.com\/os\/creatr-uploaded-images\/2025-08\/fcfe49c0-7eb1-11f0-bf6f-4c7cfa1b702e",
+            "width" : 140,
+            "height" : 140
+          }
+        ]
+      },
+      "title" : "Latest Fed cut signals, pharma relief rally, Apple TV+ price hike",
+      "uuid" : "489ce719-0fc9-3ff0-a935-255f256549f2",
+      "link" : "https:\/\/finance.yahoo.com\/video\/latest-fed-cut-signals-pharma-171446582.html",
+      "publisher" : "Yahoo Finance Video",
+      "type" : "VIDEO",
+      "relatedTickers" : [
+        "TEVA",
+        "TEVJF",
+        "AAPL",
+        "TEVA.TA",
+        "PFE",
+        "LLY"
+      ]
+    },
+    {
+      "providerPublishTime" : 1755795879,
+      "title" : "Sector Update: Tech",
+      "uuid" : "5ce13847-dfa1-31f6-9e44-8eafc6c8b216",
+      "link" : "https:\/\/finance.yahoo.com\/news\/sector-tech-170439984.html",
+      "publisher" : "MT Newswires",
+      "type" : "STORY",
+      "relatedTickers" : [
+        "AAPL",
+        "XLK"
+      ]
+    },
+    {
+      "providerPublishTime" : 1755794455,
+      "thumbnail" : {
+        "resolutions" : [
+          {
+            "tag" : "original",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/f7oR8CDnjHSMCruALFWyTg--~B\/aD01MzM7dz04MDA7YXBwaWQ9eXRhY2h5b24-\/https:\/\/media.zenfs.com\/en\/reuters-finance.com\/27671b9e97ec250f6e7898fa1bdcb0ef",
+            "width" : 800,
+            "height" : 533
+          },
+          {
+            "tag" : "140x140",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/1H2D..wSSqfOoKBBce3gzQ--~B\/Zmk9ZmlsbDtoPTE0MDtweW9mZj0wO3c9MTQwO2FwcGlkPXl0YWNoeW9u\/https:\/\/media.zenfs.com\/en\/reuters-finance.com\/27671b9e97ec250f6e7898fa1bdcb0ef",
+            "width" : 140,
+            "height" : 140
+          }
+        ]
+      },
+      "title" : "Apple boosts subscription price for TV+ to $12.99",
+      "uuid" : "716dd7d8-4b6e-3c50-9ef0-924862ffbcdb",
+      "link" : "https:\/\/finance.yahoo.com\/news\/apple-boosts-subscription-price-tv-164055415.html",
+      "publisher" : "Reuters",
+      "type" : "STORY",
+      "relatedTickers" : [
+        "AAPL",
+        "CMCSA",
+        "AMZN"
+      ]
+    },
+    {
+      "providerPublishTime" : 1755792496,
+      "title" : "Apple TV+ is raising its subscription price by 30%",
+      "uuid" : "3a3ede01-e6ba-3c9f-9ca8-c151cebc4fb7",
+      "link" : "https:\/\/finance.yahoo.com\/news\/apple-tv-raising-subscription-price-160816682.html",
+      "publisher" : "LA Times",
+      "type" : "STORY",
+      "relatedTickers" : [
+        "AAPL"
+      ]
+    },
+    {
+      "providerPublishTime" : 1755792262,
+      "thumbnail" : {
+        "resolutions" : [
+          {
+            "tag" : "original",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/nHVXgHsNTwh0d42vZmyXMg--~B\/aD0yNTkyO3c9Mzg4ODthcHBpZD15dGFjaHlvbg--\/https:\/\/media.zenfs.com\/en\/techcrunch_finance_785\/22744f59b70758f23e465ae55ee84101",
+            "width" : 3888,
+            "height" : 2592
+          },
+          {
+            "tag" : "140x140",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/P_NS2wx3wLlTXdFz1xnDqg--~B\/Zmk9ZmlsbDtoPTE0MDtweW9mZj0wO3c9MTQwO2FwcGlkPXl0YWNoeW9u\/https:\/\/media.zenfs.com\/en\/techcrunch_finance_785\/22744f59b70758f23e465ae55ee84101",
+            "width" : 140,
+            "height" : 140
+          }
+        ]
+      },
+      "title" : "Apple TV+ price jumps 30% to $12.99 monthly",
+      "uuid" : "1e0d9cf5-7fd2-31d1-ba63-d7f064438401",
+      "link" : "https:\/\/finance.yahoo.com\/news\/apple-tv-price-jumps-30-160422897.html",
+      "publisher" : "TechCrunch",
+      "type" : "STORY",
+      "relatedTickers" : [
+        "AAPL"
+      ]
+    },
+    {
+      "providerPublishTime" : 1755788715,
+      "thumbnail" : {
+        "resolutions" : [
+          {
+            "tag" : "original",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/3jk2dN3nKzvolhrXRNdnNA--~B\/aD01MTE7dz0xMDAwO2FwcGlkPXl0YWNoeW9u\/https:\/\/media.zenfs.com\/en\/ibd.com\/fd4777adfe3376bb037bb6d656386b79",
+            "width" : 1000,
+            "height" : 511
+          },
+          {
+            "tag" : "140x140",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/fnLdAqMiGuDuhxsjXBQb3w--~B\/Zmk9ZmlsbDtoPTE0MDtweW9mZj0wO3c9MTQwO2FwcGlkPXl0YWNoeW9u\/https:\/\/media.zenfs.com\/en\/ibd.com\/fd4777adfe3376bb037bb6d656386b79",
+            "width" : 140,
+            "height" : 140
+          }
+        ]
+      },
+      "title" : "Apple iPhone Shamed By Folding, AI-Enabled Smartphones",
+      "uuid" : "dd3e1ae0-67c3-36e0-8cd6-a2143ae6ce62",
+      "link" : "https:\/\/finance.yahoo.com\/m\/dd3e1ae0-67c3-36e0-8cd6-a2143ae6ce62\/apple-iphone-shamed-by.html",
+      "publisher" : "Investor's Business Daily",
+      "type" : "STORY",
+      "relatedTickers" : [
+        "GOOG",
+        "GOOGL",
+        "AAPL",
+        "005930.KS"
+      ]
+    }
+  ],
+  "timeTakenForNews" : 900,
+  "count" : 15,
+  "timeTakenForNav" : 400,
+  "researchReports" : [
+
+  ],
+  "totalTime" : 89,
+  "timeTakenForAlgowatchlist" : 400,
+  "timeTakenForPredefinedScreener" : 400,
+  "explains" : [
+
+  ],
+  "timeTakenForCrunchbase" : 0,
+  "timeTakenForCulturalAssets" : 0,
+  "screenerFieldResults" : [
+
+  ],
+  "timeTakenForSearchLists" : 0,
+  "timeTakenForQuotes" : 480,
+  "nav" : [
+
+  ],
+  "quotes" : [
+    {
+      "dispSecIndFlag" : true,
+      "index" : "quotes",
+      "sectorDisp" : "Technology",
+      "industry" : "Consumer Electronics",
+      "industryDisp" : "Consumer Electronics",
+      "symbol" : "AAPL",
+      "longname" : "Apple Inc.",
+      "exchDisp" : "NASDAQ",
+      "shortname" : "Apple Inc.",
+      "quoteType" : "EQUITY",
+      "isYahooFinance" : true,
+      "exchange" : "NMS",
+      "sector" : "Technology",
+      "score" : 34737,
+      "typeDisp" : "Equity"
+    },
+    {
+      "index" : "quotes",
+      "sectorDisp" : "Real Estate",
+      "industry" : "REIT—Hotel & Motel",
+      "industryDisp" : "REIT—Hotel & Motel",
+      "symbol" : "APLE",
+      "longname" : "Apple Hospitality REIT, Inc.",
+      "exchDisp" : "NYSE",
+      "shortname" : "Apple Hospitality REIT, Inc.",
+      "quoteType" : "EQUITY",
+      "isYahooFinance" : true,
+      "exchange" : "NYQ",
+      "sector" : "Real Estate",
+      "score" : 20059,
+      "typeDisp" : "Equity"
+    },
+    {
+      "index" : "quotes",
+      "sectorDisp" : "Technology",
+      "industry" : "Consumer Electronics",
+      "industryDisp" : "Consumer Electronics",
+      "symbol" : "AAPL.NE",
+      "longname" : "Apple Inc.",
+      "exchDisp" : "NEO",
+      "shortname" : "APPLE CDR (CAD HEDGED)",
+      "quoteType" : "EQUITY",
+      "isYahooFinance" : true,
+      "exchange" : "NEO",
+      "sector" : "Technology",
+      "score" : 20039,
+      "typeDisp" : "Equity"
+    },
+    {
+      "index" : "quotes",
+      "sectorDisp" : "Basic Materials",
+      "industry" : "Specialty Chemicals",
+      "industryDisp" : "Specialty Chemicals",
+      "symbol" : "603020.SS",
+      "longname" : "Apple Flavor & Fragrance Group Co.,Ltd.",
+      "exchDisp" : "Shanghai",
+      "shortname" : "APPLE FLAVOR & FRAGRANCE GROUP ",
+      "quoteType" : "EQUITY",
+      "isYahooFinance" : true,
+      "exchange" : "SHH",
+      "sector" : "Basic Materials",
+      "score" : 20006,
+      "typeDisp" : "Equity"
+    },
+    {
+      "symbol" : "0P0001BL7Q.F",
+      "quoteType" : "MUTUALFUND",
+      "score" : 20005,
+      "exchange" : "FRA",
+      "shortname" : "0P0001BL7Q.F",
+      "typeDisp" : "Fund",
+      "longname" : "Appletree Subordinated Debt Fund",
+      "isYahooFinance" : true,
+      "exchDisp" : "Frankfurt",
+      "index" : "quotes"
+    },
+    {
+      "index" : "quotes",
+      "sectorDisp" : "Consumer Cyclical",
+      "industry" : "Auto & Truck Dealerships",
+      "industryDisp" : "Auto & Truck Dealerships",
+      "symbol" : "D90.F",
+      "longname" : "Apple International Co., Ltd.",
+      "exchDisp" : "Frankfurt",
+      "shortname" : "Apple International Co. Ltd.  R",
+      "quoteType" : "EQUITY",
+      "isYahooFinance" : true,
+      "exchange" : "FRA",
+      "sector" : "Consumer Cyclical",
+      "score" : 20004,
+      "typeDisp" : "Equity"
+    },
+    {
+      "index" : "quotes",
+      "sectorDisp" : "Real Estate",
+      "industry" : "REIT—Hotel & Motel",
+      "industryDisp" : "REIT—Hotel & Motel",
+      "symbol" : "48T.F",
+      "longname" : "Apple Hospitality REIT, Inc.",
+      "exchDisp" : "Frankfurt",
+      "shortname" : "Apple Hospitality REIT Inc.   R",
+      "quoteType" : "EQUITY",
+      "isYahooFinance" : true,
+      "exchange" : "FRA",
+      "sector" : "Real Estate",
+      "score" : 20004,
+      "typeDisp" : "Equity"
+    }
+  ]
+}
