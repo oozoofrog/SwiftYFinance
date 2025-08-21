@@ -201,41 +201,7 @@ struct PricingData: @unchecked Sendable {
 
 extension PricingData: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = "PricingData"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "id"),
-    2: .same(proto: "price"),
-    3: .same(proto: "time"),
-    4: .same(proto: "currency"),
-    5: .same(proto: "exchange"),
-    6: .standard(proto: "quote_type"),
-    7: .standard(proto: "market_hours"),
-    8: .standard(proto: "change_percent"),
-    9: .standard(proto: "day_volume"),
-    10: .standard(proto: "day_high"),
-    11: .standard(proto: "day_low"),
-    12: .same(proto: "change"),
-    13: .standard(proto: "short_name"),
-    14: .standard(proto: "expire_date"),
-    15: .standard(proto: "open_price"),
-    16: .standard(proto: "previous_close"),
-    17: .standard(proto: "strike_price"),
-    18: .standard(proto: "underlying_symbol"),
-    19: .standard(proto: "open_interest"),
-    20: .standard(proto: "options_type"),
-    21: .standard(proto: "mini_option"),
-    22: .standard(proto: "last_size"),
-    23: .same(proto: "bid"),
-    24: .standard(proto: "bid_size"),
-    25: .same(proto: "ask"),
-    26: .standard(proto: "ask_size"),
-    27: .standard(proto: "price_hint"),
-    28: .standard(proto: "vol_24hr"),
-    29: .standard(proto: "vol_all_currencies"),
-    30: .standard(proto: "from_currency"),
-    31: .standard(proto: "last_market"),
-    32: .standard(proto: "circulating_supply"),
-    33: .standard(proto: "market_cap"),
-  ]
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{1}price\0\u{1}time\0\u{1}currency\0\u{1}exchange\0\u{3}quote_type\0\u{3}market_hours\0\u{3}change_percent\0\u{3}day_volume\0\u{3}day_high\0\u{3}day_low\0\u{1}change\0\u{3}short_name\0\u{3}expire_date\0\u{3}open_price\0\u{3}previous_close\0\u{3}strike_price\0\u{3}underlying_symbol\0\u{3}open_interest\0\u{3}options_type\0\u{3}mini_option\0\u{3}last_size\0\u{1}bid\0\u{3}bid_size\0\u{1}ask\0\u{3}ask_size\0\u{3}price_hint\0\u{3}vol_24hr\0\u{3}vol_all_currencies\0\u{3}from_currency\0\u{3}last_market\0\u{3}circulating_supply\0\u{3}market_cap\0")
 
   fileprivate class _StorageClass {
     var _id: String = String()
