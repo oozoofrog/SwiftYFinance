@@ -36,7 +36,7 @@ import Foundation
 ///     }
 /// }
 /// ```
-public struct YFHistoricalData: Codable {
+public struct YFHistoricalData: Codable, Sendable {
     
     /// 주식 심볼 정보
     public let ticker: YFTicker

@@ -33,7 +33,7 @@ import Foundation
 /// // 배당 및 분할 조정된 수익률 계산
 /// let totalReturn = (currentPrice.adjClose - startPrice.adjClose) / startPrice.adjClose
 /// ```
-public struct YFPrice: Equatable, Comparable, Codable {
+public struct YFPrice: Equatable, Comparable, Codable, Sendable {
     
     /// 거래일 (또는 분 단위 타임스탬프)
     public let date: Date
