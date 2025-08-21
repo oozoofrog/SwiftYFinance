@@ -32,14 +32,14 @@ struct YFQuoteServiceTests {
     @Test("YFClient에서 quote service에 접근할 수 있다")
     func testQuoteServiceIntegration() async throws {
         // Given
-        let client = YFClient()
-        let ticker = YFTicker(symbol: "AAPL")
+        let client = YFClient(debugEnabled: true)
+        let ticker = YFTicker(symbol: "MSFT")
         
         // When
         let quote = try await client.quote.fetch(ticker: ticker)
         
         // Then
-        #expect(quote.ticker.symbol == "AAPL")
+        #expect(quote.ticker.symbol == "MSFT")
     }
     
 }

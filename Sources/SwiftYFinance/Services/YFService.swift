@@ -54,9 +54,20 @@ public extension YFService {
     /// Yahoo Finance API 요청 시 필요한 CSRF 인증을 처리합니다.
     /// 인증이 실패해도 에러를 던지지 않고 기본 요청으로 진행할 수 있도록 합니다.
     func ensureCSRFAuthentication() async {
+        DebugPrint("🔐 [YFService] ensureCSRFAuthentication() 시작")
         let isAuthenticated = await client.session.isCSRFAuthenticated
+        DebugPrint("🔐 [YFService] 현재 인증 상태: \(isAuthenticated)")
+        
         if !isAuthenticated {
-            try? await client.session.authenticateCSRF()
+            DebugPrint("🔑 [YFService] 인증 필요, authenticateCSRF() 호출...")
+            do {
+                try await client.session.authenticateCSRF()
+                DebugPrint("✅ [YFService] 인증 성공")
+            } catch {
+                DebugPrint("❌ [YFService] 인증 실패, 계속 진행: \(error)")
+            }
+        } else {
+            DebugPrint("✅ [YFService] 이미 인증됨, 스킵")
         }
     }
     
@@ -85,18 +96,38 @@ public extension YFService {
     /// - Returns: 파싱된 객체
     /// - Throws: API 호출 또는 파싱 중 발생하는 에러
     func performFetch<T: Decodable>(url: URL, type: T.Type, serviceName: String) async throws -> T {
-        // CSRF 인증 시도
-        await ensureCSRFAuthentication()
+        DebugPrint("🚀 [YFService] performFetch() 시작 - 서비스: \(serviceName)")
+        DebugPrint("🌐 [YFService] 요청 URL: \(url)")
+        DebugPrint("📝 [YFService] 응답 타입: \(T.self)")
         
-        // 인증된 요청 수행
-        let core = YFServiceCore(client: client, debugEnabled: debugEnabled)
-        let (data, _) = try await core.authenticatedURLRequest(url: url)
-        
-        // API 응답 디버깅 로그
-        logAPIResponse(data, serviceName: serviceName)
-        
-        // JSON 파싱
-        return try core.parseJSON(data: data, type: type)
+        do {
+            // CSRF 인증 시도
+            DebugPrint("🔐 [YFService] CSRF 인증 확인 중...")
+            await ensureCSRFAuthentication()
+            DebugPrint("✅ [YFService] CSRF 인증 완료")
+            
+            // 인증된 요청 수행
+            DebugPrint("🏭 [YFService] YFServiceCore 생성 중...")
+            let core = YFServiceCore(client: client, debugEnabled: debugEnabled)
+            DebugPrint("📡 [YFService] authenticatedRequest() 호출...")
+            let (data, _) = try await core.authenticatedRequest(url: url)
+            DebugPrint("✅ [YFService] authenticatedRequest() 완료, 데이터 크기: \(data.count) bytes")
+            
+            // API 응답 디버깅 로그
+            DebugPrint("📋 [YFService] API 응답 로깅 중...")
+            logAPIResponse(data, serviceName: serviceName)
+            
+            // JSON 파싱
+            DebugPrint("🔄 [YFService] JSON 파싱 시작...")
+            let result = try core.parseJSON(data: data, type: type)
+            DebugPrint("✅ [YFService] JSON 파싱 성공")
+            DebugPrint("✅ [YFService] performFetch() 완료")
+            
+            return result
+        } catch {
+            DebugPrint("❌ [YFService] performFetch() 실패: \(error)")
+            throw error
+        }
     }
     
     /// 공통 API 호출을 수행하고 원본 JSON 데이터를 반환합니다
@@ -115,7 +146,7 @@ public extension YFService {
         
         // 인증된 요청 수행
         let core = YFServiceCore(client: client, debugEnabled: debugEnabled)
-        let (data, _) = try await core.authenticatedURLRequest(url: url)
+        let (data, _) = try await core.authenticatedRequest(url: url)
         
         // API 응답 디버깅 로그
         logAPIResponse(data, serviceName: "\(serviceName) (Raw JSON)")

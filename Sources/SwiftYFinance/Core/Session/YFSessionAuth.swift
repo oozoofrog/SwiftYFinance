@@ -384,31 +384,81 @@ extension YFSession {
     
     /// 인증이 포함된 요청 수행 (재시도 로직 포함)
     private func performRequestWithAuth(url: URL, method: HTTPMethod, body: Data?) async throws -> (Data, URLResponse) {
+        DebugPrint("🚀 [Session] performRequestWithAuth() 시작")
+        DebugPrint("🌐 [Session] 요청 URL: \(url)")
+        DebugPrint("🔧 [Session] HTTP 메서드: \(method.rawValue)")
+        
         // 인증되지 않았다면 먼저 인증 시도
         let authenticated = await sessionState.isAuthenticated
+        DebugPrint("🔐 [Session] 현재 인증 상태: \(authenticated)")
+        
         if !authenticated {
+            DebugPrint("🔑 [Session] 인증 필요, authenticateCSRF() 호출...")
             try await authenticateCSRF()
+            DebugPrint("✅ [Session] 인증 완료")
+        } else {
+            DebugPrint("✅ [Session] 이미 인증됨, 스킵")
         }
         
         // crumb이 필요한 URL에 자동 추가
+        DebugPrint("🍪 [Session] crumb 추가 중...")
         let urlWithCrumb = await addCrumbIfNeeded(to: url)
+        if urlWithCrumb != url {
+            DebugPrint("🍪 [Session] crumb 추가됨")
+        } else {
+            DebugPrint("🍪 [Session] crumb 불필요하거나 이미 존재")
+        }
+        DebugPrint("🌐 [Session] 최종 요청 URL: \(urlWithCrumb)")
         
         // 첫 번째 요청 시도
-        let result = try await executeHTTPRequest(url: urlWithCrumb, method: method, body: body)
-        
-        // 응답 상태 확인
-        if let httpResponse = result.1 as? HTTPURLResponse {
-            if httpResponse.statusCode >= 400 {
-                // 실패 시 전략 전환 후 재시도 (Python yfinance와 동일)
-                await sessionState.toggleCookieStrategy()
-                try await authenticateCSRF()
-                
-                let urlWithNewCrumb = await addCrumbIfNeeded(to: url)
-                return try await executeHTTPRequest(url: urlWithNewCrumb, method: method, body: body)
+        DebugPrint("📡 [Session] 1차 HTTP 요청 시작...")
+        do {
+            let result = try await executeHTTPRequest(url: urlWithCrumb, method: method, body: body)
+            DebugPrint("✅ [Session] 1차 HTTP 요청 완료")
+            
+            // 응답 상태 확인
+            if let httpResponse = result.1 as? HTTPURLResponse {
+                DebugPrint("🔍 [Session] 1차 응답 상태: \(httpResponse.statusCode)")
+                if httpResponse.statusCode >= 400 {
+                    // 실패 시 전략 전환 후 재시도 (Python yfinance와 동일)
+                    DebugPrint("❌ [Session] 1차 실패 (\(httpResponse.statusCode)), 전략 전환 후 재시도")
+                    
+                    DebugPrint("🔄 [Session] 쿠키 전략 전환 중...")
+                    await sessionState.toggleCookieStrategy()
+                    DebugPrint("🔑 [Session] 재인증 수행 중...")
+                    try await authenticateCSRF()
+                    DebugPrint("✅ [Session] 재인증 완료")
+                    
+                    DebugPrint("🍪 [Session] 새로운 crumb로 URL 재구성 중...")
+                    let urlWithNewCrumb = await addCrumbIfNeeded(to: url)
+                    DebugPrint("🌐 [Session] 재시도 URL: \(urlWithNewCrumb)")
+                    
+                    DebugPrint("📡 [Session] 2차 HTTP 요청 시작...")
+                    let retryResult = try await executeHTTPRequest(url: urlWithNewCrumb, method: method, body: body)
+                    DebugPrint("✅ [Session] 2차 HTTP 요청 완료")
+                    
+                    if let retryHttpResponse = retryResult.1 as? HTTPURLResponse {
+                        DebugPrint("🔍 [Session] 2차 응답 상태: \(retryHttpResponse.statusCode)")
+                        if retryHttpResponse.statusCode >= 400 {
+                            DebugPrint("❌ [Session] 2차도 실패 (\(retryHttpResponse.statusCode))")
+                        } else {
+                            DebugPrint("✅ [Session] 2차 성공")
+                        }
+                    }
+                    
+                    return retryResult
+                } else {
+                    DebugPrint("✅ [Session] 1차 성공 (\(httpResponse.statusCode))")
+                }
+            } else {
+                DebugPrint("⚠️ [Session] HTTP 응답이 아닌 응답 타입")
             }
+            
+            return result
+        } catch {
+            DebugPrint("❌ [Session] HTTP 요청 중 예외 발생: \(error)")
+            throw error
         }
-        
-        return result
     }
     
     /// 실제 HTTP 요청 실행

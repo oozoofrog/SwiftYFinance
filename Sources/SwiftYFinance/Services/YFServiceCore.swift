@@ -34,106 +34,74 @@ public struct YFServiceCore: Sendable {
     /// - Returns: 응답 데이터와 URLResponse 튜플
     /// - Throws: 네트워크 오류나 인증 실패 시 YFError
     public func authenticatedRequest(url: URL) async throws -> (Data, URLResponse) {
+        DebugPrint("🚀 [ServiceCore] authenticatedRequest() 시작")
+        DebugPrint("🌐 [ServiceCore] 요청 URL: \(url)")
+        
         var lastError: Error?
         
         // 재시도 로직
         for attempt in 0..<maxRetryAttempts {
+            DebugPrint("🔄 [ServiceCore] 시도 \(attempt + 1)/\(maxRetryAttempts)")
             do {
                 // 인증된 요청 수행
+                DebugPrint("📡 [ServiceCore] makeAuthenticatedRequest() 호출...")
                 let (data, response) = try await client.session.makeAuthenticatedRequest(url: url)
+                DebugPrint("✅ [ServiceCore] makeAuthenticatedRequest() 완료, 데이터 크기: \(data.count) bytes")
                 
                 // HTTP 응답 검증
                 if let httpResponse = response as? HTTPURLResponse {
+                    DebugPrint("🔍 [ServiceCore] HTTP 응답 상태: \(httpResponse.statusCode)")
                     if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
+                        DebugPrint("❌ [ServiceCore] 인증 오류 감지: \(httpResponse.statusCode)")
                         // 인증 오류시 재시도 (첫 번째 시도에서만)
                         if attempt == 0 {
+                            DebugPrint("🔄 [ServiceCore] 첫 번째 시도, 재시도 예정...")
                             lastError = YFError.apiError("Authentication failed, retrying...")
                             continue
                         } else {
+                            DebugPrint("❌ [ServiceCore] 최대 재시도 횟수 초과, 실패")
                             throw YFError.apiError("Authentication failed after \(maxRetryAttempts) attempts")
                         }
                     } else if httpResponse.statusCode != 200 {
+                        DebugPrint("❌ [ServiceCore] 비정상 상태 코드: \(httpResponse.statusCode)")
                         throw YFError.networkErrorWithMessage("HTTP \(httpResponse.statusCode)")
+                    } else {
+                        DebugPrint("✅ [ServiceCore] HTTP 200 OK 응답")
                     }
+                } else {
+                    DebugPrint("⚠️ [ServiceCore] HTTP 응답이 아닌 응답 타입")
                 }
                 
                 // 성공적으로 응답을 받은 경우
+                DebugPrint("✅ [ServiceCore] authenticatedRequest() 성공")
                 return (data, response)
                 
             } catch {
+                DebugPrint("❌ [ServiceCore] 시도 \(attempt + 1) 중 예외 발생: \(error)")
                 lastError = error
                 
                 // 인증 관련 에러가 아닌 경우 바로 재시도하지 않고 에러 던지기
                 if let yfError = error as? YFError,
                    case .networkErrorWithMessage(let message) = yfError,
                    !message.contains("401") && !message.contains("403") {
+                    DebugPrint("❌ [ServiceCore] 비인증 관련 네트워크 오류, 즉시 실패: \(message)")
                     throw error
+                } else {
+                    DebugPrint("⚠️ [ServiceCore] 재시도 가능한 오류: \(error)")
                 }
                 
                 // 마지막 시도에서 실패한 경우 에러 던지기
                 if attempt == maxRetryAttempts - 1 {
+                    DebugPrint("❌ [ServiceCore] 마지막 시도 실패")
                     throw error
+                } else {
+                    DebugPrint("🔄 [ServiceCore] 다음 시도 준비 중...")
                 }
             }
         }
         
         // 모든 재시도가 실패한 경우
-        throw lastError ?? YFError.apiError("Request failed after \(maxRetryAttempts) attempts")
-    }
-    
-    /// URL에 대한 인증된 GET 요청을 수행합니다
-    ///
-    /// URLRequest를 직접 구성하여 요청하는 방식입니다.
-    /// 더 세밀한 제어가 필요한 경우 사용합니다.
-    ///
-    /// - Parameter url: 요청할 URL
-    /// - Returns: 응답 데이터와 URLResponse 튜플
-    /// - Throws: 네트워크 오류나 인증 실패 시 YFError
-    public func authenticatedURLRequest(url: URL) async throws -> (Data, URLResponse) {
-        var lastError: Error?
-        
-        // 재시도 로직
-        for attempt in 0..<maxRetryAttempts {
-            do {
-                // URLRequest 구성
-                var request = URLRequest(url: url, timeoutInterval: client.session.timeout)
-                
-                // 기본 헤더 설정
-                for (key, value) in client.session.defaultHeaders {
-                    request.setValue(value, forHTTPHeaderField: key)
-                }
-                
-                let (data, response) = try await client.session.urlSession.data(for: request)
-                
-                // HTTP 응답 검증
-                if let httpResponse = response as? HTTPURLResponse {
-                    if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
-                        // 인증 오류시 재시도 (첫 번째 시도에서만)
-                        if attempt == 0 {
-                            lastError = YFError.apiError("Authentication failed, retrying...")
-                            continue
-                        } else {
-                            throw YFError.apiError("Authentication failed after \(maxRetryAttempts) attempts")
-                        }
-                    } else if httpResponse.statusCode != 200 {
-                        throw YFError.networkErrorWithMessage("HTTP \(httpResponse.statusCode)")
-                    }
-                }
-                
-                // 성공적으로 응답을 받은 경우
-                return (data, response)
-                
-            } catch {
-                lastError = error
-                
-                // 마지막 시도에서 실패한 경우 에러 던지기
-                if attempt == maxRetryAttempts - 1 {
-                    throw error
-                }
-            }
-        }
-        
-        // 모든 재시도가 실패한 경우
+        DebugPrint("❌ [ServiceCore] 모든 재시도 실패, 최종 오류: \(lastError?.localizedDescription ?? "Unknown error")")
         throw lastError ?? YFError.apiError("Request failed after \(maxRetryAttempts) attempts")
     }
     
@@ -229,7 +197,7 @@ public struct YFServiceCore: Sendable {
             .path(path)
             .parameters(parameters)
             .build()
-        let (data, _) = try await authenticatedURLRequest(url: requestURL)
+        let (data, _) = try await authenticatedRequest(url: requestURL)
         
         // API 응답 디버깅 로그
         if debugEnabled {

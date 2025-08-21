@@ -33,14 +33,29 @@ public struct YFQuoteService: YFService {
     /// - Returns: 주식 시세 데이터
     /// - Throws: API 호출 중 발생하는 에러
     public func fetch(ticker: YFTicker) async throws -> YFQuote {
-        // 요청 URL 구성
-        let requestURL = try await buildQuoteURL(ticker: ticker)
+        DebugPrint("🚀 [QuoteService] fetch() 시작 - 심볼: \(ticker.symbol)")
         
-        // 공통 fetch 메서드 사용
-        let quote = try await performFetch(url: requestURL, type: YFQuote.self, serviceName: "Quote")
-        
-        // ticker를 올바른 값으로 교체
-        return quote.withCorrectTicker(ticker)
+        do {
+            // 요청 URL 구성
+            DebugPrint("🔧 [QuoteService] URL 구성 중...")
+            let requestURL = try await buildQuoteURL(ticker: ticker)
+            DebugPrint("✅ [QuoteService] URL 구성 완료: \(requestURL)")
+            
+            // 공통 fetch 메서드 사용
+            DebugPrint("📡 [QuoteService] API 호출 시작...")
+            let quote = try await performFetch(url: requestURL, type: YFQuote.self, serviceName: "Quote")
+            DebugPrint("✅ [QuoteService] API 호출 성공")
+            
+            // ticker를 올바른 값으로 교체
+            DebugPrint("🔄 [QuoteService] Ticker 정보 교체 중...")
+            let finalQuote = quote.withCorrectTicker(ticker)
+            DebugPrint("✅ [QuoteService] fetch() 완료")
+            
+            return finalQuote
+        } catch {
+            DebugPrint("❌ [QuoteService] fetch() 실패: \(error)")
+            throw error
+        }
     }
     
     /// 주식 시세 원본 JSON 조회
@@ -69,6 +84,7 @@ public struct YFQuoteService: YFService {
             .host(YFHosts.query2)
             .path(YFPaths.quoteSummary + "/\(ticker.symbol)")
             .parameter("modules", "price,summaryDetail")
+            .parameter("symbol", ticker.symbol)
             .parameter("corsDomain", "finance.yahoo.com")
             .parameter("formatted", "false")
             .build()
