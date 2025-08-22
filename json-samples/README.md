@@ -47,6 +47,17 @@ swift run swiftyfinance fundamentals AAPL --json
   - 다양한 재무 비율 및 지표
   - 시계열 데이터 (여러 년도)
 
+### 5. `aapl-news.json` (1.2KB)
+```bash
+swift run swiftyfinance news AAPL --json --count 3
+```
+- **용도**: 종목 관련 뉴스 기사
+- **포함 데이터**:
+  - 뉴스 기사 제목 및 링크
+  - 발행 일시 및 출처
+  - 뉴스 카테고리 분류
+  - Yahoo Finance 뉴스 API 응답
+
 ## 사용법
 
 이 샘플 파일들은 다음과 같은 용도로 활용할 수 있습니다:
@@ -78,4 +89,7 @@ swift run swiftyfinance search --help
 
 # Fundamentals 명령어 옵션
 swift run swiftyfinance fundamentals --help
+
+# News 명령어 옵션
+swift run swiftyfinance news --help
 ```

@@ -14,7 +14,7 @@ import Foundation
 ///     print("감성: \(article.sentiment?.classification ?? .neutral)")
 /// }
 /// ```
-public struct YFNewsArticle: Sendable {
+public struct YFNewsArticle: Sendable, Decodable {
     /// 뉴스 기사 제목
     public let title: String
     /// 뉴스 기사 요약/내용
@@ -68,6 +68,71 @@ public struct YFNewsArticle: Sendable {
         self.sentiment = sentiment
         self.relatedTickers = relatedTickers
         self.tags = tags
+    }
+    
+    // MARK: - Decodable Implementation
+    
+    enum CodingKeys: String, CodingKey {
+        case title
+        case link
+        case publishedDate = "providerPublishTime"
+        case source = "publisher"
+        case type
+        case uuid
+        case thumbnail
+        case relatedTickers
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        self.title = try container.decode(String.self, forKey: .title)
+        self.link = try container.decode(String.self, forKey: .link)
+        self.source = try container.decodeIfPresent(String.self, forKey: .source) ?? "Yahoo Finance"
+        
+        // Convert Unix timestamp to Date
+        if let timestamp = try container.decodeIfPresent(Int.self, forKey: .publishedDate) {
+            self.publishedDate = Date(timeIntervalSince1970: TimeInterval(timestamp))
+        } else {
+            self.publishedDate = Date()
+        }
+        
+        // Map type to category
+        let typeString = try container.decodeIfPresent(String.self, forKey: .type)
+        self.category = Self.mapNewsCategory(from: typeString)
+        
+        // Set defaults for fields not provided by Yahoo Finance API
+        self.summary = ""
+        self.isBreaking = false
+        self.imageURL = nil // TODO: Extract from thumbnail if needed
+        self.imageInfo = nil
+        self.sentiment = nil
+        self.relatedTickers = [] // TODO: Convert from relatedTickers strings if needed
+        self.tags = []
+    }
+    
+    /// Map Yahoo Finance type string to YFNewsCategory
+    private static func mapNewsCategory(from typeString: String?) -> YFNewsCategory {
+        guard let type = typeString?.lowercased() else { return .general }
+        
+        switch type {
+        case "earnings":
+            return .earnings
+        case "analyst":
+            return .analyst
+        case "breaking":
+            return .breaking
+        case "pressrelease", "press_release":
+            return .pressRelease
+        case "merger", "ma":
+            return .merger
+        case "dividend":
+            return .dividend
+        case "regulatory":
+            return .regulatory
+        default:
+            return .general
+        }
     }
 }
 

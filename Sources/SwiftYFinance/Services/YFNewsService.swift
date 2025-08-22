@@ -117,7 +117,7 @@ public struct YFNewsService: YFService {
     
     /// 뉴스 응답 데이터 파싱
     ///
-    /// Yahoo Finance API 응답을 YFNewsArticle 배열로 변환합니다.
+    /// Yahoo Finance API 응답을 YFNewsArticle 배열로 직접 변환합니다.
     ///
     /// - Parameters:
     ///   - data: API 응답 데이터
@@ -126,24 +126,16 @@ public struct YFNewsService: YFService {
     /// - Throws: JSON 파싱 중 발생하는 에러
     private func parseNewsResponse(data: Data, count: Int) throws -> [YFNewsArticle] {
         let decoder = JSONDecoder()
-        let newsResponse = try decoder.decode(YFNewsResponse.self, from: data)
         
-        var articles: [YFNewsArticle] = []
-        
-        for newsItem in newsResponse.news ?? [] {
-            let publishedDate = Date(timeIntervalSince1970: TimeInterval(newsItem.providerPublishTime ?? 0))
-            
-            let article = YFNewsArticle(
-                title: newsItem.title,
-                summary: "",
-                link: newsItem.link,
-                publishedDate: publishedDate,
-                source: newsItem.publisher ?? "Yahoo Finance",
-                category: .general
-            )
-            
-            articles.append(article)
+        // Parse the response to extract the news array
+        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        guard let newsData = json?["news"] as? [[String: Any]] else {
+            return []
         }
+        
+        // Convert news array back to Data for decoding
+        let newsArrayData = try JSONSerialization.data(withJSONObject: newsData)
+        let articles = try decoder.decode([YFNewsArticle].self, from: newsArrayData)
         
         return Array(articles.prefix(count))
     }
