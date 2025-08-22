@@ -490,325 +490,406 @@ public struct YFQuoteSummaryDetail: Decodable, Sendable {
     public let algorithm: String?
 }
 
+// MARK: - Legacy YFQuote (Deprecated)
+
 /**
- Yahoo Finance에서 제공하는 실시간 주식 시세 정보를 담는 핵심 구조체입니다.
+ @deprecated 레거시 YFQuote 구조체입니다. 새로운 모듈형 구조를 사용하는 `YFQuote`를 대신 사용하세요.
  
- ## 개요
- 
- 이 구조체는 Yahoo Finance API의 `price` 모듈에서 제공하는 모든 필드를 노출합니다.
- 실시간 가격, 거래량, 시장 상태, 시간외 거래 정보 등 주식 투자에 필요한
- 핵심 데이터를 포함합니다.
- 
- ## 주요 데이터 그룹
- 
- ### 📊 기본 시세 정보
- - 현재가 (`regularMarketPrice`)
- - 시가, 고가, 저가 (`regularMarketOpen`, `regularMarketDayHigh`, `regularMarketDayLow`)
- - 거래량 (`regularMarketVolume`)
- - 전일 대비 등락률 (`regularMarketChangePercent`)
- 
- ### 🕒 시간외 거래 데이터
- - 장전 거래: `preMarket*` 필드들
- - 장후 거래: `postMarket*` 필드들
- - 각각 가격, 변동률, 거래 시간 포함
- 
- ### 🏢 종목 및 시장 정보
- - 종목 코드 (`symbol`)
- - 회사명 (`shortName`, `longName`)
- - 거래소 정보 (`exchange`, `exchangeName`)
- - 종목 유형 (`quoteType`)
- 
- ### ⏰ 시간 정보
- - 정규 거래 시간 (`regularMarketTime`)
- - 장전/장후 거래 시간
- - 데이터 지연 시간 (`exchangeDataDelayedBy`)
- 
- ## 실제 사용 예제
- 
- ```swift
- let client = YFClient()
- let ticker = YFTicker(symbol: "AAPL")
- 
- do {
-     let quote = try await client.quote.fetch(ticker: ticker)
-     
-     // 기본 정보 출력
-     print("=== \(quote.longName ?? quote.shortName ?? "Unknown") ===")
-     print("Symbol: \(quote.symbol ?? "N/A")")
-     print("Exchange: \(quote.exchangeName ?? "N/A")")
-     
-     // 현재 시세 정보
-     if let price = quote.regularMarketPrice,
-        let change = quote.regularMarketChange,
-        let changePercent = quote.regularMarketChangePercent {
-         
-         let changeSign = change >= 0 ? "+" : ""
-         print("Current: $\(String(format: "%.2f", price))")
-         print("Change: \(changeSign)\(String(format: "%.2f", change)) (\(changeSign)\(String(format: "%.2f", changePercent))%)")
-     }
-     
-     // 거래량 정보
-     if let volume = quote.regularMarketVolume {
-         print("Volume: \(NumberFormatter.localizedString(from: NSNumber(value: volume), number: .decimal))")
-     }
-     
-     // 시장 상태 확인
-     switch quote.marketState {
-     case "REGULAR":
-         print("🟢 정규 거래 중")
-     case "CLOSED":
-         print("🔴 장 마감")
-     case "PRE":
-         print("🟡 장전 거래 중")
-         if let prePrice = quote.preMarketPrice {
-             print("Pre-market: $\(String(format: "%.2f", prePrice))")
-         }
-     case "POST":
-         print("🟡 장후 거래 중")
-         if let postPrice = quote.postMarketPrice {
-             print("After-hours: $\(String(format: "%.2f", postPrice))")
-         }
-     default:
-         print("시장 상태: \(quote.marketState ?? "Unknown")")
-     }
-     
-     // 시가총액 (단위: 달러)
-     if let marketCap = quote.marketCap {
-         let billions = marketCap / 1_000_000_000
-         print("Market Cap: $\(String(format: "%.2f", billions))B")
-     }
-     
- } catch {
-     print("시세 조회 실패: \(error)")
- }
- ```
- 
- ## 시간 데이터 처리
- 
- Unix timestamp 필드들을 Date로 변환하는 방법:
- 
- ```swift
- // 정규 시장 시간 변환
- if let timestamp = quote.regularMarketTime {
-     let marketTime = Date(timeIntervalSince1970: TimeInterval(timestamp))
-     let formatter = DateFormatter()
-     formatter.dateStyle = .short
-     formatter.timeStyle = .short
-     print("Market Time: \(formatter.string(from: marketTime))")
- }
- 
- // 장후 거래 시간 변환
- if let timestamp = quote.postMarketTime {
-     let postMarketTime = Date(timeIntervalSince1970: TimeInterval(timestamp))
-     print("After-hours Time: \(postMarketTime)")
- }
- ```
- 
- ## 주의사항
- 
- - **실시간 데이터**: 값들이 시장 상황에 따라 빠르게 변경됩니다
- - **Optional 처리**: 모든 필드가 optional이므로 안전한 접근 필요
- - **통화 단위**: 가격은 해당 종목의 거래 통화로 표시됩니다
- - **데이터 지연**: `exchangeDataDelayedBy` 필드로 지연 시간 확인 가능
- - **시간외 거래**: 장전/장후 데이터는 해당 시간대에만 제공됩니다
- 
- ## 관련 타입
- 
- - ``YFQuoteSummaryDetail``: 상세 분석 정보 (PE 비율, 배당 등)
- - ``YFTicker``: 종목 식별자
- - ``YFQuoteService``: Quote API 서비스
+ 이 구조체는 하위 호환성을 위해 유지되지만, 새로운 개발에서는 권장되지 않습니다.
  */
-public struct YFQuote: Decodable, Sendable {
-    
-    // MARK: - 기본 종목 정보
-    
+@available(*, deprecated, message: "Use the new modular YFQuote instead for better performance and type safety")
+public struct YFLegacyQuote: Decodable, Sendable {
+    // 기존 YFQuote의 모든 필드들 (간소화를 위해 주석 제거)
+    public let symbol: String?
+    public let currency: String?
+    public let lastMarket: String?
+    public let preMarketSource: String?
+    public let regularMarketPreviousClose: Double?
+    public let regularMarketPrice: Double?
+    public let averageDailyVolume3Month: Int?
+    public let preMarketTime: Int?
+    public let exchangeDataDelayedBy: Int?
+    public let currencySymbol: String?
+    public let maxAge: Int?
+    public let regularMarketTime: Int?
+    public let preMarketChangePercent: Double?
+    public let regularMarketDayLow: Double?
+    public let fromCurrency: String?
+    public let regularMarketVolume: Int?
+    public let averageDailyVolume10Day: Int?
+    public let regularMarketOpen: Double?
+    public let toCurrency: String?
+    public let exchange: String?
+    public let marketState: String?
+    public let longName: String?
+    public let preMarketChange: Double?
+    public let underlyingSymbol: String?
+    public let regularMarketChangePercent: Double?
+    public let quoteSourceName: String?
+    public let regularMarketChange: Double?
+    public let exchangeName: String?
+    public let preMarketPrice: Double?
+    public let shortName: String?
+    public let regularMarketSource: String?
+    public let priceHint: Int?
+    public let quoteType: String?
+    public let marketCap: Double?
+    public let regularMarketDayHigh: Double?
+    public let postMarketPrice: Double?
+    public let postMarketTime: Int?
+    public let postMarketChange: Double?
+    public let postMarketChangePercent: Double?
+    public let postMarketSource: String?
+}
+
+// MARK: - Modular Quote Models
+
+/**
+ 기본 종목 정보를 담는 모델입니다.
+ 
+ 종목의 식별 정보와 회사명 등 변하지 않는 기본 정보를 포함합니다.
+ */
+public struct YFQuoteBasicInfo: Decodable, Sendable {
     /// 종목 심볼
-    /// 거래소에서 사용하는 종목 식별 코드입니다 (예: "AAPL", "MSFT").
     public let symbol: String?
     
     /// 회사 전체명
-    /// 공식적인 회사 전체 명칭입니다 (예: "Apple Inc.").
     public let longName: String?
     
     /// 회사 축약명  
-    /// 일반적으로 사용되는 회사 축약 명칭입니다 (예: "Apple Inc").
     public let shortName: String?
     
-    /// 종목 유형
-    /// 주식의 분류를 나타냅니다 (예: "EQUITY", "ETF", "MUTUALFUND").
+    /// 종목 유형 (예: "EQUITY", "ETF")
     public let quoteType: String?
     
-    /// 기초 자산 심볼
-    /// 파생상품의 경우 기초가 되는 자산의 심볼입니다.
+    /// 기초 자산 심볼 (파생상품의 경우)
     public let underlyingSymbol: String?
-    
-    // MARK: - 거래소 정보
-    
+}
+
+/**
+ 거래소 및 통화 정보를 담는 모델입니다.
+ 
+ 종목이 거래되는 거래소와 통화 관련 정보를 포함합니다.
+ */
+public struct YFQuoteExchangeInfo: Decodable, Sendable {
     /// 거래소 코드
-    /// 종목이 거래되는 거래소의 축약 코드입니다 (예: "NMS", "NYQ").
     public let exchange: String?
     
     /// 거래소 전체명
-    /// 거래소의 정식 명칭입니다 (예: "NASDAQ", "New York Stock Exchange").
     public let exchangeName: String?
     
-    /// 데이터 지연 시간
-    /// 실시간 대비 현재 데이터의 지연 시간(분 단위)입니다.
-    /// 0이면 실시간, 15면 15분 지연 데이터를 의미합니다.
+    /// 데이터 지연 시간 (분)
     public let exchangeDataDelayedBy: Int?
     
-    // MARK: - 통화 정보
-    
     /// 거래 통화
-    /// 주식이 거래되는 통화 코드입니다 (예: "USD", "KRW").
     public let currency: String?
     
     /// 통화 심볼
-    /// 통화를 표시하는 기호입니다 (예: "$", "₩").
     public let currencySymbol: String?
     
     /// 환전 원본 통화
-    /// 통화 변환 시 원본 통화 코드입니다.
     public let fromCurrency: String?
     
     /// 환전 대상 통화
-    /// 통화 변환 시 대상 통화 코드입니다.
     public let toCurrency: String?
-    
-    // MARK: - 현재 시세 정보
-    
+}
+
+/**
+ 현재 시세 정보를 담는 모델입니다.
+ 
+ 실시간 가격, 등락률, 시고저 등 핵심 시세 데이터를 포함합니다.
+ */
+public struct YFQuoteMarketData: Decodable, Sendable {
     /// 현재가 (정규 시장)
-    /// 정규 거래시간 내 최근 거래 가격입니다.
-    /// 가장 중요한 필드 중 하나로, 현재 주식의 가치를 나타냅니다.
     public let regularMarketPrice: Double?
     
     /// 시가 (정규 시장)
-    /// 당일 정규 거래시간 개시 시 첫 거래 가격입니다.
     public let regularMarketOpen: Double?
     
     /// 고가 (정규 시장)
-    /// 당일 정규 거래시간 내 최고 거래 가격입니다.
     public let regularMarketDayHigh: Double?
     
     /// 저가 (정규 시장)  
-    /// 당일 정규 거래시간 내 최저 거래 가격입니다.
     public let regularMarketDayLow: Double?
     
     /// 전일 종가 (정규 시장)
-    /// 이전 거래일의 정규 시장 종료 시 가격입니다.
     public let regularMarketPreviousClose: Double?
     
     /// 등락폭 (정규 시장)
-    /// 전일 종가 대비 현재가의 절대적 변동폭입니다.
-    /// 양수면 상승, 음수면 하락을 의미합니다.
     public let regularMarketChange: Double?
     
     /// 등락률 (정규 시장)
-    /// 전일 종가 대비 현재가의 변동률(%)입니다.
-    /// 소수점 형태로 표현됩니다 (0.05 = 5%).
     public let regularMarketChangePercent: Double?
-    
-    // MARK: - 거래량 및 시장 정보
-    
+}
+
+/**
+ 거래량 및 시장 상태 정보를 담는 모델입니다.
+ 
+ 거래량, 시가총액, 시장 상태 등의 정보를 포함합니다.
+ */
+public struct YFQuoteVolumeInfo: Decodable, Sendable {
     /// 거래량 (정규 시장)
-    /// 당일 정규 거래시간 내 총 거래된 주식 수입니다.
     public let regularMarketVolume: Int?
     
     /// 3개월 평균 일일 거래량
-    /// 최근 3개월간의 평균 일일 거래량입니다.
     public let averageDailyVolume3Month: Int?
     
     /// 10일 평균 일일 거래량
-    /// 최근 10거래일간의 평균 거래량입니다.
     public let averageDailyVolume10Day: Int?
     
     /// 시가총액
-    /// 발행주식수 × 현재주가로 계산된 회사의 시장 가치입니다.
-    /// 단위: 해당 통화 (보통 달러)
     public let marketCap: Double?
     
-    /// 시장 상태
-    /// 현재 시장의 거래 상태를 나타냅니다.
-    /// - "REGULAR": 정규 거래 중
-    /// - "CLOSED": 장 마감  
-    /// - "PRE": 장전 거래
-    /// - "POST": 장후 거래
+    /// 시장 상태 ("REGULAR", "CLOSED", "PRE", "POST")
     public let marketState: String?
-    
-    // MARK: - 시간 정보
-    
-    /// 정규 시장 마지막 업데이트 시간
-    /// 정규 시장 데이터의 마지막 업데이트 시간 (Unix timestamp)입니다.
-    public let regularMarketTime: Int?
-    
-    /// 데이터 최대 유효 기간
-    /// 현재 데이터의 최대 유효 기간 (초 단위)입니다.
-    public let maxAge: Int?
-    
-    // MARK: - 장전 거래 정보
+}
+
+/**
+ 장전/장후 거래 정보를 담는 모델입니다.
+ 
+ 정규 시장 외 시간대의 거래 정보를 포함합니다.
+ */
+public struct YFQuoteExtendedHoursData: Decodable, Sendable {
+    // MARK: - 장전 거래
     
     /// 장전 거래 가격
-    /// 정규 시장 개장 전 거래되는 가격입니다.
-    /// 보통 오전 4:00-9:30 (EST) 시간대의 거래입니다.
     public let preMarketPrice: Double?
     
     /// 장전 거래 변동폭
-    /// 전일 종가 대비 장전 거래 가격의 변동폭입니다.
     public let preMarketChange: Double?
     
     /// 장전 거래 변동률
-    /// 전일 종가 대비 장전 거래 가격의 변동률(%)입니다.
     public let preMarketChangePercent: Double?
     
     /// 장전 거래 시간
-    /// 장전 거래 데이터의 마지막 업데이트 시간 (Unix timestamp)입니다.
     public let preMarketTime: Int?
     
     /// 장전 거래 데이터 출처
-    /// 장전 거래 정보의 데이터 제공원입니다.
     public let preMarketSource: String?
     
-    // MARK: - 장후 거래 정보
+    // MARK: - 장후 거래
     
     /// 장후 거래 가격
-    /// 정규 시장 마감 후 거래되는 가격입니다.
-    /// 보통 오후 4:00-8:00 (EST) 시간대의 거래입니다.
     public let postMarketPrice: Double?
     
     /// 장후 거래 변동폭
-    /// 정규 시장 종가 대비 장후 거래 가격의 변동폭입니다.
     public let postMarketChange: Double?
     
     /// 장후 거래 변동률
-    /// 정규 시장 종가 대비 장후 거래 가격의 변동률(%)입니다.
     public let postMarketChangePercent: Double?
     
     /// 장후 거래 시간
-    /// 장후 거래 데이터의 마지막 업데이트 시간 (Unix timestamp)입니다.
     public let postMarketTime: Int?
     
     /// 장후 거래 데이터 출처
-    /// 장후 거래 정보의 데이터 제공원입니다.
     public let postMarketSource: String?
+}
+
+/**
+ 시간 정보 및 데이터 소스 메타데이터를 담는 모델입니다.
+ 
+ 데이터의 업데이트 시간과 출처 정보를 포함합니다.
+ */
+public struct YFQuoteMetadata: Decodable, Sendable {
+    /// 정규 시장 마지막 업데이트 시간
+    public let regularMarketTime: Int?
     
-    // MARK: - 데이터 소스 정보
+    /// 데이터 최대 유효 기간
+    public let maxAge: Int?
     
     /// 시세 데이터 출처명
-    /// 현재 시세 정보를 제공하는 데이터 소스의 이름입니다.
     public let quoteSourceName: String?
     
     /// 정규 시장 데이터 출처
-    /// 정규 시장 데이터의 제공원입니다.
     public let regularMarketSource: String?
     
     /// 마지막 거래 시장
-    /// 최근 거래가 발생한 시장 정보입니다.
     public let lastMarket: String?
     
     /// 가격 표시 정밀도
-    /// 가격 표시 시 권장되는 소수점 자릿수입니다.
-    /// 2이면 소수점 둘째 자리까지 표시를 권장합니다.
     public let priceHint: Int?
+}
+
+/**
+ 모듈형 YFQuote 구조체입니다.
+ 
+ ## 개요
+ 
+ 기존 YFQuote의 모든 기능을 유지하면서, 필요한 정보만 선택적으로 디코딩할 수 있도록 
+ 분류별 모델들로 구성된 복합 구조체입니다.
+ 
+ ## 사용 예제
+ 
+ ```swift
+ // 기본 정보만 필요한 경우
+ let basicInfo = try JSONDecoder().decode(YFQuoteBasicInfo.self, from: jsonData)
+ print("Company: \(basicInfo.longName ?? "Unknown")")
+ 
+ // 시세 정보만 필요한 경우  
+ let marketData = try JSONDecoder().decode(YFQuoteMarketData.self, from: jsonData)
+ if let price = marketData.regularMarketPrice {
+     print("Price: $\(price)")
+ }
+ 
+ // 전체 정보가 필요한 경우
+ let fullQuote = try JSONDecoder().decode(YFQuote.self, from: jsonData)
+ print("Symbol: \(fullQuote.basicInfo.symbol ?? "N/A")")
+ print("Price: $\(fullQuote.marketData.regularMarketPrice ?? 0)")
+ ```
+ 
+ ## 장점
+ 
+ - **선택적 디코딩**: 필요한 정보만 파싱하여 성능 최적화
+ - **타입 안전성**: 각 도메인별 특화된 타입 정의
+ - **메모리 효율성**: 불필요한 필드 로딩 방지
+ - **모듈화**: 각 정보 그룹의 독립적 관리
+ - **하위 호환성**: 기존 YFQuote와 동일한 필드 제공
+ */
+public struct YFQuote: Decodable, Sendable {
+    /// 기본 종목 정보
+    public let basicInfo: YFQuoteBasicInfo
+    
+    /// 거래소 및 통화 정보
+    public let exchangeInfo: YFQuoteExchangeInfo
+    
+    /// 현재 시세 정보
+    public let marketData: YFQuoteMarketData
+    
+    /// 거래량 및 시장 정보
+    public let volumeInfo: YFQuoteVolumeInfo
+    
+    /// 장전/장후 거래 정보
+    public let extendedHours: YFQuoteExtendedHoursData
+    
+    /// 시간 및 메타데이터
+    public let metadata: YFQuoteMetadata
+    
+    // MARK: - Custom Decoding
+    
+    /// 하나의 JSON 객체에서 모든 분류별 모델을 디코딩합니다
+    public init(from decoder: Decoder) throws {
+        // 같은 decoder를 사용하여 각 모델을 디코딩
+        self.basicInfo = try YFQuoteBasicInfo(from: decoder)
+        self.exchangeInfo = try YFQuoteExchangeInfo(from: decoder)
+        self.marketData = try YFQuoteMarketData(from: decoder)
+        self.volumeInfo = try YFQuoteVolumeInfo(from: decoder)
+        self.extendedHours = try YFQuoteExtendedHoursData(from: decoder)
+        self.metadata = try YFQuoteMetadata(from: decoder)
+    }
+}
+
+// MARK: - Convenience Extensions
+
+extension YFQuote {
+    /// 기존 YFQuote와 완전히 동일한 인터페이스를 제공하는 편의 프로퍼티들
+    
+    // MARK: - 기본 종목 정보
+    public var symbol: String? { basicInfo.symbol }
+    public var longName: String? { basicInfo.longName }
+    public var shortName: String? { basicInfo.shortName }
+    public var quoteType: String? { basicInfo.quoteType }
+    public var underlyingSymbol: String? { basicInfo.underlyingSymbol }
+    
+    // MARK: - 거래소 정보
+    public var exchange: String? { exchangeInfo.exchange }
+    public var exchangeName: String? { exchangeInfo.exchangeName }
+    public var exchangeDataDelayedBy: Int? { exchangeInfo.exchangeDataDelayedBy }
+    public var currency: String? { exchangeInfo.currency }
+    public var currencySymbol: String? { exchangeInfo.currencySymbol }
+    public var fromCurrency: String? { exchangeInfo.fromCurrency }
+    public var toCurrency: String? { exchangeInfo.toCurrency }
+    
+    // MARK: - 현재 시세 정보
+    public var regularMarketPrice: Double? { marketData.regularMarketPrice }
+    public var regularMarketOpen: Double? { marketData.regularMarketOpen }
+    public var regularMarketDayHigh: Double? { marketData.regularMarketDayHigh }
+    public var regularMarketDayLow: Double? { marketData.regularMarketDayLow }
+    public var regularMarketPreviousClose: Double? { marketData.regularMarketPreviousClose }
+    public var regularMarketChange: Double? { marketData.regularMarketChange }
+    public var regularMarketChangePercent: Double? { marketData.regularMarketChangePercent }
+    
+    // MARK: - 거래량 및 시장 정보
+    public var regularMarketVolume: Int? { volumeInfo.regularMarketVolume }
+    public var averageDailyVolume3Month: Int? { volumeInfo.averageDailyVolume3Month }
+    public var averageDailyVolume10Day: Int? { volumeInfo.averageDailyVolume10Day }
+    public var marketCap: Double? { volumeInfo.marketCap }
+    public var marketState: String? { volumeInfo.marketState }
+    
+    // MARK: - 장전 거래 정보
+    public var preMarketPrice: Double? { extendedHours.preMarketPrice }
+    public var preMarketChange: Double? { extendedHours.preMarketChange }
+    public var preMarketChangePercent: Double? { extendedHours.preMarketChangePercent }
+    public var preMarketTime: Int? { extendedHours.preMarketTime }
+    public var preMarketSource: String? { extendedHours.preMarketSource }
+    
+    // MARK: - 장후 거래 정보
+    public var postMarketPrice: Double? { extendedHours.postMarketPrice }
+    public var postMarketChange: Double? { extendedHours.postMarketChange }
+    public var postMarketChangePercent: Double? { extendedHours.postMarketChangePercent }
+    public var postMarketTime: Int? { extendedHours.postMarketTime }
+    public var postMarketSource: String? { extendedHours.postMarketSource }
+    
+    // MARK: - 시간 및 메타데이터
+    public var regularMarketTime: Int? { metadata.regularMarketTime }
+    public var maxAge: Int? { metadata.maxAge }
+    public var quoteSourceName: String? { metadata.quoteSourceName }
+    public var regularMarketSource: String? { metadata.regularMarketSource }
+    public var lastMarket: String? { metadata.lastMarket }
+    public var priceHint: Int? { metadata.priceHint }
+}
+
+// MARK: - YFQuote Utility Extensions
+
+extension YFQuote {
+    /// 시세 데이터만 필요한 경우의 간소화된 표현
+    public var essentialData: (symbol: String?, price: Double?, change: Double?, changePercent: Double?) {
+        return (
+            symbol: symbol,
+            price: regularMarketPrice,
+            change: regularMarketChange,
+            changePercent: regularMarketChangePercent
+        )
+    }
+    
+    /// 시장 상태를 기반으로 한 적절한 가격 정보 반환
+    public var currentPrice: Double? {
+        switch marketState {
+        case "PRE":
+            return preMarketPrice ?? regularMarketPrice
+        case "POST":
+            return postMarketPrice ?? regularMarketPrice
+        default:
+            return regularMarketPrice
+        }
+    }
+    
+    /// 현재 시세의 전일 대비 변동률 (시간외 거래 포함)
+    public var currentChangePercent: Double? {
+        switch marketState {
+        case "PRE":
+            return preMarketChangePercent ?? regularMarketChangePercent
+        case "POST":
+            return postMarketChangePercent ?? regularMarketChangePercent
+        default:
+            return regularMarketChangePercent
+        }
+    }
+    
+    /// 시장 상태에 맞는 마지막 업데이트 시간
+    public var lastUpdateTime: Date? {
+        let timestamp: Int?
+        switch marketState {
+        case "PRE":
+            timestamp = preMarketTime ?? regularMarketTime
+        case "POST":
+            timestamp = postMarketTime ?? regularMarketTime
+        default:
+            timestamp = regularMarketTime
+        }
+        
+        guard let timestamp = timestamp else { return nil }
+        return Date(timeIntervalSince1970: TimeInterval(timestamp))
+    }
 }
 
 
