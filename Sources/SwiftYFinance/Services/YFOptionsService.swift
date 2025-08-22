@@ -44,12 +44,19 @@ public struct YFOptionsService: YFService {
     ///   - ticker: 조회할 종목
     ///   - expiration: 특정 만기일 (nil이면 모든 만기일)
     /// - Returns: 옵션 체인 데이터
-    public func fetchOptionsChain(for ticker: YFTicker, expiration: Date? = nil) async throws -> YFOptionsChain {
+    public func fetchOptionsChain(for ticker: YFTicker, expiration: Date? = nil) async throws -> YFOptionsChainResult {
         // URL 구성
         let url = try await buildOptionsURL(ticker: ticker, expiration: expiration)
         
         // API 요청 수행 및 JSON 디코딩
-        return try await performFetch(url: url, type: YFOptionsChain.self, serviceName: "Options")
+        let response = try await performFetch(url: url, type: YFOptionsChainResponse.self, serviceName: "Options")
+        
+        // 응답에서 첫 번째 결과 추출
+        guard let result = response.optionChain?.result?.first else {
+            throw YFError.invalidResponse
+        }
+        
+        return result
     }
     
     // MARK: - Private Methods

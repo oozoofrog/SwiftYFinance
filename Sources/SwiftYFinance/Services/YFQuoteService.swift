@@ -38,15 +38,16 @@ public struct YFQuoteService: YFService {
             
             // 공통 fetch 메서드 사용
             DebugPrint("📡 [QuoteService] API 호출 시작...")
-            let quote = try await performFetch(url: requestURL, type: YFQuote.self, serviceName: "Quote")
+            let quoteResponse = try await performFetch(url: requestURL, type: YFQuoteResponse.self, serviceName: "Quote")
             DebugPrint("✅ [QuoteService] API 호출 성공")
             
-            // ticker를 올바른 값으로 교체
-            DebugPrint("🔄 [QuoteService] Ticker 정보 교체 중...")
-            let finalQuote = quote.withCorrectTicker(ticker)
-            DebugPrint("✅ [QuoteService] fetch() 완료")
+            // 응답에서 price 데이터 추출
+            guard let quote = quoteResponse.quoteSummary?.result?.first?.price else {
+                throw YFError.invalidResponse
+            }
             
-            return finalQuote
+            DebugPrint("✅ [QuoteService] fetch() 완료")
+            return quote
         } catch {
             DebugPrint("❌ [QuoteService] fetch() 실패: \(error)")
             throw error

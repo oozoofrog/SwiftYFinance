@@ -58,13 +58,31 @@ struct NewsCommand: AsyncParsableCommand {
         }
         
         for (index, article) in articles.enumerated() {
-            print("[\(index + 1)] \(article.title)")
-            print("    📅 \(formatNewsDate(article.publishedDate))")
-            print("    📰 \(article.source)")
-            if !article.summary.isEmpty {
-                print("    📝 \(article.summary)")
+            let title = article.title ?? "Untitled"
+            let publisher = article.publisher ?? "Unknown Source"
+            let link = article.link ?? ""
+            
+            print("[\(index + 1)] \(title)")
+            
+            if let publishTimeStamp = article.providerPublishTime {
+                let date = Date(timeIntervalSince1970: TimeInterval(publishTimeStamp))
+                print("    📅 \(formatNewsDate(date))")
             }
-            print("    🔗 \(article.link)")
+            
+            print("    📰 \(publisher)")
+            
+            if let summary = article.summary, !summary.isEmpty {
+                print("    📝 \(summary)")
+            }
+            
+            if !link.isEmpty {
+                print("    🔗 \(link)")
+            }
+            
+            if let type = article.type {
+                print("    📋 Type: \(type)")
+            }
+            
             print("")
         }
         

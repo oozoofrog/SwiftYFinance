@@ -45,50 +45,57 @@ struct QuoteCommand: AsyncParsableCommand {
     }
     
     private func printQuoteInfo(_ quote: YFQuote) {
-        print("📈 \(quote.ticker.symbol) - \(quote.shortName)")
+        let symbol = quote.symbol ?? "N/A"
+        let shortName = quote.shortName ?? "Unknown"
+        
+        print("📈 \(symbol) - \(shortName)")
         print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         
         // Current price with change
-        let change = quote.regularMarketPrice - quote.regularMarketPreviousClose
-        let changePercent = (change / quote.regularMarketPreviousClose) * 100
+        let currentPrice = quote.regularMarketPrice ?? 0
+        let previousClose = quote.regularMarketPreviousClose ?? 0
+        let change = currentPrice - previousClose
+        let changePercent = previousClose > 0 ? (change / previousClose) * 100 : 0
         let changeSymbol = change >= 0 ? "🟢" : "🔴"
         let changeSign = change >= 0 ? "+" : ""
         
-        print("Current Price:    $\(formatPrice(quote.regularMarketPrice))")
+        print("Current Price:    $\(formatPrice(currentPrice))")
         print("Change:           \(changeSymbol) \(changeSign)$\(formatPrice(change)) (\(changeSign)\(formatPercent(changePercent))%)")
-        print("Previous Close:   $\(formatPrice(quote.regularMarketPreviousClose))")
+        print("Previous Close:   $\(formatPrice(previousClose))")
         print("")
         
         // Market data
-        print("Open:             $\(formatPrice(quote.regularMarketOpen))")
-        print("High:             $\(formatPrice(quote.regularMarketHigh))")
-        print("Low:              $\(formatPrice(quote.regularMarketLow))")
-        print("Volume:           \(formatVolume(quote.regularMarketVolume))")
-        print("Market Cap:       $\(formatLargeNumber(quote.marketCap))")
+        print("Open:             $\(formatPrice(quote.regularMarketOpen ?? 0))")
+        print("High:             $\(formatPrice(quote.regularMarketDayHigh ?? 0))")
+        print("Low:              $\(formatPrice(quote.regularMarketDayLow ?? 0))")
+        print("Volume:           \(formatVolume(quote.regularMarketVolume ?? 0))")
+        print("Market Cap:       $\(formatLargeNumber(quote.marketCap ?? 0))")
         
         // After-hours trading if available
         if let postPrice = quote.postMarketPrice,
-           let postTime = quote.postMarketTime,
+           let postTimeStamp = quote.postMarketTime,
            let postChangePercent = quote.postMarketChangePercent {
             print("")
             print("After Hours Trading:")
             print("Price:            $\(formatPrice(postPrice))")
             print("Change:           \(postChangePercent >= 0 ? "🟢 +" : "🔴 ")\(formatPercent(postChangePercent))%")
-            print("Time:             \(formatTime(postTime))")
+            print("Time:             \(formatTime(Date(timeIntervalSince1970: TimeInterval(postTimeStamp))))")
         }
         
         // Pre-market trading if available
         if let prePrice = quote.preMarketPrice,
-           let preTime = quote.preMarketTime,
+           let preTimeStamp = quote.preMarketTime,
            let preChangePercent = quote.preMarketChangePercent {
             print("")
             print("Pre-Market Trading:")
             print("Price:            $\(formatPrice(prePrice))")
             print("Change:           \(preChangePercent >= 0 ? "🟢 +" : "🔴 ")\(formatPercent(preChangePercent))%")
-            print("Time:             \(formatTime(preTime))")
+            print("Time:             \(formatTime(Date(timeIntervalSince1970: TimeInterval(preTimeStamp))))")
         }
         
         print("")
-        print("Last Updated:     \(formatTime(quote.regularMarketTime))")
+        if let timeStamp = quote.regularMarketTime {
+            print("Last Updated:     \(formatTime(Date(timeIntervalSince1970: TimeInterval(timeStamp))))")
+        }
     }
 }

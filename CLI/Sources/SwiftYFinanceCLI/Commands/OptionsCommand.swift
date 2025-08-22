@@ -65,7 +65,7 @@ struct OptionsCommand: AsyncParsableCommand {
         }
     }
     
-    private func printOptionsInfo(_ options: YFOptionsChain, for symbol: String) {
+    private func printOptionsInfo(_ options: YFOptionsChainResult, for symbol: String) {
         print("📊 Options Chain for \(symbol)")
         print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         print("")
@@ -73,7 +73,9 @@ struct OptionsCommand: AsyncParsableCommand {
         // Quote information
         if let quote = options.quote {
             print("📈 Current Price")
-            print("  Symbol: \(quote.symbol)")
+            if let quotedSymbol = quote.symbol {
+                print("  Symbol: \(quotedSymbol)")
+            }
             if let price = quote.regularMarketPrice {
                 print("  Price: $\(String(format: "%.2f", price))")
             }
@@ -89,19 +91,23 @@ struct OptionsCommand: AsyncParsableCommand {
         dateFormatter.dateFormat = "yyyy-MM-dd"
         dateFormatter.timeZone = TimeZone(abbreviation: "EST")
         
-        for (index, date) in options.expirationDates.prefix(10).enumerated() {
-            print("  [\(index + 1)] \(dateFormatter.string(from: date))")
-        }
-        if options.expirationDates.count > 10 {
-            print("  ... and \(options.expirationDates.count - 10) more")
+        if let expirationTimestamps = options.expirationDates {
+            let expirationDates = expirationTimestamps.map { Date(timeIntervalSince1970: TimeInterval($0)) }
+            for (index, date) in expirationDates.prefix(10).enumerated() {
+                print("  [\(index + 1)] \(dateFormatter.string(from: date))")
+            }
+            if expirationDates.count > 10 {
+                print("  ... and \(expirationDates.count - 10) more")
+            }
         }
         print("")
         
         // Strike prices
         print("💰 Available Strike Prices")
-        let strikes = options.strikes.sorted()
-        if strikes.count > 20 {
-            let minStrike = strikes.first ?? 0
+        if let strikes = options.strikes {
+            let sortedStrikes = strikes.sorted()
+            if sortedStrikes.count > 20 {
+                let minStrike = sortedStrikes.first ?? 0
             let maxStrike = strikes.last ?? 0
             print("  Range: $\(String(format: "%.2f", minStrike)) - $\(String(format: "%.2f", maxStrike))")
             print("  Total: \(strikes.count) strikes")

@@ -106,50 +106,10 @@ public struct YFNewsService: YFService {
         
         let url = try await buildNewsURL(ticker: ticker, count: count)
         
-        var request = URLRequest(url: url, timeoutInterval: client.session.timeout)
+        // 새로운 응답 구조 사용
+        let response = try await performFetch(url: url, type: YFNewsResponse.self, serviceName: "News")
         
-        // 기본 헤더 설정
-        let headers = await client.session.defaultHeaders
-        for (key, value) in headers {
-            request.setValue(value, forHTTPHeaderField: key)
-        }
-        
-        let (data, response) = try await client.session.urlSession.data(for: request)
-        
-        // HTTP 응답 상태 확인
-        if let httpResponse = response as? HTTPURLResponse {
-            if httpResponse.statusCode != 200 {
-                throw YFError.networkError
-            }
-        }
-        
-        // JSON 파싱 및 YFNewsArticle 변환
-        return try parseNewsResponse(data: data, count: count)
-    }
-    
-    /// 뉴스 응답 데이터 파싱
-    ///
-    /// Yahoo Finance API 응답을 YFNewsArticle 배열로 직접 변환합니다.
-    ///
-    /// - Parameters:
-    ///   - data: API 응답 데이터
-    ///   - count: 반환할 뉴스 개수
-    /// - Returns: 뉴스 기사 배열
-    /// - Throws: JSON 파싱 중 발생하는 에러
-    private func parseNewsResponse(data: Data, count: Int) throws -> [YFNewsArticle] {
-        let decoder = JSONDecoder()
-        
-        // Parse the response to extract the news array
-        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-        guard let newsData = json?["news"] as? [[String: Any]] else {
-            return []
-        }
-        
-        // Convert news array back to Data for decoding
-        let newsArrayData = try JSONSerialization.data(withJSONObject: newsData)
-        let articles = try decoder.decode([YFNewsArticle].self, from: newsArrayData)
-        
-        return Array(articles.prefix(count))
+        return Array((response.news ?? []).prefix(count))
     }
     
     /// 뉴스 API URL 구성
