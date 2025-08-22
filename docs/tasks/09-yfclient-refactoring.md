@@ -112,7 +112,7 @@ let result = try await client.{domain}.{method}({parameters})
 - [x] **포괄적 테스트**: 아키텍처, 실제 데이터, 동시성, 일관성, 성능 테스트
 
 ### Phase 4: Advanced API 서비스 클래스 생성
-- [ ] YFNewsService 클래스 생성 (fetchNews 메서드들)
+- [x] **YFNewsService 구조체 생성** (fetchNews, fetchMultipleNews 메서드들)
 - [ ] YFOptionsService 클래스 생성 (fetchOptionsChain)
 - [ ] YFScreeningService 클래스 생성 (screenStocks)
 - [ ] YFWebSocketService 클래스 생성 (startRealTimeStreaming)
@@ -133,7 +133,7 @@ let result = try await client.{domain}.{method}({parameters})
 - [x] **YFCashFlowAPI.swift 제거** (통합된 YFFundamentalsService로 대체)
 - [x] **YFEarningsAPI.swift 제거** (통합된 YFFundamentalsService로 대체)
 - [x] **YFFinancialsAdvancedAPI.swift 제거** (통합된 YFFundamentalsService로 대체)
-- [ ] YFNewsAPI.swift 제거
+- [x] **YFNewsAPI.swift 제거** (YFNewsService로 대체 완료)
 - [ ] YFOptionsAPI.swift 제거
 - [ ] YFScreeningAPI.swift 제거
 - [ ] YFWebSocketAPI.swift 제거
@@ -164,9 +164,9 @@ let result = try await client.{domain}.{method}({parameters})
 - **YFHistoryService**: 과거 가격 데이터 조회 서비스 (일간/분간 OHLCV)
 - **YFSearchService**: 종목 검색 및 자동완성 서비스
 - **YFFundamentalsService**: 통합 재무제표 서비스 (Income Statement, Balance Sheet, Cash Flow 단일 API 호출)
+- **YFNewsService**: 뉴스 데이터 조회 서비스 (단일/다중 종목 뉴스 조회)
 
 ### 🚧 구현 예정 서비스들 (Phase 4+)
-- **YFNewsService**: 뉴스 데이터
 - **YFOptionsService**: 옵션 체인 데이터
 - **YFWebSocketService**: 실시간 스트리밍
 - **YFScreeningService**: 종목 스크리닝

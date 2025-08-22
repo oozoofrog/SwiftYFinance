@@ -82,6 +82,11 @@ public struct YFClient: Sendable {
         YFFundamentalsService(client: self, debugEnabled: debugEnabled)
     }
     
+    /// 뉴스 데이터 조회 서비스
+    public var news: YFNewsService {
+        YFNewsService(client: self, debugEnabled: debugEnabled)
+    }
+    
 }
 
 // 실제 Yahoo Finance Chart API 응답 구조에 맞춘 구조체들
