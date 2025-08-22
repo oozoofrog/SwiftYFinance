@@ -93,6 +93,11 @@ public struct YFClient: Sendable {
         YFOptionsService(client: self)
     }
     
+    /// 종목 스크리닝 서비스
+    public var screening: YFScreeningService {
+        YFScreeningService(client: self)
+    }
+    
 }
 
 // 실제 Yahoo Finance Chart API 응답 구조에 맞춘 구조체들

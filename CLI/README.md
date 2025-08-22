@@ -15,23 +15,23 @@ swift build
 
 ```bash
 # 도움말 보기
-./build/debug/swiftyfinance --help
+swift run swiftyfinance --help
 
 # 버전 확인
-./build/debug/swiftyfinance --version
+swift run swiftyfinance --version
 ```
 
 ### 1. 실시간 주식 시세 조회 (quote)
 
 ```bash
 # 기본 사용법
-./build/debug/swiftyfinance quote AAPL
+swift run swiftyfinance quote AAPL
 
 # 디버그 모드로 실행
-./build/debug/swiftyfinance quote TSLA --debug
+swift run swiftyfinance quote TSLA --debug
 
 # JSON 원본 응답 출력
-./build/debug/swiftyfinance quote AAPL --json
+swift run swiftyfinance quote AAPL --json
 ```
 
 **출력 예시:**
@@ -53,13 +53,13 @@ Market Cap:       $3.3T
 
 ```bash
 # 1개월간 데이터
-./build/debug/swiftyfinance history AAPL --period 1mo
+swift run swiftyfinance history AAPL --period 1mo
 
 # 1년간 데이터
-./build/debug/swiftyfinance history TSLA --period 1y
+swift run swiftyfinance history TSLA --period 1y
 
 # JSON 원본 응답 출력
-./build/debug/swiftyfinance history AAPL --period 1mo --json
+swift run swiftyfinance history AAPL --period 1mo --json
 
 # 지원되는 기간: 1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, max
 ```
@@ -87,13 +87,13 @@ Date         Open      High      Low       Close     Volume
 
 ```bash
 # 회사명으로 검색
-./build/debug/swiftyfinance search "Apple"
+swift run swiftyfinance search "Apple"
 
 # 결과 개수 제한
-./build/debug/swiftyfinance search "Technology" --limit 5
+swift run swiftyfinance search "Technology" --limit 5
 
 # JSON 원본 응답 출력
-./build/debug/swiftyfinance search "Apple" --json
+swift run swiftyfinance search "Apple" --json
 ```
 
 **출력 예시:**
@@ -112,10 +112,10 @@ APLE      📈 EQUITY  Apple Hospitality REIT, Inc.
 
 ```bash
 # 재무 데이터 조회
-./build/debug/swiftyfinance fundamentals AAPL
+swift run swiftyfinance fundamentals AAPL
 
 # JSON 원본 응답 출력
-./build/debug/swiftyfinance fundamentals AAPL --json
+swift run swiftyfinance fundamentals AAPL --json
 ```
 
 **출력 예시:**
@@ -128,6 +128,47 @@ Available Data Metrics:
 🏢 Total Assets (Annual): $364.0B
 📊 Stockholder Equity (Annual): $74.1B
 💵 Free Cash Flow (Annual): $84.7B
+```
+
+### 5. 종목 스크리닝 (screening)
+
+```bash
+# 당일 상승 종목 조회
+swift run swiftyfinance screening day_gainers
+
+# 결과 개수 제한
+swift run swiftyfinance screening most_actives --limit 10
+
+# JSON 원본 응답 출력
+swift run swiftyfinance screening day_gainers --json
+```
+
+**사용 가능한 스크리너:**
+- `day_gainers`: 당일 상승 종목
+- `day_losers`: 당일 하락 종목
+- `most_actives`: 거래량 높은 종목
+- `aggressive_small_caps`: 공격적 소형주
+- `growth_technology_stocks`: 성장 기술주
+- `undervalued_growth_stocks`: 저평가 성장주
+- `undervalued_large_caps`: 저평가 대형주
+- `small_cap_gainers`: 소형주 상승 종목
+- `most_shorted_stocks`: 공매도 비중 높은 종목
+
+**출력 예시:**
+```
+📊 Stock Screening Results: day_gainers
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Symbol Company                     Price    Change%   Volume
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AAPL   Apple Inc.               $225.00      2.56%     5.2M
+TSLA   Tesla, Inc.              $180.45      4.23%    12.8M
+MSFT   Microsoft Corporation    $315.20      1.89%     8.4M
+
+Found 3 stocks
+
+📈 Summary:
+   Average Price: $240.22
+   Average Change: 2.89%
 ```
 
 ## 옵션
@@ -156,6 +197,11 @@ Available Data Metrics:
 - `--debug, -d`: 디버그 출력 활성화
 - `--json, -j`: 원본 JSON 응답 출력
 
+**screening**
+- `--limit, -l`: 최대 결과 개수 (기본값: 25, 최대: 250)
+- `--debug, -d`: 디버그 출력 활성화
+- `--json, -j`: 원본 JSON 응답 출력
+
 ## 지원되는 기간 옵션
 
 | 기간 | 설명 |
@@ -177,10 +223,11 @@ Available Data Metrics:
 
 ```bash
 # 다양한 JSON 출력 예시
-./build/debug/swiftyfinance quote AAPL --json
-./build/debug/swiftyfinance search "Apple" --json
-./build/debug/swiftyfinance history TSLA --period 1mo --json
-./build/debug/swiftyfinance fundamentals MSFT --json
+swift run swiftyfinance quote AAPL --json
+swift run swiftyfinance search "Apple" --json
+swift run swiftyfinance history TSLA --period 1mo --json
+swift run swiftyfinance fundamentals MSFT --json
+swift run swiftyfinance screening day_gainers --json
 ```
 
 **JSON 출력 특징:**
@@ -237,9 +284,10 @@ swift build -c release
 ### 테스트
 ```bash
 # 기본 기능 테스트
-./build/debug/swiftyfinance quote AAPL
-./build/debug/swiftyfinance search "Apple" --limit 3
-./build/debug/swiftyfinance history TSLA --period 1mo
+swift run swiftyfinance quote AAPL
+swift run swiftyfinance search "Apple" --limit 3
+swift run swiftyfinance history TSLA --period 1mo
+swift run swiftyfinance screening day_gainers --limit 5
 ```
 
 ## 라이선스
