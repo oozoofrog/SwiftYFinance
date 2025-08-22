@@ -111,9 +111,19 @@ let result = try await client.{domain}.{method}({parameters})
 - [x] **Thread-safe 구현**: FundamentalsTimeseriesResponse Sendable 준수
 - [x] **포괄적 테스트**: 아키텍처, 실제 데이터, 동시성, 일관성, 성능 테스트
 
-### Phase 4: Advanced API 서비스 클래스 생성
+### Phase 4: Advanced API 서비스 클래스 생성 ✅
 - [x] **YFNewsService 구조체 생성** (fetchNews, fetchMultipleNews 메서드들)
-- [ ] YFOptionsService 클래스 생성 (fetchOptionsChain)
+  - [x] Raw JSON 지원 (CLI용 fetchRawJSON 메서드)
+  - [x] 썸네일 이미지 및 관련 종목 파싱 개선
+  - [x] 실제 API 응답 구조 기반 모델 업데이트
+- [x] **YFOptionsService 구조체 생성** (fetchOptionsChain, fetchRawJSON 메서드들)
+  - [x] 옵션 체인 데이터 파싱 (calls/puts, strikes, expirations)
+  - [x] Raw JSON 지원 (CLI용 fetchRawJSON 메서드)
+  - [x] 특정 만기일 필터링 지원
+  - [x] 포괄적인 TDD 테스트 스위트 구현
+  - [x] 실제 Yahoo Finance API 응답 구조 반영
+- [x] **CLI 명령어 추가**: options 명령어 (Raw JSON 및 포맷된 출력 지원)
+- [x] **JSON 샘플 개선**: API-TICKER 네이밍 컨벤션 (news-aapl.json, options-tsla.json)
 - [ ] YFScreeningService 클래스 생성 (screenStocks)
 - [ ] YFWebSocketService 클래스 생성 (startRealTimeStreaming)
 - [ ] YFTechnicalIndicatorsService 클래스 생성 (calculateIndicators)
@@ -134,7 +144,7 @@ let result = try await client.{domain}.{method}({parameters})
 - [x] **YFEarningsAPI.swift 제거** (통합된 YFFundamentalsService로 대체)
 - [x] **YFFinancialsAdvancedAPI.swift 제거** (통합된 YFFundamentalsService로 대체)
 - [x] **YFNewsAPI.swift 제거** (YFNewsService로 대체 완료)
-- [ ] YFOptionsAPI.swift 제거
+- [x] **YFOptionsAPI.swift 제거** (YFOptionsService로 대체 완료)
 - [ ] YFScreeningAPI.swift 제거
 - [ ] YFWebSocketAPI.swift 제거
 - [ ] YFTechnicalIndicatorsAPI.swift 제거
@@ -164,10 +174,10 @@ let result = try await client.{domain}.{method}({parameters})
 - **YFHistoryService**: 과거 가격 데이터 조회 서비스 (일간/분간 OHLCV)
 - **YFSearchService**: 종목 검색 및 자동완성 서비스
 - **YFFundamentalsService**: 통합 재무제표 서비스 (Income Statement, Balance Sheet, Cash Flow 단일 API 호출)
-- **YFNewsService**: 뉴스 데이터 조회 서비스 (단일/다중 종목 뉴스 조회)
+- **YFNewsService**: 뉴스 데이터 조회 서비스 (단일/다중 종목 뉴스 조회, 썸네일 이미지 지원)
+- **YFOptionsService**: 옵션 체인 데이터 조회 서비스 (옵션 체인, Raw JSON, 특정 만기일 조회)
 
-### 🚧 구현 예정 서비스들 (Phase 4+)
-- **YFOptionsService**: 옵션 체인 데이터
+### 🚧 구현 예정 서비스들 (Phase 5+)
 - **YFWebSocketService**: 실시간 스트리밍
 - **YFScreeningService**: 종목 스크리닝
 - **YFTechnicalIndicatorsService**: 기술적 지표
