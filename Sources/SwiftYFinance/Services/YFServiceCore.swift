@@ -13,16 +13,11 @@ public struct YFServiceCore: Sendable {
     /// 기본 재시도 횟수
     private let maxRetryAttempts = 2
     
-    /// 디버깅 모드 플래그 (응답 로깅 활성화)
-    public let debugEnabled: Bool
     
     /// YFServiceCore 초기화
-    /// - Parameters:
-    ///   - client: YFClient 인스턴스
-    ///   - debugEnabled: 디버깅 로그 활성화 여부 (기본값: false)
-    public init(client: YFClient, debugEnabled: Bool = false) {
+    /// - Parameter client: YFClient 인스턴스
+    public init(client: YFClient) {
         self.client = client
-        self.debugEnabled = debugEnabled
     }
     
     /// 인증된 요청을 수행합니다 (재시도 로직 포함)
@@ -200,13 +195,11 @@ public struct YFServiceCore: Sendable {
         let (data, _) = try await authenticatedRequest(url: requestURL)
         
         // API 응답 디버깅 로그
-        if debugEnabled {
-            print("📋 [DEBUG] \(serviceName) API 응답 데이터 크기: \(data.count) bytes")
-            if let responseString = String(data: data, encoding: .utf8) {
-                print("📋 [DEBUG] \(serviceName) API 응답 내용 (처음 500자): \(responseString.prefix(500))")
-            } else {
-                print("❌ [DEBUG] \(serviceName) API 응답을 UTF-8로 디코딩 실패")
-            }
+        DebugPrint("📋 [DEBUG] \(serviceName) API 응답 데이터 크기: \(data.count) bytes")
+        if let responseString = String(data: data, encoding: .utf8) {
+            DebugPrint("📋 [DEBUG] \(serviceName) API 응답 내용 (처음 500자): \(responseString.prefix(500))")
+        } else {
+            DebugPrint("❌ [DEBUG] \(serviceName) API 응답을 UTF-8로 디코딩 실패")
         }
         
         return data
@@ -254,13 +247,11 @@ public struct YFServiceCore: Sendable {
         }
         
         // API 응답 디버깅 로그
-        if debugEnabled {
-            print("📋 [DEBUG] \(serviceName) API 응답 데이터 크기: \(data.count) bytes")
-            if let responseString = String(data: data, encoding: .utf8) {
-                print("📋 [DEBUG] \(serviceName) API 응답 내용 (처음 500자): \(responseString.prefix(500))")
-            } else {
-                print("❌ [DEBUG] \(serviceName) API 응답을 UTF-8로 디코딩 실패")
-            }
+        DebugPrint("📋 [DEBUG] \(serviceName) API 응답 데이터 크기: \(data.count) bytes")
+        if let responseString = String(data: data, encoding: .utf8) {
+            DebugPrint("📋 [DEBUG] \(serviceName) API 응답 내용 (처음 500자): \(responseString.prefix(500))")
+        } else {
+            DebugPrint("❌ [DEBUG] \(serviceName) API 응답을 UTF-8로 디코딩 실패")
         }
         
         return data

@@ -52,7 +52,8 @@ public struct YFClient: Sendable {
     public init(debugEnabled: Bool = false) {
         self.debugEnabled = debugEnabled
         
-        // 전역 디버그 설정은 YFSession에서 처리
+        // 전역 디버그 설정
+        setGlobalDebugEnabled(debugEnabled)
         
         self.session = YFSession(debugEnabled: debugEnabled)
         self.responseParser = YFResponseParser()
@@ -64,32 +65,32 @@ public struct YFClient: Sendable {
     
     /// 시세 조회 서비스
     public var quote: YFQuoteService {
-        YFQuoteService(client: self, debugEnabled: debugEnabled)
+        YFQuoteService(client: self)
     }
     
     /// 과거 가격 데이터 조회 서비스
     public var history: YFHistoryService {
-        YFHistoryService(client: self, debugEnabled: debugEnabled)
+        YFHistoryService(client: self)
     }
     
     /// 종목 검색 및 자동완성 서비스
     public var search: YFSearchService {
-        YFSearchService(client: self, debugEnabled: debugEnabled)
+        YFSearchService(client: self)
     }
     
     /// 통합 재무제표 조회 서비스 (Income Statement, Balance Sheet, Cash Flow 포괄)
     public var fundamentals: YFFundamentalsService {
-        YFFundamentalsService(client: self, debugEnabled: debugEnabled)
+        YFFundamentalsService(client: self)
     }
     
     /// 뉴스 데이터 조회 서비스
     public var news: YFNewsService {
-        YFNewsService(client: self, debugEnabled: debugEnabled)
+        YFNewsService(client: self)
     }
     
     /// 옵션 체인 데이터 조회 서비스
     public var options: YFOptionsService {
-        YFOptionsService(client: self, debugEnabled: debugEnabled)
+        YFOptionsService(client: self)
     }
     
 }

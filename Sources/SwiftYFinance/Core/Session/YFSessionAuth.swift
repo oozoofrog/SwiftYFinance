@@ -50,16 +50,12 @@ extension YFSession {
         let retrySuccess = await attemptAuthenticationWithCurrentStrategy()
         
         if retrySuccess {
-            if debugEnabled {
-                print("✅ [DEBUG] 2차 인증 성공 - \(newStrategy) 전략")
-            }
+            DebugPrint("✅ [DEBUG] 2차 인증 성공 - \(newStrategy) 전략")
             await sessionState.setAuthenticated(true)
             return
         }
         
-        if debugEnabled {
-            print("❌ [DEBUG] 2차 인증 실패 - \(newStrategy) 전략")
-        }
+        DebugPrint("❌ [DEBUG] 2차 인증 실패 - \(newStrategy) 전략")
         
         // 두 전략 모두 실패 시 예외 발생
         throw YFError.apiError("Failed to authenticate with both basic and csrf strategies")
@@ -122,9 +118,7 @@ extension YFSession {
             let (_, response) = try await urlSession.data(for: request)
             
             guard let httpResponse = response as? HTTPURLResponse else {
-                if debugEnabled {
-                    print("❌ [DEBUG] Basic 쿠키: 응답이 HTTPURLResponse가 아님")
-                }
+                DebugPrint("❌ [DEBUG] Basic 쿠키: 응답이 HTTPURLResponse가 아님")
                 return false
             }
             
@@ -137,15 +131,11 @@ extension YFSession {
             
         } catch let error as URLError where error.code == .cannotFindHost {
             // DNS 에러만 실패로 처리 (Python의 DNSError와 동일)
-            if debugEnabled {
-                print("❌ [DEBUG] Basic 쿠키 DNS 에러: \(error)")
-            }
+            DebugPrint("❌ [DEBUG] Basic 쿠키 DNS 에러: \(error)")
             return false
         } catch {
             // 기타 네트워크 에러는 성공으로 처리 (Python 구현과 동일)
-            if debugEnabled {
-                print("⚠️ [DEBUG] Basic 쿠키 기타 에러, 계속 진행: \(error)")
-            }
+            DebugPrint("⚠️ [DEBUG] Basic 쿠키 기타 에러, 계속 진행: \(error)")
             return true
         }
     }
@@ -246,61 +236,43 @@ extension YFSession {
                 request.setValue(value, forHTTPHeaderField: key)
             }
             
-            if debugEnabled {
-                print("🔑 [DEBUG] Crumb 토큰 요청 (\(strategy)): \(url)")
-            }
+            DebugPrint("🔑 [DEBUG] Crumb 토큰 요청 (\(strategy)): \(url)")
             
             let (data, response) = try await urlSession.data(for: request)
             
             guard let httpResponse = response as? HTTPURLResponse else {
-                if debugEnabled {
-                    print("❌ [DEBUG] Crumb: 응답이 HTTPURLResponse가 아님")
-                }
+                DebugPrint("❌ [DEBUG] Crumb: 응답이 HTTPURLResponse가 아님")
                 return false
             }
             
-            if debugEnabled {
-                print("📊 [DEBUG] Crumb 응답 상태: \(httpResponse.statusCode)")
-            }
+            DebugPrint("📊 [DEBUG] Crumb 응답 상태: \(httpResponse.statusCode)")
             
             // Rate limiting 체크 (Python yfinance와 동일)
             if httpResponse.statusCode == 429 {
-                if debugEnabled {
-                    print("⚠️ [DEBUG] Crumb: Rate limited (429)")
-                }
+                DebugPrint("⚠️ [DEBUG] Crumb: Rate limited (429)")
                 return false  // 429 에러 시 false 반환하여 전략 전환 유도
             }
             
             guard httpResponse.statusCode == 200 else {
-                if debugEnabled {
-                    print("❌ [DEBUG] Crumb: 상태 코드 \(httpResponse.statusCode)")
-                }
+                DebugPrint("❌ [DEBUG] Crumb: 상태 코드 \(httpResponse.statusCode)")
                 return false
             }
             
             let crumb = String(data: data, encoding: .utf8) ?? ""
-            if debugEnabled {
-                print("🔑 [DEBUG] Crumb 데이터: '\(crumb.prefix(20))...' (길이: \(crumb.count))")
-            }
+            DebugPrint("🔑 [DEBUG] Crumb 데이터: '\(crumb.prefix(20))...' (길이: \(crumb.count))")
             
             // 유효한 crumb인지 확인 (Python yfinance와 동일)
             if crumb.isEmpty || crumb.contains("<html>") || crumb.contains("Too Many Requests") {
-                if debugEnabled {
-                    print("❌ [DEBUG] Crumb: 유효하지 않은 토큰 (empty: \(crumb.isEmpty), html: \(crumb.contains("<html>")), too many: \(crumb.contains("Too Many Requests")))")
-                }
+                DebugPrint("❌ [DEBUG] Crumb: 유효하지 않은 토큰 (empty: \(crumb.isEmpty), html: \(crumb.contains("<html>")), too many: \(crumb.contains("Too Many Requests")))")
                 return false
             }
             
             await sessionState.setCrumbToken(crumb)
-            if debugEnabled {
-                print("✅ [DEBUG] Crumb 토큰 저장 완료")
-            }
+            DebugPrint("✅ [DEBUG] Crumb 토큰 저장 완료")
             return true
             
         } catch {
-            if debugEnabled {
-                print("❌ [DEBUG] Crumb 에러: \(error)")
-            }
+            DebugPrint("❌ [DEBUG] Crumb 에러: \(error)")
             return false
         }
     }

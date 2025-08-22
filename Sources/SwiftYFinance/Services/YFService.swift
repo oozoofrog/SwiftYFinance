@@ -8,9 +8,6 @@ import Foundation
 public protocol YFService: Sendable {
     /// YFClient 참조
     var client: YFClient { get }
-    
-    /// 디버깅 모드 활성화 여부
-    var debugEnabled: Bool { get }
 }
 
 /// YFService의 기본 구현을 제공하는 확장
@@ -39,13 +36,11 @@ public extension YFService {
     ///   - data: 응답 데이터
     ///   - serviceName: 서비스 이름 (로그 식별용)
     func logAPIResponse(_ data: Data, serviceName: String) {
-        guard debugEnabled else { return }
-        
-        print("📋 [DEBUG] \(serviceName) API 응답 데이터 크기: \(data.count) bytes")
+        DebugPrint("📋 [DEBUG] \(serviceName) API 응답 데이터 크기: \(data.count) bytes")
         if let responseString = String(data: data, encoding: .utf8) {
-            print("📋 [DEBUG] \(serviceName) API 응답 내용 (처음 500자): \(responseString.prefix(500))")
+            DebugPrint("📋 [DEBUG] \(serviceName) API 응답 내용 (처음 500자): \(responseString.prefix(500))")
         } else {
-            print("❌ [DEBUG] \(serviceName) API 응답을 UTF-8로 디코딩 실패")
+            DebugPrint("❌ [DEBUG] \(serviceName) API 응답을 UTF-8로 디코딩 실패")
         }
     }
     
@@ -108,7 +103,7 @@ public extension YFService {
             
             // 인증된 요청 수행
             DebugPrint("🏭 [YFService] YFServiceCore 생성 중...")
-            let core = YFServiceCore(client: client, debugEnabled: debugEnabled)
+            let core = YFServiceCore(client: client)
             DebugPrint("📡 [YFService] authenticatedRequest() 호출...")
             let (data, _) = try await core.authenticatedRequest(url: url)
             DebugPrint("✅ [YFService] authenticatedRequest() 완료, 데이터 크기: \(data.count) bytes")
@@ -145,7 +140,7 @@ public extension YFService {
         await ensureCSRFAuthentication()
         
         // 인증된 요청 수행
-        let core = YFServiceCore(client: client, debugEnabled: debugEnabled)
+        let core = YFServiceCore(client: client)
         let (data, _) = try await core.authenticatedRequest(url: url)
         
         // API 응답 디버깅 로그

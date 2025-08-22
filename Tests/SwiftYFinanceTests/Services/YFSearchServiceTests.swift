@@ -17,7 +17,7 @@ struct YFSearchServiceTests {
         
         // 구조 확인: 서비스가 올바르게 생성되는지 (struct는 value type이므로 === 대신 값 비교)
         let searchService = YFSearchService(client: client)
-        #expect(searchService.debugEnabled == false, "Default debug should be false")
+        // debugEnabled 제거됨 - 전역 디버그 시스템 사용
     }
     
     @Test("YFSearchService Apple company search validation")

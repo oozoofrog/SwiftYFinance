@@ -14,20 +14,15 @@ public struct YFFundamentalsService: YFService {
     /// YFClient 참조
     public let client: YFClient
     
-    /// 디버깅 모드 활성화 여부
-    public let debugEnabled: Bool
     
     /// 공통 로직을 처리하는 핵심 구조체 (Composition 패턴)
     private let core: YFServiceCore
     
     /// YFFundamentalsService 초기화
-    /// - Parameters:
-    ///   - client: YFClient 인스턴스
-    ///   - debugEnabled: 디버깅 로그 활성화 여부 (기본값: false)
-    public init(client: YFClient, debugEnabled: Bool = false) {
+    /// - Parameter client: YFClient 인스턴스
+    public init(client: YFClient) {
         self.client = client
-        self.debugEnabled = debugEnabled
-        self.core = YFServiceCore(client: client, debugEnabled: debugEnabled)
+        self.core = YFServiceCore(client: client)
     }
     
     /// 모든 재무제표 데이터 조회 (통합 API 호출)

@@ -10,21 +10,15 @@ public struct YFNewsService: YFService {
     /// YFClient 참조
     public let client: YFClient
     
-    /// 디버깅 모드 활성화 여부
-    public let debugEnabled: Bool
     
     /// 공통 기능을 제공하는 서비스 코어
     private let core: YFServiceCore
     
     /// YFNewsService 초기화
-    ///
-    /// - Parameters:
-    ///   - client: YFClient 인스턴스
-    ///   - debugEnabled: 디버깅 로그 활성화 여부 (기본값: false)
-    public init(client: YFClient, debugEnabled: Bool = false) {
+    /// - Parameter client: YFClient 인스턴스
+    public init(client: YFClient) {
         self.client = client
-        self.debugEnabled = debugEnabled
-        self.core = YFServiceCore(client: client, debugEnabled: debugEnabled)
+        self.core = YFServiceCore(client: client)
     }
     
     // MARK: - Public Methods
