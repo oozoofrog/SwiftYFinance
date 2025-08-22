@@ -31,19 +31,8 @@ struct NewsCommand: AsyncParsableCommand {
         
         do {
             if json {
-                // For JSON output, we need to get the actual data and convert it
-                let news = try await client.news.fetchNews(ticker: ticker, count: count)
-                let jsonData = try JSONEncoder().encode(news.map { newsArticle in
-                    [
-                        "title": newsArticle.title,
-                        "summary": newsArticle.summary,
-                        "link": newsArticle.link,
-                        "publishedDate": ISO8601DateFormatter().string(from: newsArticle.publishedDate),
-                        "source": newsArticle.source,
-                        "category": newsArticle.category.rawValue
-                    ]
-                })
-                print(formatJSONOutput(jsonData))
+                let rawData = try await client.news.fetchRawJSON(ticker: ticker, count: count)
+                print(formatJSONOutput(rawData))
             } else {
                 let news = try await client.news.fetchNews(ticker: ticker, count: count)
                 printNewsInfo(news, for: ticker.symbol)

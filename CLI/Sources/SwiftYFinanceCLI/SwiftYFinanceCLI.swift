@@ -11,7 +11,8 @@ struct SwiftYFinanceCLI: AsyncParsableCommand {
             HistoryCommand.self,
             SearchCommand.self,
             FundamentalsCommand.self,
-            NewsCommand.self
+            NewsCommand.self,
+            OptionsCommand.self
         ],
         defaultSubcommand: QuoteCommand.self
     )

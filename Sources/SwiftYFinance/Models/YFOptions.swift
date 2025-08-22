@@ -1,144 +1,264 @@
 import Foundation
 
-/// 옵션 체인 데이터
-public struct YFOptionsChain {
-    public let ticker: YFTicker
+// MARK: - Option Type
+
+public enum YFOptionType: String, Sendable {
+    case call
+    case put
+}
+
+// MARK: - Main Options Chain Model
+
+public struct YFOptionsChain: Sendable, Decodable {
+    public let underlyingSymbol: String
     public let expirationDates: [Date]
-    private let chains: [Date: OptionsChain]
+    public let strikes: [Double]
+    public let hasMiniOptions: Bool
+    public let quote: YFOptionsQuote?
+    public let options: [YFOptionData]
     
-    public init(ticker: YFTicker, expirationDates: [Date], chains: [Date: OptionsChain] = [:]) {
-        self.ticker = ticker
-        self.expirationDates = expirationDates.sorted()
-        self.chains = chains
+    private enum CodingKeys: String, CodingKey {
+        case optionChain
     }
     
-    /// 특정 만기일의 옵션 체인 조회
-    public func getChain(for expiry: Date) -> OptionsChain {
-        return chains[expiry] ?? OptionsChain(expirationDate: expiry, calls: [], puts: [])
+    private enum OptionChainKeys: String, CodingKey {
+        case result
+    }
+    
+    private enum ResultKeys: String, CodingKey {
+        case underlyingSymbol
+        case expirationDates
+        case strikes
+        case hasMiniOptions
+        case quote
+        case options
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let optionChainContainer = try container.nestedContainer(keyedBy: OptionChainKeys.self, forKey: .optionChain)
+        var resultArray = try optionChainContainer.nestedUnkeyedContainer(forKey: .result)
+        
+        guard !resultArray.isAtEnd else {
+            throw DecodingError.dataCorruptedError(forKey: .result, in: optionChainContainer, debugDescription: "Result array is empty")
+        }
+        
+        let resultContainer = try resultArray.nestedContainer(keyedBy: ResultKeys.self)
+        
+        self.underlyingSymbol = try resultContainer.decode(String.self, forKey: .underlyingSymbol)
+        
+        // Convert Unix timestamps to Dates
+        let timestamps = try resultContainer.decode([Int].self, forKey: .expirationDates)
+        self.expirationDates = timestamps.map { Date(timeIntervalSince1970: TimeInterval($0)) }
+        
+        self.strikes = try resultContainer.decode([Double].self, forKey: .strikes)
+        self.hasMiniOptions = try resultContainer.decode(Bool.self, forKey: .hasMiniOptions)
+        
+        // Decode quote and set the symbol from underlyingSymbol
+        if let quote = try resultContainer.decodeIfPresent(YFOptionsQuote.self, forKey: .quote) {
+            self.quote = quote.withSymbol(self.underlyingSymbol)
+        } else {
+            self.quote = nil
+        }
+        
+        // Decode options array
+        let optionDataArray = try resultContainer.decode([OptionDataIntermediate].self, forKey: .options)
+        self.options = optionDataArray.map { $0.toYFOptionData() }
+    }
+    
+    public init(
+        underlyingSymbol: String,
+        expirationDates: [Date],
+        strikes: [Double],
+        hasMiniOptions: Bool,
+        quote: YFOptionsQuote?,
+        options: [YFOptionData]
+    ) {
+        self.underlyingSymbol = underlyingSymbol
+        self.expirationDates = expirationDates
+        self.strikes = strikes
+        self.hasMiniOptions = hasMiniOptions
+        self.quote = quote
+        self.options = options
     }
 }
 
-/// 특정 만기일의 옵션 체인
-public struct OptionsChain {
+// MARK: - Intermediate Decodable Structures
+
+private struct OptionDataIntermediate: Decodable {
+    let calls: [OptionContract]
+    let puts: [OptionContract]
+    
+    func toYFOptionData() -> YFOptionData {
+        // Get expiration date from the first available contract
+        let expirationDate = calls.first?.expiration ?? puts.first?.expiration ?? Int(Date().timeIntervalSince1970)
+        
+        return YFOptionData(
+            expirationDate: Date(timeIntervalSince1970: TimeInterval(expirationDate)),
+            hasMiniOptions: false, // This field doesn't exist at option level in API response
+            calls: calls.map { $0.toYFOption(type: .call) },
+            puts: puts.map { $0.toYFOption(type: .put) }
+        )
+    }
+}
+
+private struct OptionContract: Decodable {
+    let contractSymbol: String
+    let strike: Double
+    let currency: String
+    let lastPrice: Double
+    let bid: Double?
+    let ask: Double?
+    let volume: Int?
+    let openInterest: Int?
+    let impliedVolatility: Double?
+    let inTheMoney: Bool
+    let expiration: Int
+    
+    func toYFOption(type: YFOptionType) -> YFOption {
+        YFOption(
+            contractSymbol: contractSymbol,
+            strike: strike,
+            currency: currency,
+            lastPrice: lastPrice,
+            bid: bid,
+            ask: ask,
+            volume: volume,
+            openInterest: openInterest ?? 0,
+            impliedVolatility: impliedVolatility,
+            inTheMoney: inTheMoney,
+            expiration: Date(timeIntervalSince1970: TimeInterval(expiration)),
+            type: type
+        )
+    }
+}
+
+// MARK: - Quote Information
+
+public struct YFOptionsQuote: Sendable, Decodable {
+    public let symbol: String
+    public let regularMarketPrice: Double?
+    public let currency: String?
+    public let longName: String?
+    public let regularMarketDayHigh: Double?
+    public let regularMarketDayLow: Double?
+    public let regularMarketVolume: Int?
+    
+    enum CodingKeys: String, CodingKey {
+        case regularMarketPrice
+        case currency
+        case longName
+        case regularMarketDayHigh
+        case regularMarketDayLow
+        case regularMarketVolume
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // symbol is not in the quote JSON, it will be set from underlyingSymbol
+        self.symbol = ""
+        self.regularMarketPrice = try container.decodeIfPresent(Double.self, forKey: .regularMarketPrice)
+        self.currency = try container.decodeIfPresent(String.self, forKey: .currency)
+        self.longName = try container.decodeIfPresent(String.self, forKey: .longName)
+        self.regularMarketDayHigh = try container.decodeIfPresent(Double.self, forKey: .regularMarketDayHigh)
+        self.regularMarketDayLow = try container.decodeIfPresent(Double.self, forKey: .regularMarketDayLow)
+        self.regularMarketVolume = try container.decodeIfPresent(Int.self, forKey: .regularMarketVolume)
+    }
+    
+    public init(
+        symbol: String,
+        regularMarketPrice: Double?,
+        currency: String?,
+        longName: String? = nil,
+        regularMarketDayHigh: Double? = nil,
+        regularMarketDayLow: Double? = nil,
+        regularMarketVolume: Int? = nil
+    ) {
+        self.symbol = symbol
+        self.regularMarketPrice = regularMarketPrice
+        self.currency = currency
+        self.longName = longName
+        self.regularMarketDayHigh = regularMarketDayHigh
+        self.regularMarketDayLow = regularMarketDayLow
+        self.regularMarketVolume = regularMarketVolume
+    }
+    
+    func withSymbol(_ symbol: String) -> YFOptionsQuote {
+        YFOptionsQuote(
+            symbol: symbol,
+            regularMarketPrice: regularMarketPrice,
+            currency: currency,
+            longName: longName,
+            regularMarketDayHigh: regularMarketDayHigh,
+            regularMarketDayLow: regularMarketDayLow,
+            regularMarketVolume: regularMarketVolume
+        )
+    }
+}
+
+// MARK: - Option Data Container
+
+public struct YFOptionData: Sendable {
     public let expirationDate: Date
+    public let hasMiniOptions: Bool
     public let calls: [YFOption]
     public let puts: [YFOption]
     
-    public init(expirationDate: Date, calls: [YFOption], puts: [YFOption]) {
+    public init(
+        expirationDate: Date,
+        hasMiniOptions: Bool,
+        calls: [YFOption],
+        puts: [YFOption]
+    ) {
         self.expirationDate = expirationDate
-        self.calls = calls.sorted { $0.strike < $1.strike }
-        self.puts = puts.sorted { $0.strike < $1.strike }
+        self.hasMiniOptions = hasMiniOptions
+        self.calls = calls
+        self.puts = puts
     }
 }
 
-/// 개별 옵션 계약
-public struct YFOption {
-    // 기본 정보
+// MARK: - Individual Option Contract
+
+public struct YFOption: Sendable {
     public let contractSymbol: String
     public let strike: Double
-    public let expiry: Date
-    public let optionType: OptionType
-    
-    // 가격 정보
-    public let lastPrice: Double
-    public let bid: Double
-    public let ask: Double
-    public let change: Double
-    public let percentChange: Double
-    
-    // 거래 정보
-    public let volume: Int
-    public let openInterest: Int
-    public let impliedVolatility: Double
-    
-    // Greeks (Optional - 일부 옵션만 제공)
-    public let delta: Double?
-    public let gamma: Double?
-    public let theta: Double?
-    public let vega: Double?
-    public let rho: Double?
-    
-    // 추가 정보
-    public let lastTradeDate: Date?
-    public let contractSize: Int
     public let currency: String
+    public let lastPrice: Double
+    public let bid: Double?
+    public let ask: Double?
+    public let volume: Int?
+    public let openInterest: Int
+    public let impliedVolatility: Double?
     public let inTheMoney: Bool
+    public let expiration: Date
+    public let type: YFOptionType
     
     public init(
         contractSymbol: String,
         strike: Double,
-        expiry: Date,
-        optionType: OptionType,
+        currency: String,
         lastPrice: Double,
-        bid: Double,
-        ask: Double,
-        change: Double = 0,
-        percentChange: Double = 0,
-        volume: Int,
+        bid: Double?,
+        ask: Double?,
+        volume: Int?,
         openInterest: Int,
-        impliedVolatility: Double,
-        delta: Double? = nil,
-        gamma: Double? = nil,
-        theta: Double? = nil,
-        vega: Double? = nil,
-        rho: Double? = nil,
-        lastTradeDate: Date? = nil,
-        contractSize: Int = 100,
-        currency: String = "USD",
-        inTheMoney: Bool = false
+        impliedVolatility: Double?,
+        inTheMoney: Bool,
+        expiration: Date,
+        type: YFOptionType
     ) {
         self.contractSymbol = contractSymbol
         self.strike = strike
-        self.expiry = expiry
-        self.optionType = optionType
+        self.currency = currency
         self.lastPrice = lastPrice
         self.bid = bid
         self.ask = ask
-        self.change = change
-        self.percentChange = percentChange
         self.volume = volume
         self.openInterest = openInterest
         self.impliedVolatility = impliedVolatility
-        self.delta = delta
-        self.gamma = gamma
-        self.theta = theta
-        self.vega = vega
-        self.rho = rho
-        self.lastTradeDate = lastTradeDate
-        self.contractSize = contractSize
-        self.currency = currency
         self.inTheMoney = inTheMoney
-    }
-}
-
-/// 옵션 타입
-public enum OptionType: String, Codable {
-    case call = "CALL"
-    case put = "PUT"
-}
-
-/// 옵션 체인 필터
-public struct OptionsFilter {
-    public let minStrike: Double?
-    public let maxStrike: Double?
-    public let minVolume: Int?
-    public let minOpenInterest: Int?
-    public let onlyITM: Bool  // In The Money only
-    public let onlyOTM: Bool  // Out of The Money only
-    
-    public init(
-        minStrike: Double? = nil,
-        maxStrike: Double? = nil,
-        minVolume: Int? = nil,
-        minOpenInterest: Int? = nil,
-        onlyITM: Bool = false,
-        onlyOTM: Bool = false
-    ) {
-        self.minStrike = minStrike
-        self.maxStrike = maxStrike
-        self.minVolume = minVolume
-        self.minOpenInterest = minOpenInterest
-        self.onlyITM = onlyITM
-        self.onlyOTM = onlyOTM
+        self.expiration = expiration
+        self.type = type
     }
 }

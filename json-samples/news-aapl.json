@@ -1,0 +1,322 @@
+{
+  "timeTakenForScreenerField" : 0,
+  "timeTakenForResearchReports" : 0,
+  "lists" : [
+
+  ],
+  "news" : [
+    {
+      "providerPublishTime" : 1755868678,
+      "thumbnail" : {
+        "resolutions" : [
+          {
+            "tag" : "original",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/AE0n098Fw1PPd6l_7HGJkg--~B\/aD0xMDgwO3c9MTkyMDthcHBpZD15dGFjaHlvbg--\/https:\/\/media.zenfs.com\/en\/gobankingrates_644\/e37fcfaf7c95a8e31473022a9c95736a",
+            "width" : 1920,
+            "height" : 1080
+          },
+          {
+            "tag" : "140x140",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/A.FCkePdMn8ZpqH7CAb3NQ--~B\/Zmk9ZmlsbDtoPTE0MDtweW9mZj0wO3c9MTQwO2FwcGlkPXl0YWNoeW9u\/https:\/\/media.zenfs.com\/en\/gobankingrates_644\/e37fcfaf7c95a8e31473022a9c95736a",
+            "width" : 140,
+            "height" : 140
+          }
+        ]
+      },
+      "title" : "What If You’d Invested $500 in Apple Stock Instead of Buying the First iPhone?",
+      "uuid" : "2e418636-80ad-337a-82da-8702a64c6c78",
+      "link" : "https:\/\/finance.yahoo.com\/news\/had-invested-apple-stock-instead-110001546.html",
+      "publisher" : "GOBankingRates",
+      "type" : "STORY",
+      "relatedTickers" : [
+        "AAPL"
+      ]
+    },
+    {
+      "providerPublishTime" : 1755867676,
+      "thumbnail" : {
+        "resolutions" : [
+          {
+            "tag" : "original",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/OQDRSLlDTIz8hGZIl0UOLQ--~B\/aD01NjM7dz0xMDAwO2FwcGlkPXl0YWNoeW9u\/https:\/\/media.zenfs.com\/en\/ibd.com\/79f2a424f8eeab7d451565d80eae1db5",
+            "width" : 1000,
+            "height" : 563
+          },
+          {
+            "tag" : "140x140",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/d6nI5JxM5SsLAGvYdaQDtw--~B\/Zmk9ZmlsbDtoPTE0MDtweW9mZj0wO3c9MTQwO2FwcGlkPXl0YWNoeW9u\/https:\/\/media.zenfs.com\/en\/ibd.com\/79f2a424f8eeab7d451565d80eae1db5",
+            "width" : 140,
+            "height" : 140
+          }
+        ]
+      },
+      "title" : "Stock Market Today: Dow Jones Index Rises Ahead Of Big Powell Speech; Nvidia Falls On AI Chip News (Live Coverage)",
+      "uuid" : "6320a349-d1e8-348a-a817-0efff318f7e3",
+      "link" : "https:\/\/finance.yahoo.com\/m\/6320a349-d1e8-348a-a817-0efff318f7e3\/stock-market-today%3A-dow-jones.html",
+      "publisher" : "Investor's Business Daily",
+      "type" : "STORY",
+      "relatedTickers" : [
+        "NVDA",
+        "^DJI",
+        "CL=F",
+        "AMZN",
+        "AAPL",
+        "UNH",
+        "^SPX",
+        "^NDX",
+        "QQQ",
+        "SPY"
+      ]
+    },
+    {
+      "providerPublishTime" : 1755866651,
+      "thumbnail" : {
+        "resolutions" : [
+          {
+            "tag" : "original",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/eFZZVJx6QdqQsl5Qimg4Rw--~B\/aD00MzI7dz0xMTk0O2FwcGlkPXl0YWNoeW9u\/https:\/\/media.zenfs.com\/en\/simply_wall_st__316\/a5d5a89dd6ab73bc7694c99b9023ec2d",
+            "width" : 1194,
+            "height" : 432
+          },
+          {
+            "tag" : "140x140",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/5Fy.yFFq_J2cr_4EvCbCFw--~B\/Zmk9ZmlsbDtoPTE0MDtweW9mZj0wO3c9MTQwO2FwcGlkPXl0YWNoeW9u\/https:\/\/media.zenfs.com\/en\/simply_wall_st__316\/a5d5a89dd6ab73bc7694c99b9023ec2d",
+            "width" : 140,
+            "height" : 140
+          }
+        ]
+      },
+      "title" : "Latest News In Cloud AI - AI-Powered Security Boosts Cloud Protection in New Partnership",
+      "uuid" : "accdb1ea-7178-3e65-ace1-c08eb491f7f4",
+      "link" : "https:\/\/finance.yahoo.com\/news\/latest-news-cloud-ai-ai-124411644.html",
+      "publisher" : "Simply Wall St.",
+      "type" : "STORY",
+      "relatedTickers" : [
+        "AAPL",
+        "GOOG",
+        "MSFT",
+        "RDWR"
+      ]
+    },
+    {
+      "providerPublishTime" : 1755863178,
+      "thumbnail" : {
+        "resolutions" : [
+          {
+            "tag" : "original",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/hJWQo5zNJPDKMh0LSBZkjg--~B\/aD00ODA7dz03MjA7YXBwaWQ9eXRhY2h5b24-\/https:\/\/media.zenfs.com\/en\/benzinga_79\/0292cf9ce6e431c2fd19f002e551821b",
+            "width" : 720,
+            "height" : 480
+          },
+          {
+            "tag" : "140x140",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/Susx.iPW_3BjIOo.j8F69Q--~B\/Zmk9ZmlsbDtoPTE0MDtweW9mZj0wO3c9MTQwO2FwcGlkPXl0YWNoeW9u\/https:\/\/media.zenfs.com\/en\/benzinga_79\/0292cf9ce6e431c2fd19f002e551821b",
+            "width" : 140,
+            "height" : 140
+          }
+        ]
+      },
+      "title" : "Mark Zuckerberg Halts AI Hiring After Million-Dollar Talent Poaching Sparks Investor Backlash Amid Meta's 'Superintelligence Efforts:' Report",
+      "uuid" : "1bcd202a-aa34-3dbd-b850-677f1dfb886c",
+      "link" : "https:\/\/finance.yahoo.com\/news\/mark-zuckerberg-halts-ai-hiring-114618997.html",
+      "publisher" : "Benzinga",
+      "type" : "STORY",
+      "relatedTickers" : [
+        "META",
+        "GOOGL",
+        "AAPL",
+        "OPAI.PVT",
+        "UBER",
+        "EBAY"
+      ]
+    },
+    {
+      "providerPublishTime" : 1755863100,
+      "thumbnail" : {
+        "resolutions" : [
+          {
+            "tag" : "original",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/_wZhctQE815y.Wq.rEN59w--~B\/aD03ODc7dz0xNDAwO2FwcGlkPXl0YWNoeW9u\/https:\/\/media.zenfs.com\/en\/motleyfool.com\/0c50a6655e9f0396de3539a41b27dc53",
+            "width" : 1400,
+            "height" : 787
+          },
+          {
+            "tag" : "140x140",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/4rOM44o4QASCMRHr32wCNQ--~B\/Zmk9ZmlsbDtoPTE0MDtweW9mZj0wO3c9MTQwO2FwcGlkPXl0YWNoeW9u\/https:\/\/media.zenfs.com\/en\/motleyfool.com\/0c50a6655e9f0396de3539a41b27dc53",
+            "width" : 140,
+            "height" : 140
+          }
+        ]
+      },
+      "title" : "Could Uber Become a Trillion-Dollar Company One Day?",
+      "uuid" : "7fdca686-3364-33d7-9db2-ce88f290ebd3",
+      "link" : "https:\/\/finance.yahoo.com\/m\/7fdca686-3364-33d7-9db2-ce88f290ebd3\/could-uber-become-a.html",
+      "publisher" : "Motley Fool",
+      "type" : "STORY",
+      "relatedTickers" : [
+        "UBER",
+        "AAPL",
+        "MSFT",
+        "NVDA"
+      ]
+    },
+    {
+      "providerPublishTime" : 1755861140,
+      "thumbnail" : {
+        "resolutions" : [
+          {
+            "tag" : "original",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/G48yibnc15exC0moJGt3KQ--~B\/aD04MTA7dz0xNDQwO2FwcGlkPXl0YWNoeW9u\/https:\/\/media.zenfs.com\/en\/verdict_626\/0e6cdf9db483ec10c297f7c991f98d3c",
+            "width" : 1440,
+            "height" : 810
+          },
+          {
+            "tag" : "140x140",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/IjbuO.3lfjS2.xBrKb.Qcw--~B\/Zmk9ZmlsbDtoPTE0MDtweW9mZj0wO3c9MTQwO2FwcGlkPXl0YWNoeW9u\/https:\/\/media.zenfs.com\/en\/verdict_626\/0e6cdf9db483ec10c297f7c991f98d3c",
+            "width" : 140,
+            "height" : 140
+          }
+        ]
+      },
+      "title" : "Russia mandates pre-installation of MAX app",
+      "uuid" : "ca6a133b-189b-3036-8350-4ccc66b57dec",
+      "link" : "https:\/\/finance.yahoo.com\/m\/ca6a133b-189b-3036-8350-4ccc66b57dec\/russia-mandates.html",
+      "publisher" : "Verdict",
+      "type" : "STORY",
+      "relatedTickers" : [
+        "AAPL"
+      ]
+    },
+    {
+      "providerPublishTime" : 1755858809,
+      "thumbnail" : {
+        "resolutions" : [
+          {
+            "tag" : "original",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/VowflKe8nlrMWa6iMb3aSA--~B\/aD01NjM7dz0xMDAwO2FwcGlkPXl0YWNoeW9u\/https:\/\/media.zenfs.com\/en\/Benzinga\/648a2b53c9bc581223bb7c1b6d201c3d",
+            "width" : 1000,
+            "height" : 563
+          },
+          {
+            "tag" : "140x140",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/RCdap6ZGpmSBRIEc8sjlYQ--~B\/Zmk9ZmlsbDtoPTE0MDtweW9mZj0wO3c9MTQwO2FwcGlkPXl0YWNoeW9u\/https:\/\/media.zenfs.com\/en\/Benzinga\/648a2b53c9bc581223bb7c1b6d201c3d",
+            "width" : 140,
+            "height" : 140
+          }
+        ]
+      },
+      "title" : "Broadcom's AI Push Gains Speed With Microsoft, Meta, And Apple Pouring Billions Into Data Infrastructure",
+      "uuid" : "e835357e-b95a-3293-9ac0-47c5769cf2e1",
+      "link" : "https:\/\/finance.yahoo.com\/news\/broadcoms-ai-push-gains-speed-103329002.html",
+      "publisher" : "Benzinga",
+      "type" : "STORY",
+      "relatedTickers" : [
+        "AVGO",
+        "MSFT",
+        "META",
+        "AAPL",
+        "GOOGL",
+        "AMZN",
+        "NVDA",
+        "^IXIC"
+      ]
+    },
+    {
+      "providerPublishTime" : 1755857452,
+      "thumbnail" : {
+        "resolutions" : [
+          {
+            "tag" : "original",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/49znYeBfjLf8YuaBQtYfZQ--~B\/aD01MzM7dz04MDA7YXBwaWQ9eXRhY2h5b24-\/https:\/\/media.zenfs.com\/en\/reuters-finance.com\/df9be1fd64d899db70a6dccf15e2068c",
+            "width" : 800,
+            "height" : 533
+          },
+          {
+            "tag" : "140x140",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/jSyQvM4sddqxBs5ZdpVK_g--~B\/Zmk9ZmlsbDtoPTE0MDtweW9mZj0wO3c9MTQwO2FwcGlkPXl0YWNoeW9u\/https:\/\/media.zenfs.com\/en\/reuters-finance.com\/df9be1fd64d899db70a6dccf15e2068c",
+            "width" : 140,
+            "height" : 140
+          }
+        ]
+      },
+      "title" : "Investors zero in on Nvidia results as US tech stocks waver",
+      "uuid" : "fabce8ff-beaf-31e8-875b-3e55185c936f",
+      "link" : "https:\/\/finance.yahoo.com\/news\/investors-zero-nvidia-results-us-101052967.html",
+      "publisher" : "Reuters",
+      "type" : "STORY",
+      "relatedTickers" : [
+        "NVDA",
+        "^SPX",
+        "OPAI.PVT",
+        "AAPL",
+        "MSFT"
+      ]
+    },
+    {
+      "providerPublishTime" : 1755856544,
+      "thumbnail" : {
+        "resolutions" : [
+          {
+            "tag" : "original",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/heLS21mKyKKiMq_joSSkxw--~B\/aD0xMDgwO3c9MTkyMDthcHBpZD15dGFjaHlvbg--\/https:\/\/media.zenfs.com\/en\/gobankingrates_644\/53b2ea17885311aeda519a1f64362d9c",
+            "width" : 1920,
+            "height" : 1080
+          },
+          {
+            "tag" : "140x140",
+            "url" : "https:\/\/s.yimg.com\/uu\/api\/res\/1.2\/4OVA4NlTpnjF5YBXa9AxcQ--~B\/Zmk9ZmlsbDtoPTE0MDtweW9mZj0wO3c9MTQwO2FwcGlkPXl0YWNoeW9u\/https:\/\/media.zenfs.com\/en\/gobankingrates_644\/53b2ea17885311aeda519a1f64362d9c",
+            "width" : 140,
+            "height" : 140
+          }
+        ]
+      },
+      "title" : "6 Stocks That Turned $1,000 Initial Investments Into Millions by Mid-2025",
+      "uuid" : "0ef3bd64-f9f8-3b3b-8f0a-79d5322b14d7",
+      "link" : "https:\/\/finance.yahoo.com\/news\/6-stocks-turned-1-000-095544060.html",
+      "publisher" : "GOBankingRates",
+      "type" : "STORY",
+      "relatedTickers" : [
+        "GC=F",
+        "NVDA",
+        "AAPL"
+      ]
+    },
+    {
+      "providerPublishTime" : 1755855211,
+      "title" : "Market Chatter: Meta Hires Another Top Apple AI Executive",
+      "uuid" : "35c0892f-6213-3c86-b9de-b10e58a89ef6",
+      "link" : "https:\/\/finance.yahoo.com\/news\/market-chatter-meta-hires-another-093331734.html",
+      "publisher" : "MT Newswires",
+      "type" : "STORY",
+      "relatedTickers" : [
+        "AAPL",
+        "META"
+      ]
+    }
+  ],
+  "timeTakenForNews" : 900,
+  "count" : 10,
+  "timeTakenForNav" : 400,
+  "researchReports" : [
+
+  ],
+  "totalTime" : 56,
+  "timeTakenForAlgowatchlist" : 400,
+  "timeTakenForPredefinedScreener" : 400,
+  "explains" : [
+
+  ],
+  "timeTakenForCrunchbase" : 0,
+  "timeTakenForCulturalAssets" : 0,
+  "screenerFieldResults" : [
+
+  ],
+  "timeTakenForSearchLists" : 0,
+  "timeTakenForQuotes" : 445,
+  "nav" : [
+
+  ],
+  "quotes" : [
+
+  ]
+}

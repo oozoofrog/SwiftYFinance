@@ -101,13 +101,27 @@ public struct YFNewsArticle: Sendable, Decodable {
         let typeString = try container.decodeIfPresent(String.self, forKey: .type)
         self.category = Self.mapNewsCategory(from: typeString)
         
+        // Extract thumbnail URL if available
+        if let thumbnail = try container.decodeIfPresent(YFNewsThumbnail.self, forKey: .thumbnail),
+           let original = thumbnail.resolutions.first(where: { $0.tag == "original" }) {
+            self.imageURL = original.url
+            self.imageInfo = YFNewsImageInfo(width: original.width, height: original.height)
+        } else {
+            self.imageURL = nil
+            self.imageInfo = nil
+        }
+        
+        // Convert related tickers
+        if let relatedTickerStrings = try container.decodeIfPresent([String].self, forKey: .relatedTickers) {
+            self.relatedTickers = relatedTickerStrings.map { YFTicker(symbol: $0) }
+        } else {
+            self.relatedTickers = []
+        }
+        
         // Set defaults for fields not provided by Yahoo Finance API
         self.summary = ""
         self.isBreaking = false
-        self.imageURL = nil // TODO: Extract from thumbnail if needed
-        self.imageInfo = nil
         self.sentiment = nil
-        self.relatedTickers = [] // TODO: Convert from relatedTickers strings if needed
         self.tags = []
     }
     
@@ -181,7 +195,7 @@ public enum YFNewsRequestCategory: String {
 }
 
 /// 뉴스 이미지 정보
-public struct YFNewsImageInfo: Sendable {
+public struct YFNewsImageInfo: Sendable, Decodable {
     /// 이미지 너비 (픽셀)
     public let width: Int
     /// 이미지 높이 (픽셀)
@@ -197,6 +211,19 @@ public struct YFNewsImageInfo: Sendable {
         self.altText = altText
         self.copyright = copyright
     }
+}
+
+/// 뉴스 썸네일 구조
+private struct YFNewsThumbnail: Decodable {
+    let resolutions: [YFNewsThumbnailResolution]
+}
+
+/// 뉴스 썸네일 해상도 정보
+private struct YFNewsThumbnailResolution: Decodable {
+    let tag: String
+    let url: String
+    let width: Int
+    let height: Int
 }
 
 /// 뉴스 감성 분석 결과

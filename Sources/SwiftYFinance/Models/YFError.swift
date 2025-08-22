@@ -68,6 +68,22 @@ public enum YFError: Error, Equatable {
     /// - Parameter message: 서버에서 제공한 오류 메시지
     case apiError(String)
     
+    /// 유효하지 않은 응답
+    ///
+    /// HTTP 응답이 예상된 형식이 아닌 경우
+    case invalidResponse
+    
+    /// HTTP 오류
+    ///
+    /// HTTP 상태 코드가 성공이 아닌 경우
+    /// - Parameter statusCode: HTTP 상태 코드
+    case httpError(statusCode: Int)
+    
+    /// 데이터 없음
+    ///
+    /// API 응답에 예상된 데이터가 없는 경우
+    case noData
+    
     /// WebSocket 관련 오류
     ///
     /// Yahoo Finance WebSocket 연결 및 스트리밍 중 발생하는 오류

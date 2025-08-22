@@ -29,6 +29,24 @@ public struct YFNewsService: YFService {
     
     // MARK: - Public Methods
     
+    /// Raw JSON 뉴스 데이터 조회
+    ///
+    /// CLI나 raw 데이터가 필요한 경우 사용합니다.
+    ///
+    /// - Parameters:
+    ///   - ticker: 뉴스를 조회할 종목
+    ///   - count: 조회할 뉴스 개수 (기본값: 10, 최대 40)
+    /// - Returns: Raw JSON 데이터
+    /// - Throws: API 호출 중 발생하는 에러
+    public func fetchRawJSON(
+        ticker: YFTicker,
+        count: Int = 10
+    ) async throws -> Data {
+        
+        let url = try await buildNewsURL(ticker: ticker, count: count)
+        return try await performFetchRawJSON(url: url, serviceName: "News")
+    }
+    
     /// 종목 관련 뉴스 조회
     ///
     /// 지정된 종목과 관련된 최신 뉴스를 조회합니다.

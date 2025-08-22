@@ -87,6 +87,11 @@ public struct YFClient: Sendable {
         YFNewsService(client: self, debugEnabled: debugEnabled)
     }
     
+    /// 옵션 체인 데이터 조회 서비스
+    public var options: YFOptionsService {
+        YFOptionsService(client: self, debugEnabled: debugEnabled)
+    }
+    
 }
 
 // 실제 Yahoo Finance Chart API 응답 구조에 맞춘 구조체들
