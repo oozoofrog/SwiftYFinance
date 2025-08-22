@@ -1,4 +1,5 @@
 import Testing
+import Foundation
 @testable import SwiftYFinance
 
 /// YFOptionsService의 TDD 기반 테스트
@@ -19,28 +20,26 @@ struct YFOptionsServiceTests {
         
         // Then: 옵션 체인 데이터가 반환되어야 함
         #expect(options.underlyingSymbol == "AAPL", "기본 심볼이 AAPL이어야 합니다")
-        #expect(!options.expirationDates.isEmpty, "만기일 데이터가 있어야 합니다")
-        #expect(!options.strikes.isEmpty, "행사가격 데이터가 있어야 합니다")
+        #expect(!(options.expirationDates ?? []).isEmpty, "만기일 데이터가 있어야 합니다")
+        #expect(!(options.strikes ?? []).isEmpty, "행사가격 데이터가 있어야 합니다")
         
         // 옵션 데이터 검증
-        #expect(!options.options.isEmpty, "옵션 데이터가 있어야 합니다")
+        #expect(!(options.options ?? []).isEmpty, "옵션 데이터가 있어야 합니다")
         
-        let firstOption = try #require(options.options.first)
+        let firstOption = try #require(options.options?.first)
         
         // Call 옵션 검증
-        if !firstOption.calls.isEmpty {
-            let firstCall = firstOption.calls.first!
-            #expect(!firstCall.contractSymbol.isEmpty, "콜 옵션 계약 심볼이 있어야 합니다")
-            #expect(firstCall.strike > 0, "콜 옵션 행사가격은 양수여야 합니다")
-            #expect(firstCall.type == .call, "타입이 call이어야 합니다")
+        if let calls = firstOption.calls, !calls.isEmpty {
+            let firstCall = calls.first!
+            #expect(!(firstCall.contractSymbol ?? "").isEmpty, "콜 옵션 계약 심볼이 있어야 합니다")
+            #expect((firstCall.strike ?? 0) > 0, "콜 옵션 행사가격은 양수여야 합니다")
         }
         
         // Put 옵션 검증
-        if !firstOption.puts.isEmpty {
-            let firstPut = firstOption.puts.first!
-            #expect(!firstPut.contractSymbol.isEmpty, "풋 옵션 계약 심볼이 있어야 합니다")
-            #expect(firstPut.strike > 0, "풋 옵션 행사가격은 양수여야 합니다")
-            #expect(firstPut.type == .put, "타입이 put이어야 합니다")
+        if let puts = firstOption.puts, !puts.isEmpty {
+            let firstPut = puts.first!
+            #expect(!(firstPut.contractSymbol ?? "").isEmpty, "풋 옵션 계약 심볼이 있어야 합니다")
+            #expect((firstPut.strike ?? 0) > 0, "풋 옵션 행사가격은 양수여야 합니다")
         }
     }
     
@@ -51,19 +50,23 @@ struct YFOptionsServiceTests {
         let ticker = testTicker
         let allOptions = try await client.options.fetchOptionsChain(for: ticker)
         
-        let firstExpiration = try #require(allOptions.expirationDates.first, "만기일이 없습니다")
+        let firstExpiration = try #require(allOptions.expirationDates?.first, "만기일이 없습니다")
+        let firstExpirationDate = Date(timeIntervalSince1970: TimeInterval(firstExpiration))
         
         // When: 특정 만기일의 옵션 체인 조회
-        let specificOptions = try await client.options.fetchOptionsChain(for: ticker, expiration: firstExpiration)
+        let specificOptions = try await client.options.fetchOptionsChain(for: ticker, expiration: firstExpirationDate)
         
         // Then: 해당 만기일의 옵션만 반환되어야 함
         #expect(specificOptions.underlyingSymbol == "AAPL")
-        #expect(!specificOptions.options.isEmpty)
+        #expect(!(specificOptions.options ?? []).isEmpty)
         
         // 모든 옵션이 지정한 만기일 근처여야 함
-        for optionData in specificOptions.options {
-            let timeDiff = abs(optionData.expirationDate.timeIntervalSince(firstExpiration))
-            #expect(timeDiff < 86400 * 7, "만기일이 지정한 날짜 근처여야 합니다") // 1주일 이내
+        for optionData in specificOptions.options ?? [] {
+            if let expiration = optionData.expirationDate {
+                let expirationDate = Date(timeIntervalSince1970: TimeInterval(expiration))
+                let timeDiff = abs(expirationDate.timeIntervalSince(firstExpirationDate))
+                #expect(timeDiff < 86400 * 7, "만기일이 지정한 날짜 근처여야 합니다") // 1주일 이내
+            }
         }
     }
     

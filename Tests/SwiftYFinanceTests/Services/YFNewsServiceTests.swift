@@ -23,9 +23,9 @@ struct YFNewsServiceTests {
         
         // 첫 번째 뉴스 기사 검증
         let firstArticle = try #require(news.first)
-        #expect(!firstArticle.title.isEmpty, "뉴스 제목이 비어있지 않아야 합니다")
-        #expect(firstArticle.link.hasPrefix("http"), "뉴스 링크는 유효한 URL이어야 합니다")
-        #expect(!firstArticle.source.isEmpty, "뉴스 소스가 비어있지 않아야 합니다")
+        #expect(!(firstArticle.title ?? "").isEmpty, "뉴스 제목이 비어있지 않아야 합니다")
+        #expect((firstArticle.link ?? "").hasPrefix("http"), "뉴스 링크는 유효한 URL이어야 합니다")
+        #expect(!(firstArticle.publisher ?? "").isEmpty, "뉴스 출판사가 비어있지 않아야 합니다")
     }
     
     /// [Red] 두 번째 실패 테스트: 다중 종목 뉴스 조회 기능
@@ -54,8 +54,8 @@ struct YFNewsServiceTests {
                 
                 // 뉴스가 있다면 첫 번째 기사 검증
                 if let firstArticle = news.first {
-                    #expect(!firstArticle.title.isEmpty, "\(ticker.symbol) 뉴스 제목이 비어있지 않아야 합니다")
-                    #expect(firstArticle.link.hasPrefix("http"), "\(ticker.symbol) 뉴스 링크는 유효한 URL이어야 합니다")
+                    #expect(!(firstArticle.title ?? "").isEmpty, "\(ticker.symbol) 뉴스 제목이 비어있지 않아야 합니다")
+                    #expect((firstArticle.link ?? "").hasPrefix("http"), "\(ticker.symbol) 뉴스 링크는 유효한 URL이어야 합니다")
                 }
             }
         }

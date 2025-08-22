@@ -59,8 +59,8 @@ struct YFScreeningServiceTests {
         
         // 첫 번째 결과 검증
         let firstResult = try #require(results.first)
-        #expect(!firstResult.ticker.symbol.isEmpty, "종목 심볼이 있어야 함")
-        #expect(!firstResult.companyName.isEmpty, "회사명이 있어야 함")
-        #expect(firstResult.price >= 0, "가격은 0 이상이어야 함")
+        #expect(!(firstResult.symbol ?? "").isEmpty, "종목 심볼이 있어야 함")
+        #expect(!(firstResult.shortName ?? "").isEmpty, "회사명이 있어야 함")
+        #expect((firstResult.regularMarketPrice ?? 0) >= 0, "가격은 0 이상이어야 함")
     }
 }

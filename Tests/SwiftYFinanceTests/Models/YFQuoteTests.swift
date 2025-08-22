@@ -10,11 +10,11 @@ struct QuoteDataTests {
         
         let quote = try await client.quote.fetch(ticker: ticker)
         
-        #expect(quote.ticker.symbol == "AAPL")
-        #expect(quote.regularMarketPrice > 0)
-        #expect(quote.regularMarketVolume > 0)
-        #expect(quote.marketCap > 0)
-        #expect(!quote.shortName.isEmpty)
+        #expect(quote.symbol == "AAPL")
+        #expect((quote.regularMarketPrice ?? 0) > 0)
+        #expect((quote.regularMarketVolume ?? 0) > 0)
+        #expect((quote.marketCap ?? 0) > 0)
+        #expect(!(quote.shortName ?? "").isEmpty)
     }
     
     @Test
@@ -24,11 +24,14 @@ struct QuoteDataTests {
         
         let quote = try await client.quote.fetch(ticker: ticker)
         
-        #expect(quote.ticker.symbol == "TSLA")
-        #expect(quote.regularMarketPrice > 0)
+        #expect(quote.symbol == "TSLA")
+        #expect((quote.regularMarketPrice ?? 0) > 0)
         
         // 시장 시간 데이터 유효성 검증 (과거 데이터일 수 있으므로 현재 시간과 비교하지 않음)
-        #expect(quote.regularMarketTime > Date(timeIntervalSince1970: 0)) // 유효한 타임스탬프
+        if let marketTime = quote.regularMarketTime {
+            let marketDate = Date(timeIntervalSince1970: TimeInterval(marketTime))
+            #expect(marketDate > Date(timeIntervalSince1970: 0)) // 유효한 타임스탬프
+        }
     }
     
     @Test
@@ -38,8 +41,8 @@ struct QuoteDataTests {
         
         let quote = try await client.quote.fetch(ticker: ticker)
         
-        #expect(quote.ticker.symbol == "NVDA")
-        #expect(quote.regularMarketPrice > 0)
+        #expect(quote.symbol == "NVDA")
+        #expect((quote.regularMarketPrice ?? 0) > 0)
         
         // 시간외 거래 데이터 확인
         if let afterHoursPrice = quote.postMarketPrice {
