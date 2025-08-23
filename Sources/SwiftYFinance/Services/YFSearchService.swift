@@ -144,16 +144,9 @@ public struct YFSearchService: YFService {
             throw YFError.invalidParameter("검색어가 유효하지 않습니다")
         }
         
-        // CSRF 인증 시도
-        await ensureCSRFAuthentication()
-        
         let url = try await buildSearchURL(for: query)
-        let (data, _) = try await core.authenticatedRequest(url: url)
-        
-        // API 응답 디버깅 로그
-        logAPIResponse(data, serviceName: "Search")
-        
-        return try parseSearchResponse(data)
+        let response = try await performFetch(url: url, type: YFSearchResponse.self, serviceName: "Search")
+        return response.quotes ?? []
     }
     
     /// 검색 URL 구성
@@ -170,11 +163,6 @@ public struct YFSearchService: YFService {
         return try await builder.build()
     }
     
-    /// 검색 응답 JSON 파싱
-    private func parseSearchResponse(_ data: Data) throws -> [YFSearchResult] {
-        let searchResponse = try core.parseJSON(data: data, type: YFSearchResponse.self)
-        return searchResponse.quotes ?? []
-    }
 }
 
 // MARK: - Search Response Models
