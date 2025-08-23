@@ -78,6 +78,13 @@ public struct YFAPIURLBuilder: Sendable {
     public static func quoteSummary(session: YFSession) -> QuoteSummaryBuilder {
         return QuoteSummaryBuilder(session: session)
     }
+    
+    /// Domain API 빌더 생성
+    /// - Parameter session: YFSession 인스턴스
+    /// - Returns: Domain API 전용 빌더
+    public static func domain(session: YFSession) -> DomainBuilder {
+        return DomainBuilder(session: session)
+    }
 }
 
 
