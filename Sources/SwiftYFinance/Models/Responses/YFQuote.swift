@@ -83,6 +83,47 @@ import Foundation
  
  ## 사용법
  
+ 일반적으로 직접 사용하지 않고, ``YFQuoteSummaryService``를 통해 간접적으로 사용됩니다:
+ 
+ ```swift
+ // 내부적으로 YFQuoteSummaryResponse가 사용됨
+ let quoteSummary = try await client.quoteSummary.fetch(ticker: ticker)
+ ```
+ 
+ - Note: 이 구조체는 Yahoo Finance API의 응답 형식 변경에 대비한 안정적인 파싱을 제공합니다.
+ */
+public struct YFQuoteSummaryResponse: Decodable, Sendable {
+    
+    /// quoteSummary API의 메인 데이터 컨테이너
+    ///
+    /// Yahoo Finance API 응답에서 실제 시세 데이터가 포함된 부분입니다.
+    /// API 에러나 네트워크 문제로 인해 nil일 수 있습니다.
+    ///
+    /// - Important: nil 체크를 통해 안전하게 접근해야 합니다.
+    public let quoteSummary: YFQuoteSummary?
+}
+
+/**
+ Yahoo Finance query1 API의 최상위 응답 구조체입니다.
+ 
+ ## 개요
+ 
+ Yahoo Finance의 query1 quote API는 실시간 주식 시세 데이터를 JSON 형태로 반환합니다.
+ 이 구조체는 해당 JSON 응답의 최상위 래퍼 역할을 수행합니다.
+ 
+ ## 구조
+ 
+ ```json
+ {
+     "quoteResponse": {
+         "result": [...],
+         "error": null
+     }
+ }
+ ```
+ 
+ ## 사용법
+ 
  일반적으로 직접 사용하지 않고, ``YFQuoteService``를 통해 간접적으로 사용됩니다:
  
  ```swift
@@ -94,13 +135,13 @@ import Foundation
  */
 public struct YFQuoteResponse: Decodable, Sendable {
     
-    /// quoteSummary API의 메인 데이터 컨테이너
+    /// quoteResponse API의 메인 데이터 컨테이너
     ///
-    /// Yahoo Finance API 응답에서 실제 시세 데이터가 포함된 부분입니다.
+    /// Yahoo Finance query1 API 응답에서 실제 시세 데이터가 포함된 부분입니다.
     /// API 에러나 네트워크 문제로 인해 nil일 수 있습니다.
     ///
     /// - Important: nil 체크를 통해 안전하게 접근해야 합니다.
-    public let quoteSummary: YFQuoteSummary?
+    public let quoteResponse: YFQuoteResponseData?
 }
 
 /**
@@ -165,6 +206,81 @@ public struct YFQuoteSummary: Decodable, Sendable {
     /// API 에러 메시지
     ///
     /// Yahoo Finance API에서 반환하는 에러 메시지입니다.
+    /// 잘못된 심볼, 네트워크 오류, API 제한 등의 경우에 설정됩니다.
+    ///
+    /// ## 일반적인 에러 메시지
+    /// - "Invalid symbol": 존재하지 않는 종목 심볼
+    /// - "Rate limit exceeded": API 호출 제한 초과
+    /// - "Service temporarily unavailable": 일시적 서비스 중단
+    ///
+    /// - Important: 에러 발생 시 `result` 필드는 일반적으로 nil입니다.
+    public let error: String?
+}
+
+/**
+ quoteResponse API 응답의 데이터 및 에러 정보를 포함하는 래퍼 구조체입니다.
+ 
+ ## 개요
+ 
+ Yahoo Finance의 query1 quote API는 성공적인 응답과 에러 정보를 동일한 구조로 반환합니다.
+ 이 구조체는 두 경우를 모두 처리할 수 있도록 설계되었습니다.
+ 
+ ## 응답 패턴
+ 
+ ### 성공 응답
+ ```json
+ {
+     "result": [
+         {
+             "symbol": "AAPL",
+             "regularMarketPrice": 227.76,
+             "currency": "USD",
+             ...
+         }
+     ],
+     "error": null
+ }
+ ```
+ 
+ ### 에러 응답
+ ```json
+ {
+     "result": null,
+     "error": "Invalid symbol or API error message"
+ }
+ ```
+ 
+ ## 사용 패턴
+ 
+ ```swift
+ if let error = quoteResponse.error {
+     print("API 에러: \(error)")
+     return
+ }
+ 
+ guard let results = quoteResponse.result, !results.isEmpty else {
+     print("결과 데이터 없음")
+     return
+ }
+ 
+ let quote = results.first!
+ ```
+ 
+ - Important: `result`와 `error` 필드는 상호 배타적입니다. 하나가 존재하면 다른 하나는 일반적으로 nil입니다.
+ */
+public struct YFQuoteResponseData: Decodable, Sendable {
+    
+    /// Quote 데이터 결과 배열
+    ///
+    /// 성공적인 API 응답 시 실시간 시세 정보가 포함된 YFQuote 객체들의 배열입니다.
+    /// 일반적으로 단일 종목 조회 시 1개의 요소를 가집니다.
+    ///
+    /// - Note: API 에러 시에는 nil이거나 빈 배열일 수 있습니다.
+    public let result: [YFQuote]?
+    
+    /// API 에러 메시지
+    ///
+    /// Yahoo Finance query1 API에서 반환하는 에러 메시지입니다.
     /// 잘못된 심볼, 네트워크 오류, API 제한 등의 경우에 설정됩니다.
     ///
     /// ## 일반적인 에러 메시지

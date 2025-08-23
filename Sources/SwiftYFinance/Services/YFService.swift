@@ -148,4 +148,75 @@ public extension YFService {
         
         return data
     }
+    
+    // MARK: - Public API Methods (No Authentication Required)
+    
+    /// 공개 API용 fetch 메서드 (인증 불필요)
+    ///
+    /// Quote API와 같은 공개 API는 CSRF 인증이 필요하지 않습니다.
+    /// Python yfinance와 동일한 방식으로 직접 HTTP 호출합니다.
+    ///
+    /// - Parameters:
+    ///   - url: 요청 URL
+    ///   - type: 응답 타입
+    ///   - serviceName: 서비스 이름 (로깅용)
+    /// - Returns: 파싱된 응답 객체
+    /// - Throws: API 호출 중 발생하는 에러
+    func performPublicFetch<T: Decodable>(url: URL, type: T.Type, serviceName: String) async throws -> T {
+        DebugPrint("🚀 [YFService] performPublicFetch() 시작 - 서비스: \(serviceName) (공개 API)")
+        DebugPrint("🌐 [YFService] 요청 URL: \(url)")
+        DebugPrint("📝 [YFService] 응답 타입: \(type)")
+        
+        // 인증 없이 직접 HTTP 호출
+        let (data, response) = try await URLSession.shared.data(from: url)
+        
+        // HTTP 상태 확인
+        if let httpResponse = response as? HTTPURLResponse {
+            DebugPrint("📊 [YFService] HTTP 상태: \(httpResponse.statusCode)")
+            guard 200...299 ~= httpResponse.statusCode else {
+                throw YFError.httpError(statusCode: httpResponse.statusCode)
+            }
+        }
+        
+        // API 응답 로깅
+        logAPIResponse(data, serviceName: serviceName)
+        
+        // JSON 파싱
+        DebugPrint("🔄 [YFService] JSON 파싱 시작...")
+        let decoder = JSONDecoder()
+        let result = try decoder.decode(type, from: data)
+        DebugPrint("✅ [YFService] JSON 파싱 성공")
+        
+        DebugPrint("✅ [YFService] performPublicFetch() 완료")
+        return result
+    }
+    
+    /// 공개 API용 Raw JSON 메서드 (인증 불필요)
+    ///
+    /// - Parameters:
+    ///   - url: 요청 URL
+    ///   - serviceName: 서비스 이름 (로깅용)
+    /// - Returns: Raw JSON 데이터
+    /// - Throws: API 호출 중 발생하는 에러
+    func performPublicFetchRawJSON(url: URL, serviceName: String) async throws -> Data {
+        DebugPrint("🚀 [YFService] performPublicFetchRawJSON() 시작 - 서비스: \(serviceName) (공개 API)")
+        DebugPrint("🌐 [YFService] 요청 URL: \(url)")
+        
+        // 인증 없이 직접 HTTP 호출
+        let (data, response) = try await URLSession.shared.data(from: url)
+        
+        // HTTP 상태 확인
+        if let httpResponse = response as? HTTPURLResponse {
+            DebugPrint("📊 [YFService] HTTP 상태: \(httpResponse.statusCode)")
+            guard 200...299 ~= httpResponse.statusCode else {
+                throw YFError.httpError(statusCode: httpResponse.statusCode)
+            }
+        }
+        
+        // API 응답 로깅
+        logAPIResponse(data, serviceName: "\(serviceName) (Raw JSON)")
+        
+        DebugPrint("✅ [YFService] performPublicFetchRawJSON() 완료, 데이터 크기: \(data.count) bytes")
+        return data
+    }
 }

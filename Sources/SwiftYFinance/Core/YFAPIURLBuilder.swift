@@ -82,7 +82,7 @@ public struct YFAPIURLBuilder: Sendable {
     /// Quote Summary API 빌더 생성
     /// - Parameter session: YFSession 인스턴스
     /// - Returns: Quote Summary API 전용 빌더
-    /// - Note: 서비스 미정 (테스트에서만 사용 중)
+    /// - Note: YFQuoteSummaryService에서 사용
     public static func quoteSummary(session: YFSession) -> QuoteSummaryBuilder {
         return QuoteSummaryBuilder(session: session)
     }

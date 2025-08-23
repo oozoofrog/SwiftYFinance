@@ -98,6 +98,11 @@ public struct YFClient: Sendable {
         YFScreenerService(client: self)
     }
     
+    /// Quote Summary API 서비스 (종합적인 기업 정보)
+    public var quoteSummary: YFQuoteSummaryService {
+        YFQuoteSummaryService(client: self)
+    }
+    
 }
 
 // 실제 Yahoo Finance Chart API 응답 구조에 맞춘 구조체들
