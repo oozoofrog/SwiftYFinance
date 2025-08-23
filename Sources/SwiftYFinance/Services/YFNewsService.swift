@@ -114,20 +114,13 @@ public struct YFNewsService: YFService {
     
     /// 뉴스 API URL 구성
     private func buildNewsURL(ticker: YFTicker, count: Int) async throws -> URL {
-        let baseURL = "https://query2.finance.yahoo.com"
-        var components = URLComponents(string: "\(baseURL)/v1/finance/search")!
-        components.queryItems = [
-            URLQueryItem(name: "q", value: ticker.symbol),
-            URLQueryItem(name: "quotesCount", value: "0"),
-            URLQueryItem(name: "newsCount", value: String(count)),
-            URLQueryItem(name: "enableFuzzyQuery", value: "false")
-        ]
-        
-        guard let url = components.url else {
-            throw YFError.invalidRequest
-        }
-        
-        return url
+        return try await core.apiBuilder()
+            .url(YFPaths.search)
+            .parameter("q", ticker.symbol)
+            .parameter("quotesCount", "0")
+            .parameter("newsCount", String(count))
+            .parameter("enableFuzzyQuery", "false")
+            .build()
     }
     
     /// URL에서 쿼리 파라미터 추출

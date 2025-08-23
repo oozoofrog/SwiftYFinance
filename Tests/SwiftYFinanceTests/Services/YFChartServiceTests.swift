@@ -2,11 +2,11 @@ import Testing
 @testable import SwiftYFinance
 import Foundation
 
-struct YFHistoryServiceTests {
+struct YFChartServiceTests {
     
-    @Test("YFHistoryService Protocol + Struct architecture")
-    func testYFHistoryServiceArchitecture() async {
-        // TDD Red: YFHistoryService struct가 존재하고 서비스 기반 호출이 작동하는지 테스트
+    @Test("YFChartService Protocol + Struct architecture")
+    func testYFChartServiceArchitecture() async {
+        // TDD Red: YFChartService struct가 존재하고 서비스 기반 호출이 작동하는지 테스트
         let client = YFClient()
         
         // 무효한 심볼로 에러 케이스 테스트 (실제 네트워크 호출 없이 구조 확인)
@@ -14,7 +14,7 @@ struct YFHistoryServiceTests {
         
         // OOP & Protocol + Struct: 서비스 기반 호출 테스트
         do {
-            let history = try await client.history.fetch(ticker: invalidTicker, period: .oneDay)
+            let history = try await client.chart.fetch(ticker: invalidTicker, period: .oneDay)
             // 빈 결과가 반환되어야 함
             #expect(history.prices.isEmpty, "Invalid ticker should return empty prices")
             #expect(history.ticker.symbol == "INVALID_XYZ", "Ticker should be preserved")
@@ -30,7 +30,7 @@ struct YFHistoryServiceTests {
         let client = YFClient()
         let ticker = YFTicker(symbol: "AAPL")
         
-        let history = try await client.history.fetch(ticker: ticker, period: .oneDay)
+        let history = try await client.chart.fetch(ticker: ticker, period: .oneDay)
         
         // 기본 구조 검증
         #expect(history.ticker.symbol == "AAPL", "Ticker should match request")
@@ -51,7 +51,7 @@ struct YFHistoryServiceTests {
         let client = YFClient()
         let ticker = YFTicker(symbol: "MSFT")
         
-        let history = try await client.history.fetch(ticker: ticker, period: .oneWeek)
+        let history = try await client.chart.fetch(ticker: ticker, period: .oneWeek)
         
         // 기본 구조 검증
         #expect(history.ticker.symbol == "MSFT", "Ticker should match request")
@@ -80,7 +80,7 @@ struct YFHistoryServiceTests {
         let endDate = Date()
         let startDate = Calendar.current.date(byAdding: .month, value: -3, to: endDate)!
         
-        let history = try await client.history.fetch(ticker: ticker, from: startDate, to: endDate)
+        let history = try await client.chart.fetch(ticker: ticker, from: startDate, to: endDate)
         
         // 기본 구조 검증
         #expect(history.ticker.symbol == "GOOGL", "Ticker should match request")
@@ -113,7 +113,7 @@ struct YFHistoryServiceTests {
             for ticker in tickers {
                 group.addTask {
                     do {
-                        let history = try await client.history.fetch(ticker: ticker, period: .oneWeek)
+                        let history = try await client.chart.fetch(ticker: ticker, period: .oneWeek)
                         return (ticker.symbol, .success(history))
                     } catch {
                         return (ticker.symbol, .failure(error))
@@ -155,7 +155,7 @@ struct YFHistoryServiceTests {
         
         for ticker in invalidTickers {
             do {
-                let history = try await client.history.fetch(ticker: ticker, period: .oneDay)
+                let history = try await client.chart.fetch(ticker: ticker, period: .oneDay)
                 // 빈 결과가 반환되는 경우
                 #expect(history.prices.isEmpty, "Invalid ticker \(ticker.symbol) should return empty data")
             } catch {
@@ -172,7 +172,7 @@ struct YFHistoryServiceTests {
         let ticker = YFTicker(symbol: "AAPL")
         
         let startTime = Date()
-        let history = try await client.history.fetch(ticker: ticker, period: .oneMonth)
+        let history = try await client.chart.fetch(ticker: ticker, period: .oneMonth)
         let endTime = Date()
         
         let duration = endTime.timeIntervalSince(startTime)
@@ -191,11 +191,11 @@ struct YFHistoryServiceTests {
         let ticker = YFTicker(symbol: "AAPL")
         
         let task1 = Task {
-            try await client.history.fetch(ticker: ticker, period: .oneWeek)
+            try await client.chart.fetch(ticker: ticker, period: .oneWeek)
         }
         
         let task2 = Task {
-            try await client.history.fetch(ticker: ticker, period: .oneMonth)
+            try await client.chart.fetch(ticker: ticker, period: .oneMonth)
         }
         
         do {

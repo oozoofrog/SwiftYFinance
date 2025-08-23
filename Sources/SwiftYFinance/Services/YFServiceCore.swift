@@ -168,15 +168,14 @@ public struct YFServiceCore: Sendable {
     /// ```
     ///
     /// - Parameters:
-    ///   - host: API 호스트 (기본값: YFHosts.query2)
+    ///   - urlString: 완전한 API URL
     ///   - path: API 경로
     ///   - parameters: 쿼리 파라미터 (기본값: 빈 딕셔너리)
     ///   - serviceName: 로깅용 서비스 이름
     /// - Returns: API 응답 데이터
     /// - Throws: API 호출 중 발생하는 에러
     public func performAPIRequest(
-        host: URL = YFHosts.query2,
-        path: String,
+        urlString: String,
         parameters: [String: String] = [:],
         serviceName: String
     ) async throws -> Data {
@@ -188,8 +187,7 @@ public struct YFServiceCore: Sendable {
         
         // API 요청 URL 구성 및 요청 수행
         let requestURL = try await apiBuilder()
-            .host(host)
-            .path(path)
+            .url(urlString)
             .parameters(parameters)
             .build()
         let (data, _) = try await authenticatedRequest(url: requestURL)
@@ -211,7 +209,7 @@ public struct YFServiceCore: Sendable {
     /// URL과 URLRequest를 분리해서 생성할 필요 없이 한 번에 처리합니다.
     ///
     /// - Parameters:
-    ///   - host: API 호스트 (기본값: YFHosts.query2)
+    ///   - urlString: 완전한 API URL
     ///   - path: API 경로
     ///   - parameters: 쿼리 파라미터 (기본값: 빈 딕셔너리)
     ///   - additionalHeaders: 추가 HTTP 헤더 (기본값: 빈 딕셔너리)
@@ -219,8 +217,7 @@ public struct YFServiceCore: Sendable {
     /// - Returns: API 응답 데이터
     /// - Throws: API 호출 중 발생하는 에러
     public func performAPIRequestWithBuilder(
-        host: URL = YFHosts.query2,
-        path: String,
+        urlString: String,
         parameters: [String: String] = [:],
         additionalHeaders: [String: String] = [:],
         serviceName: String
@@ -233,8 +230,7 @@ public struct YFServiceCore: Sendable {
         
         // URLRequest 구성 및 요청 수행
         let request = try await apiBuilder()
-            .host(host)
-            .path(path)
+            .url(urlString)
             .parameters(parameters)
             .buildRequest(additionalHeaders: additionalHeaders)
         

@@ -1,11 +1,12 @@
 import Foundation
 
-/// Yahoo Finance 종목 스크리닝 서비스
+/// Yahoo Finance Screener API 서비스
 ///
-/// Protocol + Struct 아키텍처를 따르는 스크리닝 전용 서비스입니다.
+/// Yahoo Finance Screener API(/v1/finance/screener)를 통한 종목 스크리닝 서비스입니다.
+/// Protocol + Struct 아키텍처를 따르는 Screener API 전용 서비스입니다.
 /// YFServiceCore를 통한 composition 패턴을 사용하여 공통 기능을 활용합니다.
 /// Sendable 프로토콜을 준수하여 완전한 thread-safety를 보장합니다.
-public struct YFScreeningService: YFService {
+public struct YFScreenerService: YFService {
     
     /// YFClient 참조
     public let client: YFClient
@@ -13,7 +14,7 @@ public struct YFScreeningService: YFService {
     /// 공통 기능을 제공하는 서비스 코어
     private let core: YFServiceCore
     
-    /// YFScreeningService 초기화
+    /// YFScreenerService 초기화
     /// - Parameter client: YFClient 인스턴스
     public init(client: YFClient) {
         self.client = client
@@ -71,8 +72,7 @@ public struct YFScreeningService: YFService {
         let screenerType = getPredefinedScreenerType(predefined)
         
         return try await core.apiBuilder()
-            .host(YFHosts.query1)
-            .path("/v1/finance/screener/predefined/saved")
+            .url(YFPaths.screener + "/predefined/saved")
             .parameter("scrIds", screenerType)
             .parameter("count", String(limit))
             .parameter("lang", "en-US")

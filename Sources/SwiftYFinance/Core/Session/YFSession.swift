@@ -98,12 +98,12 @@ public final actor YFSession {
     
     /// YFSession 초기화 (Phase 4.5.3 네트워크 최적화)
     /// - Parameters:
-    ///   - baseURL: 기본 API URL (기본값: YFHosts.default)
+    ///   - baseURL: 기본 API URL (기본값: finance.yahoo.com)
     ///   - timeout: 요청 타임아웃 (기본값: 15초로 단축)
     ///   - additionalHeaders: 추가 HTTP 헤더
     ///   - debugEnabled: 디버깅 로그 활성화 여부 (기본값: false)
     public init(
-        baseURL: URL = YFHosts.default,
+        baseURL: URL = URL(string: "https://finance.yahoo.com")!,
         timeout: TimeInterval = 15.0,  // Phase 4.5.3: 30초 → 15초 단축
         additionalHeaders: [String: String] = [:],
         debugEnabled: Bool = false

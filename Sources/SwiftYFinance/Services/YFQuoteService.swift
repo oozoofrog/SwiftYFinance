@@ -77,12 +77,9 @@ public struct YFQuoteService: YFService {
     /// - Throws: URL 구성 중 발생하는 에러
     private func buildQuoteURL(ticker: YFTicker) async throws -> URL {
         return try await core.apiBuilder()
-            .host(YFHosts.query2)
-            .path(YFPaths.quoteSummary + "/\(ticker.symbol)")
-            .parameter("modules", "price,summaryDetail")
-            .parameter("symbol", ticker.symbol)
-            .parameter("corsDomain", "finance.yahoo.com")
-            .parameter("formatted", "false")
+            .url(YFPaths.quote)
+            .parameter("symbols", ticker.symbol)
+            .parameter("crumb", "")  // yfinance에서는 빈 crumb 사용
             .build()
     }
     

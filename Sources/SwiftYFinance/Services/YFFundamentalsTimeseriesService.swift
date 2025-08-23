@@ -1,7 +1,8 @@
 import Foundation
 
-/// Yahoo Finance Fundamentals API를 위한 통합 서비스 구조체
+/// Yahoo Finance Fundamentals Timeseries API 서비스
 ///
+/// Yahoo Finance Fundamentals Timeseries API를 통한 재무제표 서비스입니다.
 /// 모든 재무제표 데이터(Income Statement, Balance Sheet, Cash Flow)를 
 /// 단일 API 호출로 조회하는 통합 서비스입니다.
 /// 기존의 YFFinancialsService, YFBalanceSheetService 등을 대체하여
@@ -9,7 +10,7 @@ import Foundation
 ///
 /// Sendable 프로토콜을 준수하여 concurrent 환경에서 안전하게 사용할 수 있습니다.
 /// Protocol + Struct 설계로 @unchecked 없이도 완전한 thread safety를 보장합니다.
-public struct YFFundamentalsService: YFService {
+public struct YFFundamentalsTimeseriesService: YFService {
     
     /// YFClient 참조
     public let client: YFClient
@@ -18,7 +19,7 @@ public struct YFFundamentalsService: YFService {
     /// 공통 로직을 처리하는 핵심 구조체 (Composition 패턴)
     private let core: YFServiceCore
     
-    /// YFFundamentalsService 초기화
+    /// YFFundamentalsTimeseriesService 초기화
     /// - Parameter client: YFClient 인스턴스
     public init(client: YFClient) {
         self.client = client
@@ -66,7 +67,7 @@ public struct YFFundamentalsService: YFService {
 }
 
 // MARK: - Private Helper Methods (Encapsulation)
-private extension YFFundamentalsService {
+private extension YFFundamentalsTimeseriesService {
     
     /// Fundamentals API URL 구성 (Builder 패턴 활용)
     func buildFundamentalsURL(ticker: YFTicker) async throws -> URL {
@@ -79,8 +80,7 @@ private extension YFFundamentalsService {
         let typeParam = (annualMetrics + quarterlyMetrics).joined(separator: ",")
         
         return try await core.apiBuilder()
-            .host(YFHosts.query2)
-            .path("/ws/fundamentals-timeseries/v1/finance/timeseries/\(ticker.symbol)")
+            .url(YFPaths.fundamentalsTimeseries + "/\(ticker.symbol)")
             .parameter("symbol", ticker.symbol)
             .parameter("type", typeParam)
             .parameter("merge", "false")

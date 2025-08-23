@@ -130,10 +130,13 @@ let result = try await client.{domain}.{method}({parameters})
   - [x] Protocol + Struct 패턴 적용
   - [x] 포괄적인 TDD 테스트 스위트 구현
 - [x] **CLI 명령어 추가**: screening 명령어 (Raw JSON 및 포맷된 출력 지원)
-- [ ] **YFTechnicalIndicatorsService 구조체 생성** (calculateIndicators) - 🎯 다음 작업
-  - [ ] 기술적 지표 계산 (SMA, EMA, RSI, MACD, Bollinger Bands)
+- [ ] **YFAnalysisService 구조체 생성** (애널리스트 분석 데이터) - 🎯 다음 작업
+  - [ ] 애널리스트 목표가 (analyst_price_targets)
+  - [ ] 실적 추정치 (earnings_estimate, revenue_estimate)
+  - [ ] EPS 트렌드 및 수정사항 (eps_trend, eps_revisions)
+  - [ ] 성장률 추정치 (growth_estimates)
   - [ ] Protocol + Struct 패턴 적용
-  - [ ] Raw JSON 지원 (CLI용)
+  - [ ] Yahoo Finance quoteSummary API 활용
   - [ ] TDD 테스트 스위트 구현
 - [ ] YFWebSocketService 구조체 생성 (startRealTimeStreaming)
 
@@ -155,8 +158,8 @@ let result = try await client.{domain}.{method}({parameters})
 - [x] **YFNewsAPI.swift 제거** (YFNewsService로 대체 완료)
 - [x] **YFOptionsAPI.swift 제거** (YFOptionsService로 대체 완료)
 - [x] **YFScreeningAPI.swift 제거** (YFScreeningService로 대체 완료)
-- [ ] **YFTechnicalIndicatorsAPI.swift 제거** - 🎯 서비스 구현 후 제거 예정
 - [ ] YFWebSocketAPI.swift 제거
+- [ ] **YFTechnicalIndicatorsAPI.swift 유지** (유틸리티 기능으로 보존)
 
 ### Phase 7: 테스트 및 문서 🚧
 - [x] 구현된 Service 클래스 테스트 작성 (현재 128개 테스트)
@@ -167,7 +170,7 @@ let result = try await client.{domain}.{method}({parameters})
   - [x] YFNewsServiceTests (4개)
   - [x] YFOptionsServiceTests (6개)
   - [x] YFScreeningServiceTests (6개)
-  - [ ] **YFTechnicalIndicatorsServiceTests** (예정) - 🎯 다음 작업
+  - [ ] **YFAnalysisServiceTests** (예정) - 🎯 다음 작업
   - [ ] YFWebSocketServiceTests (예정)
 - [x] YFClient 테스트 업데이트
 - [x] 사용 예제 코드 업데이트 (CLI 명령어 구현)
@@ -197,7 +200,7 @@ let result = try await client.{domain}.{method}({parameters})
 - **YFScreeningService**: 종목 스크리닝 서비스 (사전 정의 스크리너, Raw JSON, 9개 타입 지원)
 
 ### 🚧 구현 예정 서비스들 (Phase 4+)
-- **YFTechnicalIndicatorsService**: 기술적 지표 - 🎯 다음 작업
+- **YFAnalysisService**: 애널리스트 분석 데이터 - 🎯 다음 작업
 - **YFWebSocketService**: 실시간 스트리밍
 
 ## 설계 가이드라인
@@ -234,3 +237,10 @@ let result = try await client.{domain}.{method}({parameters})
 6. **확장성**: 표준화된 패턴으로 새 서비스 추가 용이
 7. **API 효율성**: 단일 fundamentals-timeseries 호출로 모든 재무 데이터 조회
 8. **yfinance 호환성**: Python 라이브러리와 동일한 아키텍처 및 메트릭 지원
+
+## 유틸리티 vs 서비스 구분
+- **서비스 (Protocol + Struct)**: Yahoo Finance API를 호출하는 기능
+  - YFQuoteService, YFHistoryService, YFAnalysisService 등
+- **유틸리티 (Extension/Static)**: 자체 계산 및 헬퍼 기능
+  - YFTechnicalIndicatorsAPI (기술적 지표 계산)
+  - YFDateHelper, YFChartConverter 등

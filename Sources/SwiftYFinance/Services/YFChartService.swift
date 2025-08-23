@@ -1,12 +1,12 @@
 import Foundation
 
-/// 과거 가격 데이터 조회 서비스
+/// Yahoo Finance Chart API 서비스
 ///
-/// Yahoo Finance API를 통해 주식의 과거 가격 데이터를 조회하는 기능을 제공합니다.
+/// Yahoo Finance Chart API(/v8/finance/chart)를 통해 과거 가격 데이터를 조회하는 기능을 제공합니다.
 /// 기간별 조회와 날짜 범위 조회를 지원하며, 다양한 시간 간격으로 데이터를 가져올 수 있습니다.
 /// Sendable 프로토콜을 준수하여 concurrent 환경에서 안전하게 사용할 수 있습니다.
 /// Protocol + Struct 설계로 @unchecked 없이도 완전한 thread safety를 보장합니다.
-public struct YFHistoryService: YFService {
+public struct YFChartService: YFService {
     
     /// YFClient 참조
     public let client: YFClient
@@ -15,7 +15,7 @@ public struct YFHistoryService: YFService {
     /// 공통 로직을 처리하는 핵심 구조체
     private let core: YFServiceCore
     
-    /// YFHistoryService 초기화
+    /// YFChartService 초기화
     /// - Parameter client: YFClient 인스턴스
     public init(client: YFClient) {
         self.client = client
@@ -145,8 +145,7 @@ public struct YFHistoryService: YFService {
     /// - Throws: URL 구성 중 발생하는 에러
     private func buildHistoryURL(ticker: YFTicker, period: YFPeriod, interval: YFInterval) async throws -> URL {
         return try await core.apiBuilder()
-            .host(YFHosts.query2)
-            .path(YFPaths.chart + "/\(ticker.symbol)")
+            .url(YFPaths.chart + "/\(ticker.symbol)")
             .parameter("interval", interval.stringValue)
             .parameter("range", client.dateHelper.periodToRangeString(period))
             .build()
@@ -165,8 +164,7 @@ public struct YFHistoryService: YFService {
         let endTimestamp = Int(endDate.timeIntervalSince1970)
         
         return try await core.apiBuilder()
-            .host(YFHosts.query2)
-            .path(YFPaths.chart + "/\(ticker.symbol)")
+            .url(YFPaths.chart + "/\(ticker.symbol)")
             .parameter("period1", String(startTimestamp))
             .parameter("period2", String(endTimestamp))
             .parameter("interval", "1d")

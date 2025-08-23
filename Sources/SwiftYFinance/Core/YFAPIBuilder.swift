@@ -10,8 +10,7 @@ import Foundation
 /// ## 사용 예시
 /// ```swift
 /// let url = try await YFAPIBuilder(session: session)
-///     .host(YFHosts.query2)
-///     .path(YFPaths.quoteSummary + "/AAPL")
+///     .url(YFPaths.quoteSummary + "/AAPL")
 ///     .parameter("modules", "price,summaryDetail")
 ///     .parameter("formatted", "false")
 ///     .build()
@@ -26,15 +25,12 @@ public struct YFAPIBuilder: Sendable {
         let path: String
         let parameters: [String: String]
         
-        init(host: URL = YFHosts.default, path: String = "", parameters: [String: String] = [:]) {
+        init(host: URL = URL(string: "https://finance.yahoo.com")!, path: String = "", parameters: [String: String] = [:]) {
             self.host = host
             self.path = path
             self.parameters = parameters
         }
         
-        func withHost(_ host: URL) -> BuilderState {
-            BuilderState(host: host, path: path, parameters: parameters)
-        }
         
         func withPath(_ path: String) -> BuilderState {
             BuilderState(host: host, path: path, parameters: parameters)
@@ -77,20 +73,28 @@ public struct YFAPIBuilder: Sendable {
     
     // MARK: - Builder Methods
     
-    /// 호스트 URL 설정
-    /// - Parameter host: 대상 호스트 (예: YFHosts.query2)
-    /// - Returns: 새로운 Builder 인스턴스 (체이닝을 위함)
-    @discardableResult
-    public func host(_ host: URL) -> YFAPIBuilder {
-        return YFAPIBuilder(session: session, state: state.withHost(host))
-    }
     
     /// API 경로 설정
-    /// - Parameter path: API 경로 (예: YFPaths.quoteSummary + "/AAPL")
+    /// - Parameter path: API 경로 (예: "/v10/finance/quoteSummary/AAPL")
     /// - Returns: 새로운 Builder 인스턴스 (체이닝을 위함)
     @discardableResult
     public func path(_ path: String) -> YFAPIBuilder {
         return YFAPIBuilder(session: session, state: state.withPath(path))
+    }
+    
+    /// 완전한 URL 설정 (호스트 + 경로 포함)
+    /// - Parameter urlString: 완전한 URL 문자열 (예: YFPaths.quote)
+    /// - Returns: 새로운 Builder 인스턴스 (체이닝을 위함)
+    @discardableResult
+    public func url(_ urlString: String) -> YFAPIBuilder {
+        guard let url = URL(string: urlString) else {
+            // URL이 잘못된 경우 기본값으로 설정 (에러는 build()에서 발생)
+            return self
+        }
+        let host = URL(string: "\(url.scheme!)://\(url.host!)")!
+        let path = url.path
+        let newState = BuilderState(host: host, path: path, parameters: state.parameters)
+        return YFAPIBuilder(session: session, state: newState)
     }
     
     /// 쿼리 파라미터 추가

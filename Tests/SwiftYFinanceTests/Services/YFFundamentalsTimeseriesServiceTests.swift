@@ -2,11 +2,11 @@ import Testing
 @testable import SwiftYFinance
 import Foundation
 
-struct YFFundamentalsServiceTests {
+struct YFFundamentalsTimeseriesServiceTests {
     
-    @Test("YFFundamentalsService Protocol + Struct architecture")
-    func testYFFundamentalsServiceArchitecture() async {
-        // TDD Red: YFFundamentalsService struct가 존재하고 서비스 기반 호출이 작동하는지 테스트
+    @Test("YFFundamentalsTimeseriesService Protocol + Struct architecture")
+    func testYFFundamentalsTimeseriesServiceArchitecture() async {
+        // TDD Red: YFFundamentalsTimeseriesService struct가 존재하고 서비스 기반 호출이 작동하는지 테스트
         let client = YFClient()
         
         // INVALID 심볼로 에러 케이스 테스트 (실제 네트워크 호출 없이 구조 확인)
@@ -14,7 +14,7 @@ struct YFFundamentalsServiceTests {
         
         // OOP & Protocol + Struct: 서비스 기반 호출 테스트
         do {
-            _ = try await client.fundamentals.fetch(ticker: invalidTicker)
+            _ = try await client.fundamentalsTimeseries.fetch(ticker: invalidTicker)
             Issue.record("Should have thrown API error for INVALID ticker")
         } catch YFError.apiError(let message) {
             #expect(message.contains("Invalid symbol: INVALID"))
@@ -29,7 +29,7 @@ struct YFFundamentalsServiceTests {
         let client = YFClient()
         let ticker = YFTicker(symbol: "AAPL")
         
-        let fundamentalsResponse = try await client.fundamentals.fetch(ticker: ticker)
+        let fundamentalsResponse = try await client.fundamentalsTimeseries.fetch(ticker: ticker)
         
         // 기본 구조 검증
         #expect(fundamentalsResponse.timeseries?.result != nil, "Should have timeseries results")
@@ -82,7 +82,7 @@ struct YFFundamentalsServiceTests {
             for ticker in tickers {
                 group.addTask {
                     do {
-                        let fundamentals = try await client.fundamentals.fetch(ticker: ticker)
+                        let fundamentals = try await client.fundamentalsTimeseries.fetch(ticker: ticker)
                         return (ticker.symbol, .success(fundamentals))
                     } catch {
                         return (ticker.symbol, .failure(error))
@@ -116,7 +116,7 @@ struct YFFundamentalsServiceTests {
         let client = YFClient()
         let ticker = YFTicker(symbol: "AAPL")
         
-        let fundamentalsResponse = try await client.fundamentals.fetch(ticker: ticker)
+        let fundamentalsResponse = try await client.fundamentalsTimeseries.fetch(ticker: ticker)
         
         guard let results = fundamentalsResponse.timeseries?.result else {
             Issue.record("Should have timeseries results")
@@ -158,7 +158,7 @@ struct YFFundamentalsServiceTests {
         let nonExistentTicker = YFTicker(symbol: "NONEXISTENT123456")
         
         do {
-            _ = try await client.fundamentals.fetch(ticker: nonExistentTicker)
+            _ = try await client.fundamentalsTimeseries.fetch(ticker: nonExistentTicker)
             // 실제 결과에 따라 성공할 수도 있고 에러가 날 수도 있음
             // 에러가 나지 않으면 빈 데이터를 반환하는지 확인
         } catch {
@@ -174,7 +174,7 @@ struct YFFundamentalsServiceTests {
         let ticker = YFTicker(symbol: "AAPL")
         
         let startTime = Date()
-        let fundamentalsResponse = try await client.fundamentals.fetch(ticker: ticker)
+        let fundamentalsResponse = try await client.fundamentalsTimeseries.fetch(ticker: ticker)
         let endTime = Date()
         
         let duration = endTime.timeIntervalSince(startTime)
@@ -193,11 +193,11 @@ struct YFFundamentalsServiceTests {
         let ticker = YFTicker(symbol: "AAPL")
         
         let task1 = Task {
-            try await client.fundamentals.fetch(ticker: ticker)
+            try await client.fundamentalsTimeseries.fetch(ticker: ticker)
         }
         
         let task2 = Task {
-            try await client.fundamentals.fetch(ticker: ticker)
+            try await client.fundamentalsTimeseries.fetch(ticker: ticker)
         }
         
         do {

@@ -70,8 +70,7 @@ public struct YFOptionsService: YFService {
     /// - Throws: URL 구성 중 발생하는 에러
     private func buildOptionsURL(ticker: YFTicker, expiration: Date?) async throws -> URL {
         var builder = core.apiBuilder()
-            .host(YFHosts.query2)
-            .path("/v7/finance/options/\(ticker.symbol)")
+            .url("https://query2.finance.yahoo.com/v7/finance/options/\(ticker.symbol)")
         
         if let expiration = expiration {
             let timestamp = Int(expiration.timeIntervalSince1970)

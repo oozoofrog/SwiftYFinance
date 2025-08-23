@@ -160,8 +160,7 @@ public struct YFSearchService: YFService {
     private func buildSearchURL(for query: YFSearchQuery) async throws -> URL {
         let parameters = query.toURLParameters()
         return try await core.apiBuilder()
-            .host(YFHosts.query2)
-            .path(YFPaths.search)
+            .url(YFPaths.search)
             .parameters(parameters)
             .build()
     }

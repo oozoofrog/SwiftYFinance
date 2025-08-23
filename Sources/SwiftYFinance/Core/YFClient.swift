@@ -68,9 +68,9 @@ public struct YFClient: Sendable {
         YFQuoteService(client: self)
     }
     
-    /// 과거 가격 데이터 조회 서비스
-    public var history: YFHistoryService {
-        YFHistoryService(client: self)
+    /// Chart API 서비스 (과거 가격 데이터)
+    public var chart: YFChartService {
+        YFChartService(client: self)
     }
     
     /// 종목 검색 및 자동완성 서비스
@@ -78,9 +78,9 @@ public struct YFClient: Sendable {
         YFSearchService(client: self)
     }
     
-    /// 통합 재무제표 조회 서비스 (Income Statement, Balance Sheet, Cash Flow 포괄)
-    public var fundamentals: YFFundamentalsService {
-        YFFundamentalsService(client: self)
+    /// Fundamentals Timeseries API 서비스 (재무제표)
+    public var fundamentalsTimeseries: YFFundamentalsTimeseriesService {
+        YFFundamentalsTimeseriesService(client: self)
     }
     
     /// 뉴스 데이터 조회 서비스
@@ -93,9 +93,9 @@ public struct YFClient: Sendable {
         YFOptionsService(client: self)
     }
     
-    /// 종목 스크리닝 서비스
-    public var screening: YFScreeningService {
-        YFScreeningService(client: self)
+    /// Screener API 서비스 (종목 스크리닝)
+    public var screener: YFScreenerService {
+        YFScreenerService(client: self)
     }
     
 }
