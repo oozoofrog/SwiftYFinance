@@ -79,13 +79,11 @@ private extension YFFundamentalsTimeseriesService {
         let quarterlyMetrics = allMetrics.map { "quarterly\($0)" }
         let typeParam = (annualMetrics + quarterlyMetrics).joined(separator: ",")
         
-        return try await core.apiBuilder()
-            .url(YFPaths.fundamentalsTimeseries + "/\(ticker.symbol)")
-            .parameter("symbol", ticker.symbol)
-            .parameter("type", typeParam)
-            .parameter("merge", "false")
-            .parameter("period1", "493590046")
-            .parameter("period2", String(Int(Date().timeIntervalSince1970)))
+        return try await YFAPIURLBuilder.fundamentals(session: client.session)
+            .symbol(ticker.symbol)
+            .types([typeParam])
+            .merge(false)
+            .period(from: "493590046", to: String(Int(Date().timeIntervalSince1970)))
             .parameter("corsDomain", "finance.yahoo.com")
             .build()
     }

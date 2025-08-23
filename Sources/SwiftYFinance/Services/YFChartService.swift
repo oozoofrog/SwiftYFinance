@@ -144,10 +144,10 @@ public struct YFChartService: YFService {
     /// - Returns: 구성된 API 요청 URL
     /// - Throws: URL 구성 중 발생하는 에러
     private func buildHistoryURL(ticker: YFTicker, period: YFPeriod, interval: YFInterval) async throws -> URL {
-        return try await core.apiBuilder()
-            .url(YFPaths.chart + "/\(ticker.symbol)")
-            .parameter("interval", interval.stringValue)
-            .parameter("range", client.dateHelper.periodToRangeString(period))
+        return try await YFAPIURLBuilder.chart(session: client.session)
+            .symbol(ticker.symbol)
+            .period(period)
+            .interval(interval)
             .build()
     }
     
@@ -160,14 +160,10 @@ public struct YFChartService: YFService {
     /// - Returns: 구성된 API 요청 URL
     /// - Throws: URL 구성 중 발생하는 에러
     private func buildHistoryURL(ticker: YFTicker, startDate: Date, endDate: Date) async throws -> URL {
-        let startTimestamp = Int(startDate.timeIntervalSince1970)
-        let endTimestamp = Int(endDate.timeIntervalSince1970)
-        
-        return try await core.apiBuilder()
-            .url(YFPaths.chart + "/\(ticker.symbol)")
-            .parameter("period1", String(startTimestamp))
-            .parameter("period2", String(endTimestamp))
-            .parameter("interval", "1d")
+        return try await YFAPIURLBuilder.chart(session: client.session)
+            .symbol(ticker.symbol)
+            .dateRange(from: startDate, to: endDate)
+            .interval(.oneDay)
             .build()
     }
 }

@@ -69,41 +69,15 @@ public struct YFScreenerService: YFService {
     
     /// 사전 정의된 스크리너 URL 구성 헬퍼  
     private func buildPredefinedScreenerURL(for predefined: YFPredefinedScreener, limit: Int) async throws -> URL {
-        let screenerType = getPredefinedScreenerType(predefined)
-        
-        return try await core.apiBuilder()
-            .url(YFPaths.screener + "/predefined/saved")
-            .parameter("scrIds", screenerType)
-            .parameter("count", String(limit))
-            .parameter("lang", "en-US")
-            .parameter("region", "US")
+        return try await YFAPIURLBuilder.screener(session: client.session)
+            .predefined(predefined)
+            .count(limit)
+            .language("en-US")
+            .region("US")
             .parameter("formatted", "false")
             .parameter("corsDomain", "finance.yahoo.com")
             .build()
     }
     
-    /// 사전 정의된 스크리너 타입 매핑
-    private func getPredefinedScreenerType(_ predefined: YFPredefinedScreener) -> String {
-        switch predefined {
-        case .dayGainers:
-            return "day_gainers"
-        case .dayLosers:
-            return "day_losers" 
-        case .mostActives:
-            return "most_actives"
-        case .aggressiveSmallCaps:
-            return "aggressive_small_caps"
-        case .growthTechnologyStocks:
-            return "growth_technology_stocks"
-        case .undervaluedGrowthStocks:
-            return "undervalued_growth_stocks"
-        case .undervaluedLargeCaps:
-            return "undervalued_large_caps"
-        case .smallCapGainers:
-            return "small_cap_gainers"
-        case .mostShortedStocks:
-            return "most_shorted_stocks"
-        }
-    }
     
 }

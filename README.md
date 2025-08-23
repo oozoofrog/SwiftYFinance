@@ -309,7 +309,7 @@ SwiftYFinance/
 
 ```bash
 # Run all tests (현재 128개 테스트, 100% 성공률)
-swift test
+swift test --no-parallel
 
 # Run core API test suites
 swift test --filter YFClientTests          # Main API tests

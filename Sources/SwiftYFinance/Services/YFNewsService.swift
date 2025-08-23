@@ -114,12 +114,10 @@ public struct YFNewsService: YFService {
     
     /// 뉴스 API URL 구성
     private func buildNewsURL(ticker: YFTicker, count: Int) async throws -> URL {
-        return try await core.apiBuilder()
-            .url(YFPaths.search)
-            .parameter("q", ticker.symbol)
-            .parameter("quotesCount", "0")
-            .parameter("newsCount", String(count))
-            .parameter("enableFuzzyQuery", "false")
+        return try await YFAPIURLBuilder.news(session: client.session)
+            .symbol(ticker.symbol)
+            .count(count)
+            .disableFuzzyQuery()
             .build()
     }
     

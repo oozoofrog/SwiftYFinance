@@ -76,9 +76,8 @@ public struct YFQuoteService: YFService {
     /// - Returns: 구성된 API 요청 URL
     /// - Throws: URL 구성 중 발생하는 에러
     private func buildQuoteURL(ticker: YFTicker) async throws -> URL {
-        return try await core.apiBuilder()
-            .url(YFPaths.quote)
-            .parameter("symbols", ticker.symbol)
+        return try await YFAPIURLBuilder.quote(session: client.session)
+            .symbol(ticker.symbol)
             .parameter("crumb", "")  // yfinance에서는 빈 crumb 사용
             .build()
     }

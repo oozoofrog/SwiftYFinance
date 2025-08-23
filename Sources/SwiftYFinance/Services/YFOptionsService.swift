@@ -69,12 +69,11 @@ public struct YFOptionsService: YFService {
     /// - Returns: 구성된 API 요청 URL
     /// - Throws: URL 구성 중 발생하는 에러
     private func buildOptionsURL(ticker: YFTicker, expiration: Date?) async throws -> URL {
-        var builder = core.apiBuilder()
-            .url("https://query2.finance.yahoo.com/v7/finance/options/\(ticker.symbol)")
+        var builder = YFAPIURLBuilder.options(session: client.session)
+            .symbol(ticker.symbol)
         
         if let expiration = expiration {
-            let timestamp = Int(expiration.timeIntervalSince1970)
-            builder = builder.parameter("date", String(timestamp))
+            builder = builder.expiration(expiration)
         }
         
         return try await builder.build()

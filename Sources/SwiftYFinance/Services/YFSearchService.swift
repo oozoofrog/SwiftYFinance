@@ -158,11 +158,16 @@ public struct YFSearchService: YFService {
     
     /// 검색 URL 구성
     private func buildSearchURL(for query: YFSearchQuery) async throws -> URL {
-        let parameters = query.toURLParameters()
-        return try await core.apiBuilder()
-            .url(YFPaths.search)
-            .parameters(parameters)
-            .build()
+        var builder = YFAPIURLBuilder.search(session: client.session)
+            .query(query.term)
+            .quotesCount(query.maxResults)
+        
+        if !query.quoteTypes.isEmpty {
+            let typeStrings = query.quoteTypes.map { $0.rawValue }
+            builder = builder.parameter("quotesQueryId", typeStrings.joined(separator: ","))
+        }
+        
+        return try await builder.build()
     }
     
     /// 검색 응답 JSON 파싱
