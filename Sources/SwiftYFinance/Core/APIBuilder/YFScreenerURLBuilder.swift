@@ -96,4 +96,145 @@ extension YFAPIURLBuilder {
             return try await YFAPIURLBuilder.buildURL(baseURL: urlWithPath, parameters: parameters, session: session)
         }
     }
+    
+    /// Custom Screener API 전용 빌더
+    /// 
+    /// 사용자 정의 쿼리를 사용한 커스텀 스크리닝 기능을 제공합니다.
+    /// yfinance Python 라이브러리의 EquityQuery/FundQuery와 호환됩니다.
+    ///
+    /// ## 사용 예시
+    /// ```swift
+    /// let query = YFScreenerQuery.and([
+    ///     .eq("region", "us"),
+    ///     .gte("intradaymarketcap", 10_000_000_000),
+    ///     .eq("sector", "Technology")
+    /// ])
+    /// 
+    /// let url = try await YFAPIURLBuilder.customScreener(session: session)
+    ///     .query(query)
+    ///     .count(25)
+    ///     .build()
+    /// ```
+    public struct CustomScreenerBuilder: Sendable {
+        private let session: YFSession
+        private let baseURL = "https://query1.finance.yahoo.com/v1/finance/screener"
+        private var query: YFScreenerQuery?
+        private var requestBody: [String: Sendable] = [:]
+        
+        init(session: YFSession) {
+            self.session = session
+            // 기본 요청 파라미터 설정
+            self.requestBody = [
+                "offset": 0,
+                "count": 25,
+                "userId": "",
+                "userIdType": "guid"
+            ]
+        }
+        
+        private init(session: YFSession, query: YFScreenerQuery?, requestBody: [String: Sendable]) {
+            self.session = session
+            self.query = query
+            self.requestBody = requestBody
+        }
+        
+        /// 스크리너 쿼리 설정
+        /// - Parameter query: 스크리너 쿼리
+        /// - Returns: 새로운 빌더 인스턴스
+        public func query(_ query: YFScreenerQuery) -> CustomScreenerBuilder {
+            var newBody = requestBody
+            newBody["query"] = query.toDictionary()
+            return CustomScreenerBuilder(session: session, query: query, requestBody: newBody)
+        }
+        
+        /// 결과 개수 설정
+        /// - Parameter count: 최대 결과 개수 (최대 250)
+        /// - Returns: 새로운 빌더 인스턴스
+        public func count(_ count: Int) -> CustomScreenerBuilder {
+            var newBody = requestBody
+            newBody["count"] = min(count, 250)
+            return CustomScreenerBuilder(session: session, query: query, requestBody: newBody)
+        }
+        
+        /// 오프셋 설정
+        /// - Parameter offset: 결과 시작 위치
+        /// - Returns: 새로운 빌더 인스턴스
+        public func offset(_ offset: Int) -> CustomScreenerBuilder {
+            var newBody = requestBody
+            newBody["offset"] = offset
+            return CustomScreenerBuilder(session: session, query: query, requestBody: newBody)
+        }
+        
+        /// 정렬 필드 설정
+        /// - Parameter field: 정렬 기준 필드
+        /// - Returns: 새로운 빌더 인스턴스
+        public func sortField(_ field: String) -> CustomScreenerBuilder {
+            var newBody = requestBody
+            newBody["sortField"] = field
+            return CustomScreenerBuilder(session: session, query: query, requestBody: newBody)
+        }
+        
+        /// 정렬 순서 설정
+        /// - Parameter ascending: 오름차순 여부 (기본값: false)
+        /// - Returns: 새로운 빌더 인스턴스
+        public func sortOrder(ascending: Bool = false) -> CustomScreenerBuilder {
+            var newBody = requestBody
+            newBody["sortType"] = ascending ? "ASC" : "DESC"
+            return CustomScreenerBuilder(session: session, query: query, requestBody: newBody)
+        }
+        
+        /// 사용자 ID 설정
+        /// - Parameter userId: 사용자 ID
+        /// - Returns: 새로운 빌더 인스턴스
+        public func userId(_ userId: String) -> CustomScreenerBuilder {
+            var newBody = requestBody
+            newBody["userId"] = userId
+            return CustomScreenerBuilder(session: session, query: query, requestBody: newBody)
+        }
+        
+        /// 사용자 ID 타입 설정
+        /// - Parameter userIdType: 사용자 ID 타입 (기본값: "guid")
+        /// - Returns: 새로운 빌더 인스턴스
+        public func userIdType(_ userIdType: String) -> CustomScreenerBuilder {
+            var newBody = requestBody
+            newBody["userIdType"] = userIdType
+            return CustomScreenerBuilder(session: session, query: query, requestBody: newBody)
+        }
+        
+        /// 추가 파라미터 설정
+        /// - Parameters:
+        ///   - key: 파라미터 키
+        ///   - value: 파라미터 값
+        /// - Returns: 새로운 빌더 인스턴스
+        public func parameter(_ key: String, _ value: Sendable) -> CustomScreenerBuilder {
+            var newBody = requestBody
+            newBody[key] = value
+            return CustomScreenerBuilder(session: session, query: query, requestBody: newBody)
+        }
+        
+        /// HTTP Method 반환 (항상 POST)
+        public var httpMethod: String {
+            return "POST"
+        }
+        
+        /// Request Body JSON 데이터 반환
+        public func getRequestBody() throws -> Data {
+            guard query != nil else {
+                throw YFError.invalidParameter("Query cannot be empty for custom screener")
+            }
+            
+            return try JSONSerialization.data(withJSONObject: requestBody, options: [.prettyPrinted])
+        }
+        
+        /// URL 구성
+        /// - Returns: 구성된 URL
+        /// - Throws: URL 구성 실패 시
+        public func build() async throws -> URL {
+            guard query != nil else {
+                throw YFError.invalidParameter("Query cannot be empty for custom screener")
+            }
+            
+            return try await YFAPIURLBuilder.buildURL(baseURL: baseURL, parameters: [:], session: session)
+        }
+    }
 }
