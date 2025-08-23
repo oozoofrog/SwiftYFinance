@@ -3,7 +3,7 @@
 [![Swift](https://img.shields.io/badge/Swift-6.1-orange.svg)](https://swift.org)
 [![Platform](https://img.shields.io/badge/Platform-macOS%2013%2B%20%7C%20iOS%2016%2B%20%7C%20tvOS%2016%2B%20%7C%20watchOS%209%2B-blue.svg)](https://developer.apple.com)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE.md)
-[![Tests](https://img.shields.io/badge/Tests-255%20tests-brightgreen.svg)](https://github.com/yourusername/SwiftYFinance/actions)
+[![Tests](https://img.shields.io/badge/Tests-128%20tests-brightgreen.svg)](https://github.com/yourusername/SwiftYFinance/actions)
 [![Success Rate](https://img.shields.io/badge/Success%20Rate-100%25-brightgreen.svg)](https://github.com/yourusername/SwiftYFinance/actions)
 
 SwiftYFinance is a **complete Swift port** of the Python [yfinance](https://github.com/ranaroussi/yfinance) library with 100% real Yahoo Finance API integration. It provides comprehensive access to live financial data with zero mock data, featuring complete financial analysis capabilities including real-time stock data, technical indicators, news analysis, and advanced fundamentals.
@@ -229,13 +229,13 @@ This project follows **TDD (Test-Driven Development)** and **Tidy First** princi
 - **Phase 4.5**: ✅ **Complete** - Chrome 136 browser impersonation ([curl_cffi](https://github.com/yifeikong/curl_cffi) port)
 - **Phase 5**: ✅ **Complete** - Advanced Financial Features
 
-### Final Project Status ✅
-- **✅ 144 tests** with 96.5% success rate (139/144 passing)
-- **✅ Complete Feature Parity** with Python yfinance library
-- **✅ Advanced Features** - Options, Technical Indicators, News, Screening
+### Current Project Status
+- **✅ 128 구현된 테스트** - 100% 성공률 (모두 통과)
+- **🚧 Protocol + Struct 리팩토링** - 7개 서비스 완료, 2개 진행중
+- **✅ Advanced Features** - Options, News, Screening 완료
+- **🚧 추가 구현 예정** - WebSocket 실시간 스트리밍, Technical Indicators
 - **✅ Browser Impersonation** - Chrome 136 fingerprint emulation
 - **✅ Production Ready** - Comprehensive error handling and validation
-- **✅ Modular Architecture** - 30+ focused source files
 
 ### Phase 5 Achievements (2025-08-13)
 - **🎯 Options Trading API**: Complete options chains with Greeks calculation
@@ -308,7 +308,7 @@ SwiftYFinance/
 ## 🧪 Running Tests
 
 ```bash
-# Run all tests (144 tests with 96.5% success rate)
+# Run all tests (현재 128개 테스트, 100% 성공률)
 swift test
 
 # Run core API test suites
@@ -333,18 +333,24 @@ swift test --verbose
 
 ### Test Categories
 
-- **Core Tests** (28 tests): Basic functionality and architecture
-- **Client Tests** (15 tests): API integration and data fetching  
-- **Model Tests** (18 tests): Data model validation and parsing
-- **Utility Tests** (12 tests): Helper functions and parsing
-- **Browser Tests** (5 tests): Chrome impersonation and anti-detection
-- **Phase 5 Advanced Tests** (39 tests): Options, Technical Indicators, News, Screening (NEW!)
-  - Options Trading: 5 tests
-  - Technical Indicators: 10 tests  
-  - News & Sentiment: 9 tests
-  - Stock Screening: 8 tests
-  - Advanced Fundamentals: 7 tests
-- **Integration Tests** (27 tests): End-to-end workflows and data consistency
+- **Service Tests** (70 tests): Protocol + Struct service layer tests
+  - YFQuoteServiceTests: 4 tests
+  - YFHistoryServiceTests: 16 tests
+  - YFSearchServiceTests: 20 tests
+  - YFFundamentalsServiceTests: 14 tests
+  - YFNewsServiceTests: 4 tests
+  - YFOptionsServiceTests: 6 tests
+  - YFScreeningServiceTests: 6 tests
+- **Model Tests** (24 tests): Data model validation and parsing
+  - YFQuoteTests: 6 tests
+  - YFHistoricalDataTests: 6 tests
+  - YFPriceTests: 6 tests
+  - YFTickerTests: 6 tests
+- **Integration Tests** (20 tests): End-to-end workflows
+  - YFSearchIntegrationTests: 20 tests
+- **Performance Tests** (14 tests): Memory and performance validation
+  - YFSearchMemoryTests: 12 tests
+  - TestHelper utilities: 2 tests
 
 ## 🎯 Browser Impersonation Technology
 

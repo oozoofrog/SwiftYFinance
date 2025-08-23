@@ -124,16 +124,25 @@ let result = try await client.{domain}.{method}({parameters})
   - [x] 실제 Yahoo Finance API 응답 구조 반영
 - [x] **CLI 명령어 추가**: options 명령어 (Raw JSON 및 포맷된 출력 지원)
 - [x] **JSON 샘플 개선**: API-TICKER 네이밍 컨벤션 (news-aapl.json, options-tsla.json)
-- [ ] YFScreeningService 클래스 생성 (screenStocks)
-- [ ] YFWebSocketService 클래스 생성 (startRealTimeStreaming)
-- [ ] YFTechnicalIndicatorsService 클래스 생성 (calculateIndicators)
+- [x] **YFScreeningService 구조체 생성** (screenPredefined, fetchRawJSON 메서드들)
+  - [x] 사전 정의 스크리너 지원 (9개 타입)
+  - [x] Raw JSON 지원 (CLI용 fetchRawJSON 메서드)
+  - [x] Protocol + Struct 패턴 적용
+  - [x] 포괄적인 TDD 테스트 스위트 구현
+- [x] **CLI 명령어 추가**: screening 명령어 (Raw JSON 및 포맷된 출력 지원)
+- [ ] **YFTechnicalIndicatorsService 구조체 생성** (calculateIndicators) - 🎯 다음 작업
+  - [ ] 기술적 지표 계산 (SMA, EMA, RSI, MACD, Bollinger Bands)
+  - [ ] Protocol + Struct 패턴 적용
+  - [ ] Raw JSON 지원 (CLI용)
+  - [ ] TDD 테스트 스위트 구현
+- [ ] YFWebSocketService 구조체 생성 (startRealTimeStreaming)
 
-### Phase 5: YFClient 리팩토링
-- [ ] YFClient에 lazy property로 모든 서비스 추가
-- [ ] YFClient의 private 유틸리티 메서드 제거
-- [ ] YFClient의 Debug Methods extension 통합
+### Phase 5: YFClient 리팩토링 ✅
+- [x] YFClient에 computed property로 모든 서비스 추가 (lazy 대신 경량 struct 활용)
+- [x] YFClient의 private 유틸리티 메서드 제거
+- [x] YFClient의 Debug Methods extension 통합
 
-### Phase 6: 기존 파일 정리 ✅
+### Phase 6: 기존 파일 정리 🚧
 - [x] YFQuoteAPI.swift 제거
 - [x] YFHistoryAPI.swift 제거
 - [x] YFSearchAPI.swift 제거
@@ -145,21 +154,30 @@ let result = try await client.{domain}.{method}({parameters})
 - [x] **YFFinancialsAdvancedAPI.swift 제거** (통합된 YFFundamentalsService로 대체)
 - [x] **YFNewsAPI.swift 제거** (YFNewsService로 대체 완료)
 - [x] **YFOptionsAPI.swift 제거** (YFOptionsService로 대체 완료)
-- [ ] YFScreeningAPI.swift 제거
+- [x] **YFScreeningAPI.swift 제거** (YFScreeningService로 대체 완료)
+- [ ] **YFTechnicalIndicatorsAPI.swift 제거** - 🎯 서비스 구현 후 제거 예정
 - [ ] YFWebSocketAPI.swift 제거
-- [ ] YFTechnicalIndicatorsAPI.swift 제거
 
-### Phase 7: 테스트 및 문서
-- [ ] 각 Service 클래스에 대한 테스트 작성
-- [ ] YFClient 테스트 업데이트
-- [ ] 사용 예제 코드 업데이트
+### Phase 7: 테스트 및 문서 🚧
+- [x] 구현된 Service 클래스 테스트 작성 (현재 128개 테스트)
+  - [x] YFQuoteServiceTests (4개)
+  - [x] YFHistoryServiceTests (16개)
+  - [x] YFSearchServiceTests (20개)
+  - [x] YFFundamentalsServiceTests (14개)
+  - [x] YFNewsServiceTests (4개)
+  - [x] YFOptionsServiceTests (6개)
+  - [x] YFScreeningServiceTests (6개)
+  - [ ] **YFTechnicalIndicatorsServiceTests** (예정) - 🎯 다음 작업
+  - [ ] YFWebSocketServiceTests (예정)
+- [x] YFClient 테스트 업데이트
+- [x] 사용 예제 코드 업데이트 (CLI 명령어 구현)
 - [ ] DocC 문서 업데이트
 
-### Phase 8: 최종 검증
-- [ ] 모든 테스트 통과 확인
-- [ ] 빌드 성공 확인
-- [ ] API 호환성 확인 (기존 사용법 유지)
-- [ ] Tidy First 원칙에 따른 커밋
+### Phase 8: 최종 검증 🚧
+- [x] 현재 구현된 테스트 통과 확인 (128개 테스트 모두 통과)
+- [x] 빌드 성공 확인 (Release 빌드 성공)
+- [x] API 호환성 확인 (기존 사용법 유지)
+- [ ] Tidy First 원칙에 따른 최종 커밋
 
 ## 구현 현황 및 로드맵
 
@@ -176,11 +194,11 @@ let result = try await client.{domain}.{method}({parameters})
 - **YFFundamentalsService**: 통합 재무제표 서비스 (Income Statement, Balance Sheet, Cash Flow 단일 API 호출)
 - **YFNewsService**: 뉴스 데이터 조회 서비스 (단일/다중 종목 뉴스 조회, 썸네일 이미지 지원)
 - **YFOptionsService**: 옵션 체인 데이터 조회 서비스 (옵션 체인, Raw JSON, 특정 만기일 조회)
+- **YFScreeningService**: 종목 스크리닝 서비스 (사전 정의 스크리너, Raw JSON, 9개 타입 지원)
 
-### 🚧 구현 예정 서비스들 (Phase 5+)
+### 🚧 구현 예정 서비스들 (Phase 4+)
+- **YFTechnicalIndicatorsService**: 기술적 지표 - 🎯 다음 작업
 - **YFWebSocketService**: 실시간 스트리밍
-- **YFScreeningService**: 종목 스크리닝
-- **YFTechnicalIndicatorsService**: 기술적 지표
 
 ## 설계 가이드라인
 
