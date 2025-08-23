@@ -92,6 +92,13 @@ public struct YFAPIURLBuilder: Sendable {
     public static func customScreener(session: YFSession) -> CustomScreenerBuilder {
         return CustomScreenerBuilder(session: session)
     }
+    
+    /// WebSocket API 빌더 생성
+    /// - Parameter session: YFSession 인스턴스
+    /// - Returns: WebSocket API 전용 빌더
+    public static func webSocket(session: YFSession) -> WebSocketBuilder {
+        return WebSocketBuilder(session: session)
+    }
 }
 
 
