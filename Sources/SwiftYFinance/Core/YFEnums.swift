@@ -65,6 +65,22 @@ public enum YFPeriod {
     
     /// 사용 가능한 모든 과거 데이터
     case max
+    
+    /// Yahoo Finance API에서 사용하는 range 문자열 값 반환
+    public var rangeValue: String {
+        switch self {
+        case .oneDay: return "1d"
+        case .oneWeek: return "5d"
+        case .oneMonth: return "1mo"
+        case .threeMonths: return "3mo"
+        case .sixMonths: return "6mo"
+        case .oneYear: return "1y"
+        case .twoYears: return "2y"
+        case .fiveYears: return "5y"
+        case .tenYears: return "10y"
+        case .max: return "max"
+        }
+    }
 }
 
 /// Yahoo Finance에서 지원하는 시간 간격 설정
