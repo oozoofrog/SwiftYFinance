@@ -71,6 +71,13 @@ public struct YFAPIURLBuilder: Sendable {
     public static func news(session: YFSession) -> NewsBuilder {
         return NewsBuilder(session: session)
     }
+    
+    /// Quote Summary API 빌더 생성
+    /// - Parameter session: YFSession 인스턴스
+    /// - Returns: Quote Summary API 전용 빌더
+    public static func quoteSummary(session: YFSession) -> QuoteSummaryBuilder {
+        return QuoteSummaryBuilder(session: session)
+    }
 }
 
 
