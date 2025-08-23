@@ -26,6 +26,7 @@ public struct YFAPIURLBuilder: Sendable {
     /// Quote API 빌더 생성
     /// - Parameter session: YFSession 인스턴스
     /// - Returns: Quote API 전용 빌더
+    /// - Note: YFQuoteService에서 사용
     public static func quote(session: YFSession) -> QuoteBuilder {
         return QuoteBuilder(session: session)
     }
@@ -33,6 +34,7 @@ public struct YFAPIURLBuilder: Sendable {
     /// Chart API 빌더 생성
     /// - Parameter session: YFSession 인스턴스
     /// - Returns: Chart API 전용 빌더
+    /// - Note: YFChartService에서 사용
     public static func chart(session: YFSession) -> ChartBuilder {
         return ChartBuilder(session: session)
     }
@@ -40,6 +42,7 @@ public struct YFAPIURLBuilder: Sendable {
     /// Search API 빌더 생성
     /// - Parameter session: YFSession 인스턴스
     /// - Returns: Search API 전용 빌더
+    /// - Note: YFSearchService에서 사용
     public static func search(session: YFSession) -> SearchBuilder {
         return SearchBuilder(session: session)
     }
@@ -47,6 +50,7 @@ public struct YFAPIURLBuilder: Sendable {
     /// Options API 빌더 생성
     /// - Parameter session: YFSession 인스턴스
     /// - Returns: Options API 전용 빌더
+    /// - Note: YFOptionsService에서 사용
     public static func options(session: YFSession) -> OptionsBuilder {
         return OptionsBuilder(session: session)
     }
@@ -54,6 +58,7 @@ public struct YFAPIURLBuilder: Sendable {
     /// Screener API 빌더 생성
     /// - Parameter session: YFSession 인스턴스
     /// - Returns: Screener API 전용 빌더
+    /// - Note: YFScreenerService에서 사용
     public static func screener(session: YFSession) -> ScreenerBuilder {
         return ScreenerBuilder(session: session)
     }
@@ -61,6 +66,7 @@ public struct YFAPIURLBuilder: Sendable {
     /// Fundamentals Timeseries API 빌더 생성
     /// - Parameter session: YFSession 인스턴스
     /// - Returns: Fundamentals API 전용 빌더
+    /// - Note: YFFundamentalsTimeseriesService에서 사용
     public static func fundamentals(session: YFSession) -> FundamentalsBuilder {
         return FundamentalsBuilder(session: session)
     }
@@ -68,6 +74,7 @@ public struct YFAPIURLBuilder: Sendable {
     /// News API 빌더 생성 (Search API 기반)
     /// - Parameter session: YFSession 인스턴스
     /// - Returns: News API 전용 빌더
+    /// - Note: YFNewsService에서 사용
     public static func news(session: YFSession) -> NewsBuilder {
         return NewsBuilder(session: session)
     }
@@ -75,6 +82,7 @@ public struct YFAPIURLBuilder: Sendable {
     /// Quote Summary API 빌더 생성
     /// - Parameter session: YFSession 인스턴스
     /// - Returns: Quote Summary API 전용 빌더
+    /// - Note: 서비스 미정 (테스트에서만 사용 중)
     public static func quoteSummary(session: YFSession) -> QuoteSummaryBuilder {
         return QuoteSummaryBuilder(session: session)
     }
@@ -82,6 +90,7 @@ public struct YFAPIURLBuilder: Sendable {
     /// Domain API 빌더 생성
     /// - Parameter session: YFSession 인스턴스
     /// - Returns: Domain API 전용 빌더
+    /// - Note: 서비스 미정 (테스트에서만 사용 중)
     public static func domain(session: YFSession) -> DomainBuilder {
         return DomainBuilder(session: session)
     }
@@ -89,6 +98,7 @@ public struct YFAPIURLBuilder: Sendable {
     /// Custom Screener API 빌더 생성
     /// - Parameter session: YFSession 인스턴스
     /// - Returns: Custom Screener API 전용 빌더
+    /// - Note: 서비스 미정 (테스트에서만 사용 중)
     public static func customScreener(session: YFSession) -> CustomScreenerBuilder {
         return CustomScreenerBuilder(session: session)
     }
@@ -96,6 +106,7 @@ public struct YFAPIURLBuilder: Sendable {
     /// WebSocket API 빌더 생성
     /// - Parameter session: YFSession 인스턴스
     /// - Returns: WebSocket API 전용 빌더
+    /// - Note: 직접 클라이언트 사용 권장 (YFWebSocketClient, 서비스 패턴 비적용)
     public static func webSocket(session: YFSession) -> WebSocketBuilder {
         return WebSocketBuilder(session: session)
     }
