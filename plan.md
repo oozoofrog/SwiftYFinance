@@ -14,8 +14,12 @@
 - [x] options - 옵션 체인 **FIXED**
 - [x] screening - 종목 스크리닝
 
+### 구현 예정 서비스 (2개) 🔄
+- [ ] domain - 섹터/산업/마켓 도메인 데이터 (Builder 존재, Service 필요)
+- [ ] custom-screener - 맞춤형 종목 스크리닝 (Builder 존재, Service 필요)
+
 ### 라이브러리 커버리지
-✅ **100% 완료**: 모든 라이브러리 서비스가 CLI로 구현됨
+🚧 **80% 완료**: 8/10개 서비스 CLI 구현, 2개 서비스 추가 필요
 
 ## 구현 계획
 
@@ -26,6 +30,36 @@
 - [x] 에러 처리 및 도움말
 - [x] 테스트 및 검증
 
+### Phase 1.5: 누락 서비스 구현 🔄
+- [ ] **Domain Service 구현**
+  - [ ] YFDomainService 생성 (Protocol + Struct 패턴)
+  - [ ] 섹터/산업/마켓 데이터 조회 메서드 구현
+  - [ ] Raw JSON 및 파싱된 응답 메서드 제공
+  - [ ] JSON 파일 생성으로 응답 구조 분석
+  - [ ] YFDomainResponse 모델 구현 및 개선
+- [ ] **Custom Screener Service 구현**
+  - [ ] YFCustomScreenerService 생성 (Protocol + Struct 패턴)
+  - [ ] 맞춤형 스크리닝 필터 시스템 구현
+  - [ ] Raw JSON 및 파싱된 응답 메서드 제공
+  - [ ] JSON 파일 생성으로 응답 구조 분석
+  - [ ] YFCustomScreenerResponse 모델 구현 및 개선
+- [ ] **YFClient 확장**
+  - [ ] domain 서비스 프로퍼티 추가
+  - [ ] customScreener 서비스 프로퍼티 추가
+
+### Phase 1.6: 누락 CLI 명령어 구현 🔄
+- [ ] **Domain Command 구현**
+  - [ ] DomainCommand 생성
+  - [ ] 섹터/산업/마켓 타입별 서브커맨드
+  - [ ] JSON 출력 및 에러 처리 지원
+  - [ ] SwiftYFinanceCLI에 추가
+- [ ] **Custom Screener Command 구현**
+  - [ ] CustomScreenerCommand 생성
+  - [ ] 다양한 필터 옵션 지원 (시가총액, P/E 비율 등)
+  - [ ] 복합 필터 및 범위 지정 기능
+  - [ ] JSON 출력 및 에러 처리 지원
+  - [ ] SwiftYFinanceCLI에 추가
+
 ### Phase 2: CLI 개선 및 최적화
 - [ ] 명령어별 성능 최적화
 - [ ] 에러 메시지 개선
@@ -33,13 +67,15 @@
 - [ ] 추가 옵션 및 필터 지원
 
 ### Phase 3: 문서화 및 사용성 개선
-- [ ] CLI README.md 전체 업데이트
+- [x] CLI README.md 전체 업데이트 (8개 명령어)
+- [ ] Domain/Custom Screener 명령어 문서 추가
 - [ ] 각 명령어별 상세 사용 예제 작성
 - [ ] 도움말 시스템 개선
 - [ ] 사용자 가이드 작성
 
 ### Phase 4: 품질 보증 및 배포 준비
-- [ ] 전체 명령어 통합 테스트
+- [ ] 전체 명령어 통합 테스트 (10개 명령어)
+- [ ] Domain/Custom Screener 서비스 단위 테스트
 - [ ] 릴리스 빌드 검증
 - [ ] 성능 벤치마크
 - [ ] 배포 문서 준비
@@ -77,13 +113,13 @@
 - [ ] 릴리즈 빌드 테스트
 
 ## 우선순위
-1. **QuoteSummary 명령어** - 가장 자주 사용될 것으로 예상되는 종합 정보 조회
-2. **Domain 명령어** - 시장 분석에 유용한 섹터/산업 데이터
-3. **Custom Screener 명령어** - 고급 사용자를 위한 맞춤형 스크리닝
+1. ✅ **QuoteSummary 명령어** - 가장 자주 사용될 것으로 예상되는 종합 정보 조회
+2. 🔄 **Domain Service + 명령어** - 시장 분석에 유용한 섹터/산업 데이터
+3. 🔄 **Custom Screener Service + 명령어** - 고급 사용자를 위한 맞춤형 스크리닝
 
 ## 성공 기준
-- 모든 새 명령어가 기존 명령어와 일관된 인터페이스 제공
-- JSON 출력 옵션이 모든 명령어에서 동작
-- 에러 처리가 사용자 친화적
-- CLI README.md에 모든 새 명령어 문서화 완료
-- 빌드 및 기본 기능 테스트 통과
+- ✅ 기존 8개 명령어 일관된 인터페이스 제공
+- 🔄 모든 10개 명령어에서 JSON 출력 옵션 동작
+- ✅ 사용자 친화적 에러 처리
+- 🔄 CLI README.md에 모든 10개 명령어 문서화 완료
+- 🔄 전체 빌드 및 기본 기능 테스트 통과 (10개 명령어)
