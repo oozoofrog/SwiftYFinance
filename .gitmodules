@@ -1,3 +1,0 @@
-[submodule "yfinance-reference"]
-	path = yfinance-reference
-	url = https://github.com/ranaroussi/yfinance.git
