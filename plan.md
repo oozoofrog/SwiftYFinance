@@ -4,7 +4,7 @@
 새로 구현된 서비스들(QuoteSummary, Domain, Custom Screener)을 CLI에 추가하여 라이브러리의 모든 기능을 명령줄에서 사용할 수 있도록 함
 
 ## 현재 상태
-### 구현된 CLI 명령어 (8개) ✅
+### 구현된 CLI 명령어 (10개) ✅
 - [x] quote - 실시간 시세 조회
 - [x] quotesummary - 종합 기업 정보 (60개 모듈, 15개 편의 메서드) **NEW**
 - [x] history - 과거 데이터 조회  
@@ -13,6 +13,8 @@
 - [x] news - 뉴스 조회
 - [x] options - 옵션 체인 **FIXED**
 - [x] screening - 종목 스크리닝
+- [x] domain - 섹터/산업/마켓 도메인 데이터 ✅ **NEW**
+- [x] custom-screening - 맞춤형 종목 스크리닝 ✅ **NEW**
 
 ### 구현 완료 서비스 (10개) ✅
 - [x] quote - 실시간 시세 조회
@@ -27,7 +29,7 @@
 - [x] customScreener - 맞춤형 종목 스크리닝 ✅ **NEW**
 
 ### 라이브러리 커버리지
-✅ **100% 완료**: 10/10개 서비스 구현, CLI 명령어 추가 필요 (2개)
+✅ **100% 완료**: 10/10개 서비스 구현, 10/10개 CLI 명령어 구현 완료
 
 ## 구현 계획
 
@@ -54,18 +56,18 @@
   - [x] domain 서비스 프로퍼티 추가
   - [x] customScreener 서비스 프로퍼티 추가
 
-### Phase 1.6: 누락 CLI 명령어 구현 🔄
-- [ ] **Domain Command 구현**
-  - [ ] DomainCommand 생성
-  - [ ] 섹터/산업/마켓 타입별 서브커맨드
-  - [ ] JSON 출력 및 에러 처리 지원
-  - [ ] SwiftYFinanceCLI에 추가
-- [ ] **Custom Screener Command 구현**
-  - [ ] CustomScreenerCommand 생성
-  - [ ] 다양한 필터 옵션 지원 (시가총액, P/E 비율 등)
-  - [ ] 복합 필터 및 범위 지정 기능
-  - [ ] JSON 출력 및 에러 처리 지원
-  - [ ] SwiftYFinanceCLI에 추가
+### Phase 1.6: 누락 CLI 명령어 구현 ✅
+- [x] **Domain Command 구현**
+  - [x] DomainCommand 생성
+  - [x] 섹터/산업/마켓 타입별 서브커맨드
+  - [x] JSON 출력 및 에러 처리 지원
+  - [x] SwiftYFinanceCLI에 추가
+- [x] **Custom Screener Command 구현**
+  - [x] CustomScreenerCommand 생성
+  - [x] 다양한 필터 옵션 지원 (시가총액, P/E 비율 등)
+  - [x] 복합 필터 및 범위 지정 기능
+  - [x] JSON 출력 및 에러 처리 지원
+  - [x] SwiftYFinanceCLI에 추가
 
 ### Phase 2: CLI 개선 및 최적화
 - [ ] 명령어별 성능 최적화
@@ -75,7 +77,7 @@
 
 ### Phase 3: 문서화 및 사용성 개선
 - [x] CLI README.md 전체 업데이트 (8개 명령어)
-- [ ] Domain/Custom Screener 명령어 문서 추가 (10개 명령어 완료)
+- [ ] Domain/Custom Screener 명령어 문서 추가 (10개 명령어 완료 필요)
 - [ ] 각 명령어별 상세 사용 예제 작성
 - [ ] 도움말 시스템 개선
 - [ ] 사용자 가이드 작성
@@ -120,15 +122,15 @@
 - [ ] 릴리즈 빌드 테스트
 
 ## 우선순위
-1. ✅ **QuoteSummary 명령어** - 가장 자주 사용될 것으로 예상되는 종합 정보 조회
+1. ✅ **QuoteSummary 명령어** - 가장 자주 사용될 것으로 예상되는 종합 정보 조회 완료
 2. ✅ **Domain Service** - 시장 분석에 유용한 섹터/산업 데이터 서비스 완료
 3. ✅ **Custom Screener Service** - 고급 사용자를 위한 맞춤형 스크리닝 서비스 완료
-4. 🔄 **Domain + Custom Screener CLI 명령어** - 나머지 2개 명령어 구현
+4. ✅ **Domain + Custom Screener CLI 명령어** - 모든 10개 명령어 구현 완료
 
 ## 성공 기준
 - ✅ 기존 8개 명령어 일관된 인터페이스 제공
 - ✅ 모든 10개 서비스 구현 완료 (Protocol + Struct 패턴)
-- 🔄 모든 10개 CLI 명령어에서 JSON 출력 옵션 동작
+- ✅ 모든 10개 CLI 명령어에서 JSON 출력 옵션 동작
 - ✅ 사용자 친화적 에러 처리
-- 🔄 CLI README.md에 모든 10개 명령어 문서화 완료
-- 🔄 전체 빌드 및 기본 기능 테스트 통과 (10개 명령어)
+- 🔄 CLI README.md에 모든 10개 명령어 문서화 완료 (대기중)
+- ✅ 전체 빌드 및 기본 기능 테스트 통과 (10개 명령어)

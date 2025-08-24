@@ -14,7 +14,9 @@ struct SwiftYFinanceCLI: AsyncParsableCommand {
             FundamentalsCommand.self,
             NewsCommand.self,
             OptionsCommand.self,
-            ScreeningCommand.self
+            ScreeningCommand.self,
+            DomainCommand.self,
+            CustomScreenerCommand.self
         ],
         defaultSubcommand: QuoteCommand.self
     )
