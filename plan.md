@@ -4,7 +4,7 @@
 새로 구현된 서비스들(QuoteSummary, Domain, Custom Screener)을 CLI에 추가하여 라이브러리의 모든 기능을 명령줄에서 사용할 수 있도록 함
 
 ## 현재 상태
-### 구현된 CLI 명령어 (10개) ✅
+### 구현된 CLI 명령어 (11개) ✅
 - [x] quote - 실시간 시세 조회
 - [x] quotesummary - 종합 기업 정보 (60개 모듈, 15개 편의 메서드) **NEW**
 - [x] history - 과거 데이터 조회  
@@ -15,6 +15,7 @@
 - [x] screening - 종목 스크리닝
 - [x] domain - 섹터/산업/마켓 도메인 데이터 ✅ **NEW**
 - [x] custom-screening - 맞춤형 종목 스크리닝 ✅ **NEW**
+- [x] websocket - 실시간 WebSocket 스트리밍 ✅ **NEW**
 
 ### 구현 완료 서비스 (10개) ✅
 - [x] quote - 실시간 시세 조회
@@ -29,7 +30,7 @@
 - [x] customScreener - 맞춤형 종목 스크리닝 ✅ **NEW**
 
 ### 라이브러리 커버리지
-✅ **100% 완료**: 10/10개 서비스 구현, 10/10개 CLI 명령어 구현 완료
+✅ **100% 완료**: 10/10개 서비스 구현, 11/11개 CLI 명령어 구현 완료 (WebSocket 추가)
 
 ## 구현 계획
 

@@ -292,6 +292,129 @@ swift run swiftyfinance news AAPL
 swift run swiftyfinance news AAPL --json
 ```
 
+### 9. 실시간 WebSocket 스트리밍 (websocket) 🆕
+
+```bash
+# 단일 종목 실시간 스트리밍 (30초간)
+swift run swiftyfinance websocket AAPL
+
+# 다중 종목 실시간 스트리밍
+swift run swiftyfinance websocket AAPL TSLA MSFT
+
+# 스트리밍 시간 설정 (60초간)
+swift run swiftyfinance websocket AAPL --duration 60
+
+# 암호화폐 실시간 스트리밍
+swift run swiftyfinance websocket BTC-USD ETH-USD
+
+# 디버그 모드로 실행
+swift run swiftyfinance websocket AAPL --debug
+
+# JSON 원본 응답 출력
+swift run swiftyfinance websocket AAPL TSLA --json --duration 20
+```
+
+**출력 예시:**
+```
+🔗 Connected to Yahoo Finance WebSocket
+📡 Subscribing to symbols: AAPL, TSLA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📡 Real-time Data Stream
+⏱️ Streaming for 30 seconds...
+🛑 Press Ctrl+C to stop early
+
+[14:25:31] 💫 AAPL: $225.45 | 🟢 +$2.15 (+0.96%) | Vol: 8.2M 🟢
+[14:25:32] 📈 TSLA: $180.92 | 🔴 -$1.23 (-0.67%) | Vol: 12.5M 🟢
+[14:25:33] ➡️ AAPL: $225.45 | 🟢 +$2.15 (+0.96%) | Vol: 8.2M 🟢
+[14:25:34] 📉 TSLA: $180.88 | 🔴 -$1.27 (-0.69%) | Vol: 12.6M 🟢
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 Stream Summary:
+   Messages Received: 125
+   Symbols Tracked: 2
+   Final Prices:
+   • AAPL: $225.45
+   • TSLA: $180.88
+```
+
+**주요 기능:**
+- 📡 **실시간 가격 스트리밍**: Yahoo Finance WebSocket을 통한 라이브 데이터
+- 🔄 **다중 심볼 지원**: 여러 종목 동시 모니터링
+- ⏱️ **시간 제한**: 사용자 정의 스트리밍 지속 시간
+- 📊 **가격 변화 추적**: 실시간 가격 움직임 시각적 표시
+- 🌅🌆 **시장 상태 표시**: 정규/프리/포스트 마켓 구분
+- 💎 **암호화폐 지원**: BTC-USD, ETH-USD 등 crypto 스트리밍
+
+### 10. 도메인 데이터 조회 (domain) 🆕
+
+```bash
+# 전체 섹터 데이터 조회
+swift run swiftyfinance domain --type sector
+
+# 산업 분류 데이터 조회
+swift run swiftyfinance domain --type industry
+
+# 시장 분류 데이터 조회
+swift run swiftyfinance domain --type market
+
+# JSON 원본 응답 출력
+swift run swiftyfinance domain --type sector --json
+```
+
+**출력 예시:**
+```
+🏭 Domain Data: sector
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 Available Sectors:
+  • Technology
+  • Healthcare
+  • Financial Services
+  • Consumer Cyclical
+  • Communication Services
+  • Industrials
+  • Consumer Defensive
+  • Energy
+  • Utilities
+  • Real Estate
+  • Basic Materials
+
+Found 11 sectors
+```
+
+### 11. 맞춤형 종목 스크리닝 (custom-screening) 🆕
+
+```bash
+# 시가총액 범위로 스크리닝 (1B-10B)
+swift run swiftyfinance custom-screening --market-cap "1B:10B"
+
+# P/E 비율 범위로 스크리닝 (10-20)
+swift run swiftyfinance custom-screening --pe-ratio "10:20"
+
+# 복합 조건 스크리닝
+swift run swiftyfinance custom-screening --market-cap "5B:50B" --pe-ratio "15:25"
+
+# JSON 원본 응답 출력
+swift run swiftyfinance custom-screening --market-cap "1B:10B" --json
+```
+
+**출력 예시:**
+```
+🔍 Custom Stock Screening Results
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Filters Applied:
+  📊 Market Cap: $1.0B - $10.0B
+
+Symbol Company                     Price    Market Cap  P/E
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AAPL   Apple Inc.               $225.00      $3.4T    28.5
+MSFT   Microsoft Corporation    $315.20      $2.3T    32.1
+GOOGL  Alphabet Inc.            $128.45      $1.6T    24.8
+
+Found 3 matching stocks
+```
+
 ## 옵션
 
 ### 전역 옵션
@@ -338,6 +461,22 @@ swift run swiftyfinance news AAPL --json
 - `--debug, -d`: 디버그 출력 활성화
 - `--json, -j`: 원본 JSON 응답 출력
 
+**domain**
+- `--type, -t`: 도메인 타입 (sector, industry, market)
+- `--debug, -d`: 디버그 출력 활성화
+- `--json, -j`: 원본 JSON 응답 출력
+
+**custom-screening**
+- `--market-cap`: 시가총액 범위 (예: "1B:10B", "500M:5B")
+- `--pe-ratio`: P/E 비율 범위 (예: "10:20", "15:30")
+- `--debug, -d`: 디버그 출력 활성화
+- `--json, -j`: 원본 JSON 응답 출력
+
+**websocket**
+- `--duration, -t`: 스트리밍 지속 시간 (초, 기본값: 30)
+- `--debug, -d`: 디버그 출력 활성화
+- `--json, -j`: 원본 JSON 응답 출력
+
 ## 지원되는 기간 옵션
 
 | 기간 | 설명 |
@@ -367,6 +506,9 @@ swift run swiftyfinance fundamentals MSFT --json
 swift run swiftyfinance screening day_gainers --json
 swift run swiftyfinance options AAPL --json
 swift run swiftyfinance news AAPL --json
+swift run swiftyfinance domain --type sector --json
+swift run swiftyfinance custom-screening --market-cap "1B:10B" --json
+swift run swiftyfinance websocket AAPL TSLA --json --duration 15
 ```
 
 **JSON 출력 특징:**
@@ -423,7 +565,7 @@ swift build -c release
 
 ### 테스트
 ```bash
-# 8개 명령어 기본 기능 테스트
+# 11개 명령어 기본 기능 테스트
 swift run swiftyfinance quote AAPL
 swift run swiftyfinance quotesummary AAPL --type essential
 swift run swiftyfinance history AAPL --period 1mo
@@ -432,11 +574,14 @@ swift run swiftyfinance fundamentals AAPL
 swift run swiftyfinance screening day_gainers --limit 5
 swift run swiftyfinance options AAPL
 swift run swiftyfinance news AAPL
+swift run swiftyfinance domain --type sector
+swift run swiftyfinance custom-screening --market-cap "1B:10B"
+swift run swiftyfinance websocket AAPL --duration 10
 ```
 
 ### 명령어 커버리지
-✅ **8/8 완료**: 모든 SwiftYFinance 서비스가 CLI로 구현됨
-- quote, quotesummary, history, search, fundamentals, screening, options, news
+✅ **11/11 완료**: 모든 SwiftYFinance 서비스가 CLI로 구현됨
+- quote, quotesummary, history, search, fundamentals, screening, options, news, domain, custom-screening, websocket
 
 ## 라이선스
 
