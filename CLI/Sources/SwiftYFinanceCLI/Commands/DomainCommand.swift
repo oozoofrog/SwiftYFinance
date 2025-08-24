@@ -39,8 +39,14 @@ struct DomainCommand: AsyncParsableCommand {
                 let rawData = try await fetchRawJSON(client: client)
                 print(formatJSONOutput(rawData))
             } else {
-                let domainData = try await fetchDomainData(client: client)
-                printDomainInfo(domainData)
+                switch type {
+                case .sector:
+                    let sectorData = try await fetchSectorData(client: client)
+                    printSectorInfo(sectorData)
+                case .industry, .market:
+                    let domainData = try await fetchDomainData(client: client)
+                    printDomainInfo(domainData)
+                }
             }
         } catch {
             if json {
@@ -52,18 +58,23 @@ struct DomainCommand: AsyncParsableCommand {
         }
     }
     
+    private func fetchSectorData(client: YFClient) async throws -> YFDomainSectorResponse {
+        if let sectorName = sector {
+            if let yfSector = YFSector(rawValue: sectorName) {
+                return try await client.domain.fetchSectorDetails(yfSector)
+            } else {
+                throw ValidationError("Invalid sector name: \(sectorName). Available sectors: \(YFSector.allCases.map { $0.rawValue }.joined(separator: ", "))")
+            }
+        } else {
+            return try await client.domain.fetchSectorDetails(.technology)
+        }
+    }
+    
     private func fetchDomainData(client: YFClient) async throws -> [YFDomainResult] {
         switch type {
         case .sector:
-            if let sectorName = sector {
-                if let yfSector = YFSector(rawValue: sectorName) {
-                    return try await client.domain.fetchSector(yfSector)
-                } else {
-                    throw ValidationError("Invalid sector name: \(sectorName). Available sectors: \(YFSector.allCases.map { $0.rawValue }.joined(separator: ", "))")
-                }
-            } else {
-                return try await client.domain.fetchSector(.technology)
-            }
+            // Sector uses new model, handled separately
+            return []
         case .industry:
             guard let industryKey = industry else {
                 throw ValidationError("Industry key is required when using industry type")
@@ -109,6 +120,68 @@ struct DomainCommand: AsyncParsableCommand {
             } else {
                 return try await client.domain.fetchRawJSON(market: .us)
             }
+        }
+    }
+    
+    private func printSectorInfo(_ sectorData: YFDomainSectorResponse) {
+        guard let data = sectorData.data else {
+            print("❌ No sector data available")
+            return
+        }
+        
+        print("🌐 Sector Data")
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        print("")
+        
+        if let symbol = data.symbol {
+            print("📈 Symbol: \(symbol)")
+        }
+        
+        if let key = data.key {
+            print("🏷 Sector: \(key)")
+        }
+        
+        // Performance data
+        if let performance = data.performance {
+            print("\n📊 Performance:")
+            if let ytd = performance.ytdChangePercent {
+                printPerformanceItem("YTD", value: ytd)
+            }
+            if let oneYear = performance.oneYearChangePercent {
+                printPerformanceItem("1 Year", value: oneYear)
+            }
+            if let threeYear = performance.threeYearChangePercent {
+                printPerformanceItem("3 Year", value: threeYear)
+            }
+            if let fiveYear = performance.fiveYearChangePercent {
+                printPerformanceItem("5 Year", value: fiveYear)
+            }
+        }
+        
+        // Top companies
+        if let topCompanies = data.topCompanies, !topCompanies.isEmpty {
+            print("\n🏢 Top Companies:")
+            for (index, company) in topCompanies.prefix(5).enumerated() {
+                if let name = company.name, let symbol = company.symbol {
+                    print("  \(index + 1). \(name) (\(symbol))")
+                    if let marketCap = company.marketCap, let fmt = marketCap.fmt {
+                        print("     Market Cap: \(fmt)")
+                    }
+                    if let ytdReturn = company.ytdReturn, let raw = ytdReturn.raw {
+                        let changeSymbol = raw >= 0 ? "🟢" : "🔴"
+                        print("     YTD Return: \(changeSymbol) \(formatPercent(raw * 100))%")
+                    }
+                }
+            }
+        }
+        
+        print("\n🕒 Retrieved at: \(formatTime(Date()))")
+    }
+    
+    private func printPerformanceItem(_ label: String, value: YFFormattedValue) {
+        if let raw = value.raw, let fmt = value.fmt {
+            let changeSymbol = raw >= 0 ? "🟢" : "🔴"
+            print("  \(label): \(changeSymbol) \(fmt)")
         }
     }
     
