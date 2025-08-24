@@ -354,6 +354,20 @@ extension YFSession {
         }
     }
     
+    /// POST 요청 전용 편의 메서드
+    ///
+    /// Custom Screener와 같은 POST 요청이 필요한 API에서 사용합니다.
+    /// 내부적으로 makeAuthenticatedRequest를 POST 메서드로 호출합니다.
+    ///
+    /// - Parameters:
+    ///   - url: 요청할 API URL
+    ///   - requestBody: POST 요청시 전송할 JSON 데이터
+    /// - Returns: API 응답 데이터와 URLResponse 튜플
+    /// - Throws: ``YFError`` 네트워크 오류 또는 인증 실패시
+    public func makeAuthenticatedPostRequest(url: URL, requestBody: Data) async throws -> (Data, URLResponse) {
+        return try await makeAuthenticatedRequest(url: url, method: .POST, body: requestBody)
+    }
+    
     /// 인증이 포함된 요청 수행 (재시도 로직 포함)
     private func performRequestWithAuth(url: URL, method: HTTPMethod, body: Data?) async throws -> (Data, URLResponse) {
         DebugPrint("🚀 [Session] performRequestWithAuth() 시작")

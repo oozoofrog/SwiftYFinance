@@ -1,0 +1,6 @@
+{
+  "details" : "The operation couldn’t be completed. (SwiftYFinance.YFError error 4.)",
+  "type" : "YFError",
+  "error" : true,
+  "message" : "Failed to perform custom screening"
+}

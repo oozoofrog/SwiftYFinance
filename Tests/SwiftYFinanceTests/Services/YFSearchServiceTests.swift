@@ -137,10 +137,9 @@ struct YFSearchServiceTests {
         for (term, result) in results {
             switch result {
             case .success(let searchResults):
-                if !searchResults.isEmpty {
-                    #expect(searchResults.first?.shortName.localizedCaseInsensitiveContains(term) == true, 
-                           "First result should be relevant to search term '\(term)'")
-                }
+                print(searchResults)
+                let shortNames = searchResults.map(\.shortName)
+                #expect(searchResults.first?.shortName.lowercased() == term.lowercased())
             case .failure(let error):
                 // 네트워크 에러 등은 허용하지만 기록
                 print("⚠️ Failed to search '\(term)': \(error)")

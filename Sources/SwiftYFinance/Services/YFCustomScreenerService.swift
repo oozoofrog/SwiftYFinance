@@ -138,8 +138,8 @@ public struct YFCustomScreenerService: YFService {
         let url = try await builder.build()
         let requestBody = try builder.getRequestBody()
         
-        // POST 요청으로 Raw JSON 데이터 조회
-        return try await performCustomScreenerHTTPRequest(url: url, requestBody: requestBody)
+        // YFService 공통 POST 메서드 사용 (인증 필요)
+        return try await performPostFetchRawJSON(url: url, requestBody: requestBody, serviceName: "Custom Screener")
     }
     
     /// 커스텀 스크리너 타입 요청
@@ -150,39 +150,8 @@ public struct YFCustomScreenerService: YFService {
         let url = try await builder.build()
         let requestBody = try builder.getRequestBody()
         
-        // POST 요청으로 타입 파싱된 데이터 조회
-        let data = try await performCustomScreenerHTTPRequest(url: url, requestBody: requestBody)
-        
-        // JSON 파싱
-        let decoder = JSONDecoder()
-        return try decoder.decode(type, from: data)
+        // YFService 공통 POST 메서드 사용 (인증 필요)
+        return try await performPostFetch(url: url, requestBody: requestBody, type: type, serviceName: "Custom Screener")
     }
     
-    /// HTTP POST 요청 수행
-    private func performCustomScreenerHTTPRequest(url: URL, requestBody: Data) async throws -> Data {
-        // CSRF 인증 시도
-        await ensureCSRFAuthentication()
-        
-        // URLRequest 구성
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.httpBody = requestBody
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        // 인증된 세션으로 요청 수행
-        let (data, response) = try await client.session.urlSession.data(for: request)
-        
-        // HTTP 상태 확인
-        if let httpResponse = response as? HTTPURLResponse {
-            DebugPrint("📊 [CustomScreener] HTTP 상태: \(httpResponse.statusCode)")
-            guard 200...299 ~= httpResponse.statusCode else {
-                throw YFError.httpError(statusCode: httpResponse.statusCode)
-            }
-        }
-        
-        // API 응답 로깅
-        logAPIResponse(data, serviceName: "Custom Screener")
-        
-        return data
-    }
 }

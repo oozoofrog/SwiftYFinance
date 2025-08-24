@@ -100,6 +100,89 @@ public struct YFServiceCore: Sendable {
         throw lastError ?? YFError.apiError("Request failed after \(maxRetryAttempts) attempts")
     }
     
+    /// 인증된 POST 요청을 수행합니다 (재시도 로직 포함)
+    ///
+    /// Yahoo Finance Custom Screener와 같은 POST 요청이 필요한 API에서 사용합니다.
+    /// 401/403 오류 시 자동으로 재시도하며, CSRF 인증을 포함한 모든 헤더를 설정합니다.
+    ///
+    /// - Parameters:
+    ///   - url: 요청할 URL
+    ///   - requestBody: POST 요청 바디 데이터
+    /// - Returns: 응답 데이터와 URLResponse 튜플
+    /// - Throws: 네트워크 오류나 인증 실패 시 YFError
+    public func authenticatedPostRequest(url: URL, requestBody: Data) async throws -> (Data, URLResponse) {
+        DebugPrint("🚀 [ServiceCore] authenticatedPostRequest() 시작")
+        DebugPrint("🌐 [ServiceCore] 요청 URL: \(url)")
+        DebugPrint("📦 [ServiceCore] 요청 바디 크기: \(requestBody.count) bytes")
+        
+        var lastError: Error?
+        
+        // 재시도 로직
+        for attempt in 0..<maxRetryAttempts {
+            DebugPrint("🔄 [ServiceCore] 시도 \(attempt + 1)/\(maxRetryAttempts)")
+            do {
+                // 인증된 POST 요청 수행
+                DebugPrint("📡 [ServiceCore] makeAuthenticatedPostRequest() 호출...")
+                let (data, response) = try await client.session.makeAuthenticatedPostRequest(url: url, requestBody: requestBody)
+                DebugPrint("✅ [ServiceCore] makeAuthenticatedPostRequest() 완료, 데이터 크기: \(data.count) bytes")
+                
+                // HTTP 응답 검증
+                if let httpResponse = response as? HTTPURLResponse {
+                    DebugPrint("🔍 [ServiceCore] HTTP 응답 상태: \(httpResponse.statusCode)")
+                    if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
+                        DebugPrint("❌ [ServiceCore] 인증 오류 감지: \(httpResponse.statusCode)")
+                        // 인증 오류시 재시도 (첫 번째 시도에서만)
+                        if attempt == 0 {
+                            DebugPrint("🔄 [ServiceCore] 첫 번째 시도, 재시도 예정...")
+                            lastError = YFError.apiError("Authentication failed, retrying...")
+                            continue
+                        } else {
+                            DebugPrint("❌ [ServiceCore] 최대 재시도 횟수 초과, 실패")
+                            throw YFError.apiError("Authentication failed after \(maxRetryAttempts) attempts")
+                        }
+                    } else if httpResponse.statusCode != 200 {
+                        DebugPrint("❌ [ServiceCore] 비정상 상태 코드: \(httpResponse.statusCode)")
+                        throw YFError.networkErrorWithMessage("HTTP \(httpResponse.statusCode)")
+                    } else {
+                        DebugPrint("✅ [ServiceCore] HTTP 200 OK 응답")
+                    }
+                } else {
+                    DebugPrint("⚠️ [ServiceCore] HTTP 응답이 아닌 응답 타입")
+                }
+                
+                // 성공적으로 응답을 받은 경우
+                DebugPrint("✅ [ServiceCore] authenticatedPostRequest() 성공")
+                return (data, response)
+                
+            } catch {
+                DebugPrint("❌ [ServiceCore] 시도 \(attempt + 1) 중 예외 발생: \(error)")
+                lastError = error
+                
+                // 인증 관련 에러가 아닌 경우 바로 재시도하지 않고 에러 던지기
+                if let yfError = error as? YFError,
+                   case .networkErrorWithMessage(let message) = yfError,
+                   !message.contains("401") && !message.contains("403") {
+                    DebugPrint("❌ [ServiceCore] 비인증 관련 네트워크 오류, 즉시 실패: \(message)")
+                    throw error
+                } else {
+                    DebugPrint("⚠️ [ServiceCore] 재시도 가능한 오류: \(error)")
+                }
+                
+                // 마지막 시도에서 실패한 경우 에러 던지기
+                if attempt == maxRetryAttempts - 1 {
+                    DebugPrint("❌ [ServiceCore] 마지막 시도 실패")
+                    throw error
+                } else {
+                    DebugPrint("🔄 [ServiceCore] 다음 시도 준비 중...")
+                }
+            }
+        }
+        
+        // 모든 재시도가 실패한 경우
+        DebugPrint("❌ [ServiceCore] 모든 재시도 실패, 최종 오류: \(lastError?.localizedDescription ?? "Unknown error")")
+        throw lastError ?? YFError.apiError("Request failed after \(maxRetryAttempts) attempts")
+    }
+    
     /// JSON 응답을 파싱합니다
     ///
     /// 공통 JSON 파싱 로직을 제공하며, 파싱 실패 시 명확한 에러 메시지를 제공합니다.

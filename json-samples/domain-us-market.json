@@ -1,0 +1,6 @@
+{
+  "error" : true,
+  "message" : "Failed to fetch domain data",
+  "details" : "The operation couldn’t be completed. (SwiftYFinance.YFError error 2.)",
+  "type" : "YFError"
+}

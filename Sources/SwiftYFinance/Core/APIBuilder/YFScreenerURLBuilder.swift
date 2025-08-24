@@ -144,6 +144,8 @@ extension YFAPIURLBuilder {
         public func query(_ query: YFScreenerQuery) -> CustomScreenerBuilder {
             var newBody = requestBody
             newBody["query"] = query.toDictionary()
+            // Python yfinance와 동일하게 quoteType 필드 추가 (line 197 in screener.py)
+            newBody["quoteType"] = "EQUITY"
             return CustomScreenerBuilder(session: session, query: query, requestBody: newBody)
         }
         

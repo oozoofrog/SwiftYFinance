@@ -59,9 +59,12 @@ public struct YFDomainService: YFService {
         return try await performFetchRawJSON(url: url, serviceName: "Domain")
     }
     
-    /// 특정 섹터 데이터 조회
+    /// 특정 섹터 데이터 조회 (레거시)
     ///
     /// Yahoo Finance에서 제공하는 특정 섹터의 시장 데이터를 조회합니다.
+    /// 
+    /// **참고**: 이 메서드는 레거시 지원용입니다. 실제 API 응답과 다를 수 있습니다.
+    /// 정확한 섹터 데이터를 위해서는 `fetchSectorDetails()` 메서드를 사용하세요.
     ///
     /// - Parameter sector: 조회할 섹터 (기본값: technology)
     /// - Returns: 섹터 데이터 배열
@@ -71,6 +74,7 @@ public struct YFDomainService: YFService {
         let domainResponse = try await performFetch(url: url, type: YFDomainResponse.self, serviceName: "Domain")
         return domainResponse.finance?.result ?? []
     }
+    
     
     /// 특정 산업 데이터 조회
     ///
