@@ -103,6 +103,16 @@ public struct YFClient: Sendable {
         YFQuoteSummaryService(client: self)
     }
     
+    /// Domain API 서비스 (섹터/산업/마켓 도메인 데이터)
+    public var domain: YFDomainService {
+        YFDomainService(client: self)
+    }
+    
+    /// Custom Screener API 서비스 (맞춤형 종목 스크리닝)
+    public var customScreener: YFCustomScreenerService {
+        YFCustomScreenerService(client: self)
+    }
+    
 }
 
 // 실제 Yahoo Finance Chart API 응답 구조에 맞춘 구조체들

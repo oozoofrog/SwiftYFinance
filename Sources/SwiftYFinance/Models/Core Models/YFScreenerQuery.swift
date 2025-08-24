@@ -249,4 +249,62 @@ extension YFScreenerQuery {
     public static var lowPE: YFScreenerQuery {
         return .lte(Field.peRatio, 15.0)
     }
+    
+    /// 시가총액 범위 쿼리
+    public static func marketCapRange(min: Double, max: Double) -> YFScreenerQuery {
+        return .between(Field.marketCap, min: min, max: max)
+    }
+    
+    /// P/E 비율 범위 쿼리
+    public static func peRatioRange(min: Double, max: Double) -> YFScreenerQuery {
+        return .between(Field.peRatio, min: min, max: max)
+    }
+    
+    /// 수익률 범위 쿼리
+    public static func returnRange(min: Double, max: Double) -> YFScreenerQuery {
+        return .between(Field.percentChange, min: min, max: max)
+    }
+    
+    /// 복합 조건 쿼리
+    public static func multipleConditions(_ conditions: [YFScreenerCondition]) -> YFScreenerQuery {
+        let queries = conditions.map { $0.toQuery() }
+        return .and(queries)
+    }
+}
+
+// MARK: - Screener Condition
+
+/// 스크리너 조건 정의
+public struct YFScreenerCondition: Sendable {
+    public let field: String
+    public let `operator`: YFScreenerOperator
+    public let value: YFScreenerValue
+    
+    public init(field: String, operator: YFScreenerOperator, value: YFScreenerValue) {
+        self.field = field
+        self.`operator` = `operator`
+        self.value = value
+    }
+    
+    /// YFScreenerQuery로 변환
+    public func toQuery() -> YFScreenerQuery {
+        return YFScreenerQuery(operator: `operator`, field: field, value: value)
+    }
+    
+    /// 편의 생성 메서드들
+    public static func marketCap(min: Double, max: Double) -> YFScreenerCondition {
+        return YFScreenerCondition(field: YFScreenerQuery.Field.marketCap, operator: .between, value: .double(min))
+    }
+    
+    public static func peRatio(min: Double, max: Double) -> YFScreenerCondition {
+        return YFScreenerCondition(field: YFScreenerQuery.Field.peRatio, operator: .between, value: .double(min))
+    }
+    
+    public static func sector(_ sector: String) -> YFScreenerCondition {
+        return YFScreenerCondition(field: YFScreenerQuery.Field.sector, operator: .eq, value: .string(sector))
+    }
+    
+    public static func volume(min: Double) -> YFScreenerCondition {
+        return YFScreenerCondition(field: YFScreenerQuery.Field.volume, operator: .gte, value: .double(min))
+    }
 }

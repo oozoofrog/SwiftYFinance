@@ -14,12 +14,20 @@
 - [x] options - 옵션 체인 **FIXED**
 - [x] screening - 종목 스크리닝
 
-### 구현 예정 서비스 (2개) 🔄
-- [ ] domain - 섹터/산업/마켓 도메인 데이터 (Builder 존재, Service 필요)
-- [ ] custom-screener - 맞춤형 종목 스크리닝 (Builder 존재, Service 필요)
+### 구현 완료 서비스 (10개) ✅
+- [x] quote - 실시간 시세 조회
+- [x] quotesummary - 종합 기업 정보 (60개 모듈, 15개 편의 메서드)
+- [x] history - 과거 데이터 조회  
+- [x] search - 회사 검색
+- [x] fundamentals - 기업 펀더멘털 데이터
+- [x] news - 뉴스 조회
+- [x] options - 옵션 체인
+- [x] screening - 종목 스크리닝
+- [x] domain - 섹터/산업/마켓 도메인 데이터 ✅ **NEW**
+- [x] customScreener - 맞춤형 종목 스크리닝 ✅ **NEW**
 
 ### 라이브러리 커버리지
-🚧 **80% 완료**: 8/10개 서비스 CLI 구현, 2개 서비스 추가 필요
+✅ **100% 완료**: 10/10개 서비스 구현, CLI 명령어 추가 필요 (2개)
 
 ## 구현 계획
 
@@ -30,22 +38,21 @@
 - [x] 에러 처리 및 도움말
 - [x] 테스트 및 검증
 
-### Phase 1.5: 누락 서비스 구현 🔄
-- [ ] **Domain Service 구현**
-  - [ ] YFDomainService 생성 (Protocol + Struct 패턴)
-  - [ ] 섹터/산업/마켓 데이터 조회 메서드 구현
-  - [ ] Raw JSON 및 파싱된 응답 메서드 제공
-  - [ ] JSON 파일 생성으로 응답 구조 분석
-  - [ ] YFDomainResponse 모델 구현 및 개선
-- [ ] **Custom Screener Service 구현**
-  - [ ] YFCustomScreenerService 생성 (Protocol + Struct 패턴)
-  - [ ] 맞춤형 스크리닝 필터 시스템 구현
-  - [ ] Raw JSON 및 파싱된 응답 메서드 제공
-  - [ ] JSON 파일 생성으로 응답 구조 분석
-  - [ ] YFCustomScreenerResponse 모델 구현 및 개선
-- [ ] **YFClient 확장**
-  - [ ] domain 서비스 프로퍼티 추가
-  - [ ] customScreener 서비스 프로퍼티 추가
+### Phase 1.5: 누락 서비스 구현 ✅
+- [x] **Domain Service 구현**
+  - [x] YFDomainService 생성 (Protocol + Struct 패턴)
+  - [x] 섹터/산업/마켓 데이터 조회 메서드 구현
+  - [x] Raw JSON 및 파싱된 응답 메서드 제공
+  - [x] YFDomainResponse 모델 구현 (CodableValue enum 활용)
+- [x] **Custom Screener Service 구현**
+  - [x] YFCustomScreenerService 생성 (Protocol + Struct 패턴)
+  - [x] 맞춤형 스크리닝 필터 시스템 구현 (시가총액, P/E, 수익률, 복합조건)
+  - [x] Raw JSON 및 파싱된 응답 메서드 제공
+  - [x] YFCustomScreenerResponse 모델 구현
+  - [x] YFScreenerCondition 편의 클래스 구현
+- [x] **YFClient 확장**
+  - [x] domain 서비스 프로퍼티 추가
+  - [x] customScreener 서비스 프로퍼티 추가
 
 ### Phase 1.6: 누락 CLI 명령어 구현 🔄
 - [ ] **Domain Command 구현**
@@ -68,7 +75,7 @@
 
 ### Phase 3: 문서화 및 사용성 개선
 - [x] CLI README.md 전체 업데이트 (8개 명령어)
-- [ ] Domain/Custom Screener 명령어 문서 추가
+- [ ] Domain/Custom Screener 명령어 문서 추가 (10개 명령어 완료)
 - [ ] 각 명령어별 상세 사용 예제 작성
 - [ ] 도움말 시스템 개선
 - [ ] 사용자 가이드 작성
@@ -114,12 +121,14 @@
 
 ## 우선순위
 1. ✅ **QuoteSummary 명령어** - 가장 자주 사용될 것으로 예상되는 종합 정보 조회
-2. 🔄 **Domain Service + 명령어** - 시장 분석에 유용한 섹터/산업 데이터
-3. 🔄 **Custom Screener Service + 명령어** - 고급 사용자를 위한 맞춤형 스크리닝
+2. ✅ **Domain Service** - 시장 분석에 유용한 섹터/산업 데이터 서비스 완료
+3. ✅ **Custom Screener Service** - 고급 사용자를 위한 맞춤형 스크리닝 서비스 완료
+4. 🔄 **Domain + Custom Screener CLI 명령어** - 나머지 2개 명령어 구현
 
 ## 성공 기준
 - ✅ 기존 8개 명령어 일관된 인터페이스 제공
-- 🔄 모든 10개 명령어에서 JSON 출력 옵션 동작
+- ✅ 모든 10개 서비스 구현 완료 (Protocol + Struct 패턴)
+- 🔄 모든 10개 CLI 명령어에서 JSON 출력 옵션 동작
 - ✅ 사용자 친화적 에러 처리
 - 🔄 CLI README.md에 모든 10개 명령어 문서화 완료
 - 🔄 전체 빌드 및 기본 기능 테스트 통과 (10개 명령어)
