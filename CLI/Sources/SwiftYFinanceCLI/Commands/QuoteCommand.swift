@@ -45,15 +45,15 @@ struct QuoteCommand: AsyncParsableCommand {
     }
     
     private func printQuoteInfo(_ quote: YFQuote) {
-        let symbol = quote.symbol ?? "N/A"
-        let shortName = quote.shortName ?? "Unknown"
+        let symbol = quote.basicInfo.symbol ?? "N/A"
+        let shortName = quote.basicInfo.shortName ?? "Unknown"
         
         print("📈 \(symbol) - \(shortName)")
         print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         
         // Current price with change
-        let currentPrice = quote.regularMarketPrice ?? 0
-        let previousClose = quote.regularMarketPreviousClose ?? 0
+        let currentPrice = quote.marketData.regularMarketPrice ?? 0
+        let previousClose = quote.marketData.regularMarketPreviousClose ?? 0
         let change = currentPrice - previousClose
         let changePercent = previousClose > 0 ? (change / previousClose) * 100 : 0
         let changeSymbol = change >= 0 ? "🟢" : "🔴"
@@ -65,16 +65,16 @@ struct QuoteCommand: AsyncParsableCommand {
         print("")
         
         // Market data
-        print("Open:             $\(formatPrice(quote.regularMarketOpen ?? 0))")
-        print("High:             $\(formatPrice(quote.regularMarketDayHigh ?? 0))")
-        print("Low:              $\(formatPrice(quote.regularMarketDayLow ?? 0))")
-        print("Volume:           \(formatVolume(quote.regularMarketVolume ?? 0))")
-        print("Market Cap:       $\(formatLargeNumber(quote.marketCap ?? 0))")
+        print("Open:             $\(formatPrice(quote.marketData.regularMarketOpen ?? 0))")
+        print("High:             $\(formatPrice(quote.marketData.regularMarketDayHigh ?? 0))")
+        print("Low:              $\(formatPrice(quote.marketData.regularMarketDayLow ?? 0))")
+        print("Volume:           \(formatVolume(quote.volumeInfo.regularMarketVolume ?? 0))")
+        print("Market Cap:       $\(formatLargeNumber(quote.volumeInfo.marketCap ?? 0))")
         
         // After-hours trading if available
-        if let postPrice = quote.postMarketPrice,
-           let postTimeStamp = quote.postMarketTime,
-           let postChangePercent = quote.postMarketChangePercent {
+        if let postPrice = quote.extendedHours.postMarketPrice,
+           let postTimeStamp = quote.extendedHours.postMarketTime,
+           let postChangePercent = quote.extendedHours.postMarketChangePercent {
             print("")
             print("After Hours Trading:")
             print("Price:            $\(formatPrice(postPrice))")
@@ -83,9 +83,9 @@ struct QuoteCommand: AsyncParsableCommand {
         }
         
         // Pre-market trading if available
-        if let prePrice = quote.preMarketPrice,
-           let preTimeStamp = quote.preMarketTime,
-           let preChangePercent = quote.preMarketChangePercent {
+        if let prePrice = quote.extendedHours.preMarketPrice,
+           let preTimeStamp = quote.extendedHours.preMarketTime,
+           let preChangePercent = quote.extendedHours.preMarketChangePercent {
             print("")
             print("Pre-Market Trading:")
             print("Price:            $\(formatPrice(prePrice))")
@@ -94,7 +94,7 @@ struct QuoteCommand: AsyncParsableCommand {
         }
         
         print("")
-        if let timeStamp = quote.regularMarketTime {
+        if let timeStamp = quote.metadata.regularMarketTime {
             print("Last Updated:     \(formatTime(Date(timeIntervalSince1970: TimeInterval(timeStamp))))")
         }
     }

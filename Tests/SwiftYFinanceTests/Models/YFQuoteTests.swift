@@ -10,11 +10,11 @@ struct QuoteDataTests {
         
         let quote = try await client.quote.fetch(ticker: ticker)
         
-        #expect(quote.symbol == "AAPL")
-        #expect((quote.regularMarketPrice ?? 0) > 0)
-        #expect((quote.regularMarketVolume ?? 0) > 0)
-        #expect((quote.marketCap ?? 0) > 0)
-        #expect(!(quote.shortName ?? "").isEmpty)
+        #expect(quote.basicInfo.symbol == "AAPL")
+        #expect((quote.marketData.regularMarketPrice ?? 0) > 0)
+        #expect((quote.volumeInfo.regularMarketVolume ?? 0) > 0)
+        #expect((quote.volumeInfo.marketCap ?? 0) > 0)
+        #expect(!(quote.basicInfo.shortName ?? "").isEmpty)
     }
     
     @Test
@@ -24,11 +24,11 @@ struct QuoteDataTests {
         
         let quote = try await client.quote.fetch(ticker: ticker)
         
-        #expect(quote.symbol == "TSLA")
-        #expect((quote.regularMarketPrice ?? 0) > 0)
+        #expect(quote.basicInfo.symbol == "TSLA")
+        #expect((quote.marketData.regularMarketPrice ?? 0) > 0)
         
         // 시장 시간 데이터 유효성 검증 (과거 데이터일 수 있으므로 현재 시간과 비교하지 않음)
-        if let marketTime = quote.regularMarketTime {
+        if let marketTime = quote.metadata.regularMarketTime {
             let marketDate = Date(timeIntervalSince1970: TimeInterval(marketTime))
             #expect(marketDate > Date(timeIntervalSince1970: 0)) // 유효한 타임스탬프
         }
@@ -41,20 +41,20 @@ struct QuoteDataTests {
         
         let quote = try await client.quote.fetch(ticker: ticker)
         
-        #expect(quote.symbol == "NVDA")
-        #expect((quote.regularMarketPrice ?? 0) > 0)
+        #expect(quote.basicInfo.symbol == "NVDA")
+        #expect((quote.marketData.regularMarketPrice ?? 0) > 0)
         
         // 시간외 거래 데이터 확인
-        if let afterHoursPrice = quote.postMarketPrice {
+        if let afterHoursPrice = quote.extendedHours.postMarketPrice {
             #expect(afterHoursPrice > 0)
-            #expect(quote.postMarketTime != nil)
-            #expect(quote.postMarketChangePercent != nil)
+            #expect(quote.extendedHours.postMarketTime != nil)
+            #expect(quote.extendedHours.postMarketChangePercent != nil)
         }
         
-        if let preMarketPrice = quote.preMarketPrice {
+        if let preMarketPrice = quote.extendedHours.preMarketPrice {
             #expect(preMarketPrice > 0)
-            #expect(quote.preMarketTime != nil)
-            #expect(quote.preMarketChangePercent != nil)
+            #expect(quote.extendedHours.preMarketTime != nil)
+            #expect(quote.extendedHours.preMarketChangePercent != nil)
         }
     }
 }

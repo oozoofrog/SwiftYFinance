@@ -56,7 +56,7 @@ public struct YFResponseParser: Sendable {
     ///
     /// do {
     ///     let quote = try parser.parse(jsonData, type: YFQuote.self)
-    ///     print("현재 가격: \(quote.regularMarketPrice)")
+    ///     print("현재 가격: \(quote.marketData.regularMarketPrice)")
     /// } catch {
     ///     print("파싱 실패: \(error)")
     /// }

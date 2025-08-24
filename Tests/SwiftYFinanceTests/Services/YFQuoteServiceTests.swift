@@ -17,8 +17,8 @@ struct YFQuoteServiceTests {
             let quote = try await service.fetch(ticker: invalidTicker)
             // 무효한 심볼도 성공할 수 있음 (Yahoo API 특성)
             // 하지만 실제 데이터는 없거나 최소한이어야 함
-            let hasValidPrice = (quote.regularMarketPrice ?? 0) > 0
-            let hasValidName = !(quote.shortName ?? "").isEmpty
+            let hasValidPrice = (quote.marketData.regularMarketPrice ?? 0) > 0
+            let hasValidName = !(quote.basicInfo.shortName ?? "").isEmpty
             let hasValidData = hasValidPrice || hasValidName
             
             // 무효한 심볼은 유의미한 데이터가 없어야 함
@@ -39,7 +39,7 @@ struct YFQuoteServiceTests {
         let quote = try await client.quote.fetch(ticker: ticker)
         
         // Then
-        #expect(quote.symbol == "MSFT")
+        #expect(quote.basicInfo.symbol == "MSFT")
     }
     
 }

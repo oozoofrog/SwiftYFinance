@@ -204,7 +204,7 @@ struct YFQuoteSummaryServiceTests {
         let comprehensiveData = try await quoteSummaryClient.quoteSummary.fetchEssential(ticker: testTicker)
         
         // 둘 다 정상 동작 확인
-        #expect(simpleQuote.regularMarketPrice != nil)
+        #expect(simpleQuote.marketData.regularMarketPrice != nil)
         #expect(comprehensiveData.result != nil)
         #expect(comprehensiveData.error == nil)
         
@@ -214,17 +214,17 @@ struct YFQuoteSummaryServiceTests {
         // 티커 일치 확인 - 같은 종목에 대한 데이터인지 검증
         if let quoteSummaryResult = comprehensiveData.result?.first {
             if let priceModule = quoteSummaryResult.price {
-                #expect(simpleQuote.basicInfo.symbol == priceModule.symbol, "Quote와 QuoteSummary의 심볼이 일치해야 함")
+                #expect(simpleQuote.basicInfo.symbol == priceModule.basicInfo.symbol, "Quote와 QuoteSummary의 심볼이 일치해야 함")
                 
                 // 기본 가격 정보 일치 여부 확인 (소수점 차이 허용)
                 if let quotePrice = simpleQuote.marketData.regularMarketPrice,
-                   let summaryPrice = priceModule.regularMarketPrice {
+                   let summaryPrice = priceModule.marketData.regularMarketPrice {
                     let priceDiff = abs(quotePrice - summaryPrice)
                     #expect(priceDiff < 1.0, "Quote와 QuoteSummary의 현재가가 유사해야 함 (차이: \(priceDiff))")
                 }
                 
                 // 통화 정보 일치 확인
-                #expect(simpleQuote.exchangeInfo.currency == priceModule.currency, "Quote와 QuoteSummary의 통화가 일치해야 함")
+                #expect(simpleQuote.exchangeInfo.currency == priceModule.exchangeInfo.currency, "Quote와 QuoteSummary의 통화가 일치해야 함")
             }
         }
         
@@ -236,8 +236,8 @@ struct YFQuoteSummaryServiceTests {
         print("📈 Quote Summary 서비스: 종합적인 기업 정보")
         print("📊 결과 수: \(comprehensiveData.result?.count ?? 0)")
         if let result = comprehensiveData.result?.first?.price {
-            print("💰 현재가: \(result.regularMarketPrice ?? 0)")
-            print("🏷️ 심볼: \(result.symbol ?? "N/A")")
+            print("💰 현재가: \(result.marketData.regularMarketPrice ?? 0)")
+            print("🏷️ 심볼: \(result.basicInfo.symbol ?? "N/A")")
         }
     }
     
@@ -274,7 +274,7 @@ struct YFQuoteSummaryServiceTests {
                 #expect(statusCode == 404, "잘못된 심볼에 대해서는 404 상태코드가 반환되어야 함")
             } else {
                 // 다른 종류의 에러도 유효함 (API 제한, 네트워크 에러 등)
-                #expect(true, "잘못된 심볼에 대해 적절한 에러가 발생함: \(error)")
+                #expect(Bool(true), "잘못된 심볼에 대해 적절한 에러가 발생함: \(error)")
             }
         }
     }

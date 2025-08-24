@@ -19,7 +19,7 @@ import Foundation
 /// 
 /// // 시세 조회 (서비스 기반)
 /// let quote = try await client.quote.fetch(ticker: ticker)
-/// print("현재가: \(quote.regularMarketPrice)")
+/// print("현재가: \(quote.marketData.regularMarketPrice)")
 /// 
 /// // 과거 데이터 조회
 /// let history = try await client.history.fetch(ticker: ticker, period: .oneYear)

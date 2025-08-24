@@ -488,65 +488,6 @@ public struct YFQuote: Decodable, Sendable {
     }
 }
 
-// MARK: - Convenience Extensions
-
-extension YFQuote {
-    /// 기존 YFQuote와 완전히 동일한 인터페이스를 제공하는 편의 프로퍼티들
-    
-    // MARK: - 기본 종목 정보
-    public var symbol: String? { basicInfo.symbol }
-    public var longName: String? { basicInfo.longName }
-    public var shortName: String? { basicInfo.shortName }
-    public var quoteType: String? { basicInfo.quoteType }
-    public var underlyingSymbol: String? { basicInfo.underlyingSymbol }
-    
-    // MARK: - 거래소 정보
-    public var exchange: String? { exchangeInfo.exchange }
-    public var exchangeName: String? { exchangeInfo.exchangeName }
-    public var exchangeDataDelayedBy: Int? { exchangeInfo.exchangeDataDelayedBy }
-    public var currency: String? { exchangeInfo.currency }
-    public var currencySymbol: String? { exchangeInfo.currencySymbol }
-    public var fromCurrency: String? { exchangeInfo.fromCurrency }
-    public var toCurrency: String? { exchangeInfo.toCurrency }
-    
-    // MARK: - 현재 시세 정보
-    public var regularMarketPrice: Double? { marketData.regularMarketPrice }
-    public var regularMarketOpen: Double? { marketData.regularMarketOpen }
-    public var regularMarketDayHigh: Double? { marketData.regularMarketDayHigh }
-    public var regularMarketDayLow: Double? { marketData.regularMarketDayLow }
-    public var regularMarketPreviousClose: Double? { marketData.regularMarketPreviousClose }
-    public var regularMarketChange: Double? { marketData.regularMarketChange }
-    public var regularMarketChangePercent: Double? { marketData.regularMarketChangePercent }
-    
-    // MARK: - 거래량 및 시장 정보
-    public var regularMarketVolume: Int? { volumeInfo.regularMarketVolume }
-    public var averageDailyVolume3Month: Int? { volumeInfo.averageDailyVolume3Month }
-    public var averageDailyVolume10Day: Int? { volumeInfo.averageDailyVolume10Day }
-    public var marketCap: Double? { volumeInfo.marketCap }
-    public var marketState: String? { volumeInfo.marketState }
-    
-    // MARK: - 장전 거래 정보
-    public var preMarketPrice: Double? { extendedHours.preMarketPrice }
-    public var preMarketChange: Double? { extendedHours.preMarketChange }
-    public var preMarketChangePercent: Double? { extendedHours.preMarketChangePercent }
-    public var preMarketTime: Int? { extendedHours.preMarketTime }
-    public var preMarketSource: String? { extendedHours.preMarketSource }
-    
-    // MARK: - 장후 거래 정보
-    public var postMarketPrice: Double? { extendedHours.postMarketPrice }
-    public var postMarketChange: Double? { extendedHours.postMarketChange }
-    public var postMarketChangePercent: Double? { extendedHours.postMarketChangePercent }
-    public var postMarketTime: Int? { extendedHours.postMarketTime }
-    public var postMarketSource: String? { extendedHours.postMarketSource }
-    
-    // MARK: - 시간 및 메타데이터
-    public var regularMarketTime: Int? { metadata.regularMarketTime }
-    public var maxAge: Int? { metadata.maxAge }
-    public var quoteSourceName: String? { metadata.quoteSourceName }
-    public var regularMarketSource: String? { metadata.regularMarketSource }
-    public var lastMarket: String? { metadata.lastMarket }
-    public var priceHint: Int? { metadata.priceHint }
-}
 
 // MARK: - YFQuote Utility Extensions
 
@@ -554,47 +495,47 @@ extension YFQuote {
     /// 시세 데이터만 필요한 경우의 간소화된 표현
     public var essentialData: (symbol: String?, price: Double?, change: Double?, changePercent: Double?) {
         return (
-            symbol: symbol,
-            price: regularMarketPrice,
-            change: regularMarketChange,
-            changePercent: regularMarketChangePercent
+            symbol: basicInfo.symbol,
+            price: marketData.regularMarketPrice,
+            change: marketData.regularMarketChange,
+            changePercent: marketData.regularMarketChangePercent
         )
     }
     
     /// 시장 상태를 기반으로 한 적절한 가격 정보 반환
     public var currentPrice: Double? {
-        switch marketState {
+        switch volumeInfo.marketState {
         case "PRE":
-            return preMarketPrice ?? regularMarketPrice
+            return extendedHours.preMarketPrice ?? marketData.regularMarketPrice
         case "POST":
-            return postMarketPrice ?? regularMarketPrice
+            return extendedHours.postMarketPrice ?? marketData.regularMarketPrice
         default:
-            return regularMarketPrice
+            return marketData.regularMarketPrice
         }
     }
     
     /// 현재 시세의 전일 대비 변동률 (시간외 거래 포함)
     public var currentChangePercent: Double? {
-        switch marketState {
+        switch volumeInfo.marketState {
         case "PRE":
-            return preMarketChangePercent ?? regularMarketChangePercent
+            return extendedHours.preMarketChangePercent ?? marketData.regularMarketChangePercent
         case "POST":
-            return postMarketChangePercent ?? regularMarketChangePercent
+            return extendedHours.postMarketChangePercent ?? marketData.regularMarketChangePercent
         default:
-            return regularMarketChangePercent
+            return marketData.regularMarketChangePercent
         }
     }
     
     /// 시장 상태에 맞는 마지막 업데이트 시간
     public var lastUpdateTime: Date? {
         let timestamp: Int?
-        switch marketState {
+        switch volumeInfo.marketState {
         case "PRE":
-            timestamp = preMarketTime ?? regularMarketTime
+            timestamp = extendedHours.preMarketTime ?? metadata.regularMarketTime
         case "POST":
-            timestamp = postMarketTime ?? regularMarketTime
+            timestamp = extendedHours.postMarketTime ?? metadata.regularMarketTime
         default:
-            timestamp = regularMarketTime
+            timestamp = metadata.regularMarketTime
         }
         
         guard let timestamp = timestamp else { return nil }
