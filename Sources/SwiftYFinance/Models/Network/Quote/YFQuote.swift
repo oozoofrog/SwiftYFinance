@@ -2,158 +2,25 @@ import Foundation
 
 // MARK: - Yahoo Finance Quote Models
 
-/**
- # Yahoo Finance Quote API Models
- 
- Yahoo Finance quoteSummary API의 실시간 주식 시세 데이터를 나타내는 모델 집합입니다.
- 
- ## 개요
- 
- 이 파일은 Yahoo Finance의 quoteSummary API 응답을 파싱하기 위한 Swift 구조체들을 정의합니다.
- 모든 필드는 Yahoo Finance API의 원본 응답과 1:1 매칭되며, 데이터 변환이나 필터링 없이 
- 직접 노출됩니다.
- 
- ## 주요 특징
- 
- - **완전한 API 호환성**: Yahoo Finance API의 모든 필드를 그대로 노출
- - **Optional 처리**: API 응답에서 누락될 수 있는 필드들을 안전하게 처리
- - **Sendable 준수**: 멀티스레딩 환경에서 안전한 데이터 전송 보장
- - **타입 안전성**: Swift의 강타입 시스템을 활용한 안전한 데이터 접근
- 
- ## 사용 예제
- 
- ```swift
- let client = YFClient()
- let ticker = YFTicker(symbol: "AAPL")
- 
- do {
-     let quote = try await client.quote.fetch(ticker: ticker)
-     
-     // 기본 가격 정보 접근
-     if let price = quote.regularMarketPrice {
-         print("현재가: $\(price)")
-     }
-     
-     // 회사 정보 접근
-     if let companyName = quote.longName {
-         print("회사명: \(companyName)")
-     }
-     
-     // 시장 상태 확인
-     if let marketState = quote.marketState {
-         print("시장 상태: \(marketState)")
-     }
- } catch {
-     print("시세 조회 실패: \(error)")
- }
- ```
- 
- ## 관련 타입
- 
- - ``YFTicker``: 종목 식별을 위한 심볼 래퍼
- - ``YFQuoteService``: Quote API 호출을 위한 서비스 클래스
- - ``YFClient``: Yahoo Finance API 클라이언트의 진입점
- 
- ## 주의사항
- 
- - 모든 필드가 Optional이므로 사용 전 nil 체크 필수
- - Unix timestamp 필드들은 수동으로 Date로 변환 필요
- - 실시간 데이터이므로 값이 빠르게 변경될 수 있음
- - 시간외 거래 데이터는 `preMarket*`, `postMarket*` 필드에서 확인 가능
- */
+/// Yahoo Finance Quote API 모델 집합
+/// 
+/// quoteSummary와 query1 API 응답을 파싱하기 위한 Swift 구조체들을 정의합니다.
+/// 모든 필드는 Yahoo Finance API 응답과 1:1 매칭됩니다.
 
-/**
- Yahoo Finance quoteSummary API의 최상위 응답 구조체입니다.
- 
- ## 개요
- 
- Yahoo Finance의 quoteSummary API는 주식 시세 및 상세 정보를 JSON 형태로 반환합니다.
- 이 구조체는 해당 JSON 응답의 최상위 래퍼 역할을 수행합니다.
- 
- ## 구조
- 
- ```json
- {
-     "quoteSummary": {
-         "result": [...],
-         "error": null
-     }
- }
- ```
- 
- ## 사용법
- 
- 일반적으로 직접 사용하지 않고, ``YFQuoteSummaryService``를 통해 간접적으로 사용됩니다:
- 
- ```swift
- // 내부적으로 YFQuoteSummaryResponse가 사용됨
- let quoteSummary = try await client.quoteSummary.fetch(ticker: ticker)
- ```
- 
- - Note: 이 구조체는 Yahoo Finance API의 응답 형식 변경에 대비한 안정적인 파싱을 제공합니다.
- */
+/// Yahoo Finance quoteSummary API 최상위 응답 래퍼
 public struct YFQuoteSummaryResponse: Decodable, Sendable {
     
-    /// quoteSummary API의 메인 데이터 컨테이너
-    ///
-    /// Yahoo Finance API 응답에서 실제 시세 데이터가 포함된 부분입니다.
-    /// API 에러나 네트워크 문제로 인해 nil일 수 있습니다.
-    ///
-    /// - Important: nil 체크를 통해 안전하게 접근해야 합니다.
+    /// quoteSummary API 데이터 컨테이너
     public let quoteSummary: YFQuoteSummary?
 }
 
-/**
- Yahoo Finance query1 API의 최상위 응답 구조체입니다.
- 
- ## 개요
- 
- Yahoo Finance의 query1 quote API는 실시간 주식 시세 데이터를 JSON 형태로 반환합니다.
- 이 구조체는 해당 JSON 응답의 최상위 래퍼 역할을 수행합니다.
- 
- ## 구조
- 
- ```json
- {
-     "quoteResponse": {
-         "result": [...],
-         "error": null
-     }
- }
- ```
- 
- ## 사용법
- 
- 일반적으로 직접 사용하지 않고, ``YFQuoteService``를 통해 간접적으로 사용됩니다:
- 
- ```swift
- // 내부적으로 YFQuoteResponse가 사용됨
- let quote = try await client.quote.fetch(ticker: ticker)
- ```
- 
- - Note: 이 구조체는 Yahoo Finance API의 응답 형식 변경에 대비한 안정적인 파싱을 제공합니다.
- */
+/// Yahoo Finance query1 quote API 응답 래퍼
 public struct YFQuoteResponse: Decodable, Sendable {
     
     /// Quote 데이터 결과 배열
-    ///
-    /// 성공적인 API 응답 시 실시간 시세 정보가 포함된 YFQuote 객체들의 배열입니다.
-    /// 일반적으로 단일 종목 조회 시 1개의 요소를 가집니다.
-    ///
-    /// - Note: API 에러 시에는 nil이거나 빈 배열일 수 있습니다.
     public let result: [YFQuote]?
     
     /// API 에러 메시지
-    ///
-    /// Yahoo Finance query1 API에서 반환하는 에러 메시지입니다.
-    /// 잘못된 심볼, 네트워크 오류, API 제한 등의 경우에 설정됩니다.
-    ///
-    /// ## 일반적인 에러 메시지
-    /// - "Invalid symbol": 존재하지 않는 종목 심볼
-    /// - "Rate limit exceeded": API 호출 제한 초과
-    /// - "Service temporarily unavailable": 일시적 서비스 중단
-    ///
-    /// - Important: 에러 발생 시 `result` 필드는 일반적으로 nil입니다.
     public let error: String?
     
     // MARK: - Custom Decoding
@@ -176,244 +43,65 @@ public struct YFQuoteResponse: Decodable, Sendable {
     }
 }
 
-/**
- quoteSummary API 응답의 데이터 및 에러 정보를 포함하는 래퍼 구조체입니다.
- 
- ## 개요
- 
- Yahoo Finance의 quoteSummary API는 성공적인 응답과 에러 정보를 동일한 구조로 반환합니다.
- 이 구조체는 두 경우를 모두 처리할 수 있도록 설계되었습니다.
- 
- ## 응답 패턴
- 
- ### 성공 응답
- ```json
- {
-     "result": [
-         {
-             "price": { ... },
-             "summaryDetail": { ... }
-         }
-     ],
-     "error": null
- }
- ```
- 
- ### 에러 응답
- ```json
- {
-     "result": null,
-     "error": "Invalid symbol or API error message"
- }
- ```
- 
- ## 사용 패턴
- 
- ```swift
- if let error = quoteSummary.error {
-     print("API 에러: \(error)")
-     return
- }
- 
- guard let results = quoteSummary.result, !results.isEmpty else {
-     print("결과 데이터 없음")
-     return
- }
- 
- let quoteResult = results.first!
- ```
- 
- - Important: `result`와 `error` 필드는 상호 배타적입니다. 하나가 존재하면 다른 하나는 일반적으로 nil입니다.
- */
+/// quoteSummary API 응답 데이터 컨테이너
+/// 
+/// 성공 시 result 배열, 실패 시 error 메시지를 포함합니다.
 public struct YFQuoteSummary: Decodable, Sendable {
     
     /// Quote 데이터 결과 배열
-    ///
-    /// 성공적인 API 응답 시 시세 정보가 포함된 결과 객체들의 배열입니다.
-    /// 일반적으로 단일 종목 조회 시 1개의 요소를 가집니다.
-    ///
-    /// - Note: API 에러 시에는 nil이거나 빈 배열일 수 있습니다.
     public let result: [YFQuoteResult]?
     
     /// API 에러 메시지
-    ///
-    /// Yahoo Finance API에서 반환하는 에러 메시지입니다.
-    /// 잘못된 심볼, 네트워크 오류, API 제한 등의 경우에 설정됩니다.
-    ///
-    /// ## 일반적인 에러 메시지
-    /// - "Invalid symbol": 존재하지 않는 종목 심볼
-    /// - "Rate limit exceeded": API 호출 제한 초과
-    /// - "Service temporarily unavailable": 일시적 서비스 중단
-    ///
-    /// - Important: 에러 발생 시 `result` 필드는 일반적으로 nil입니다.
     public let error: String?
 }
 
 
-/**
- 개별 종목의 시세 정보와 상세 데이터를 포함하는 컨테이너입니다.
- 
- ## 개요
- 
- Yahoo Finance API는 각 종목의 데이터를 `price`와 `summaryDetail` 두 부분으로 나누어 제공합니다.
- 이 구조체는 두 데이터 세트를 하나로 묶어 관리합니다.
- 
- ## 데이터 구성
- 
- - **price**: 실시간 시세, 거래량, 시장 상태 등 동적 정보
- - **summaryDetail**: PE 비율, 배당률, 52주 최고/최저가 등 상세 분석 정보
- 
- ## 사용 패턴
- 
- ```swift
- if let quote = quoteResult.price {
-     print("현재가: \(quote.regularMarketPrice ?? 0)")
-     print("시장 상태: \(quote.marketState ?? "Unknown")")
- }
- 
- if let detail = quoteResult.summaryDetail {
-     print("PE 비율: \(detail.trailingPE ?? 0)")
-     print("시가총액: \(detail.marketCap ?? 0)")
- }
- ```
- 
- ## 모듈 선택
- 
- Yahoo Finance API에서는 modules 파라미터로 원하는 데이터 섹션을 지정할 수 있습니다:
- - `price`: 기본 시세 정보만 요청
- - `summaryDetail`: 상세 분석 정보만 요청  
- - `price,summaryDetail`: 두 섹션 모두 요청
- 
- - Note: API 응답에서 요청하지 않은 모듈은 nil로 반환됩니다.
- */
+/// 개별 종목의 price + summaryDetail 데이터 컨테이너
+/// 
+/// Yahoo Finance API가 제공하는 실시간 시세와 상세 분석 정보를 묶어 관리합니다.
 public struct YFQuoteResult: Decodable, Sendable {
     
     /// 실시간 시세 및 거래 정보
-    ///
-    /// 주식의 현재가, 거래량, 시장 상태, 시간외 거래 정보 등을 포함합니다.
-    /// 이 데이터는 실시간으로 업데이트되며 시장 상황에 따라 빠르게 변경됩니다.
-    ///
-    /// ## 주요 포함 정보
-    /// - 현재가 (`regularMarketPrice`)
-    /// - 거래량 (`regularMarketVolume`)
-    /// - 장전/장후 거래 데이터
-    /// - 시장 상태 (`marketState`)
-    ///
-    /// - Important: modules 파라미터에 "price"를 포함한 경우에만 데이터가 제공됩니다.
     public let price: YFQuote?
     
-    /// 종목 상세 분석 정보
-    ///
-    /// PE 비율, 배당률, 52주 최고/최저가, 평균 거래량 등 투자 분석에 필요한 
-    /// 상세 지표들을 포함합니다.
-    ///
-    /// ## 주요 포함 정보
-    /// - 재무 비율 (PE, PB, 배당률 등)
-    /// - 52주 최고/최저가
-    /// - 평균 거래량
-    /// - 시가총액
-    ///
-    /// - Important: modules 파라미터에 "summaryDetail"을 포함한 경우에만 데이터가 제공됩니다.
+    /// 종목 상세 분석 정보 (PE 비율, 배당률, 52주 최고/최저가 등)
     public let summaryDetail: YFQuoteSummaryDetail?
 }
 
-/**
- 종목의 상세 분석 정보를 포함하는 구조체입니다.
- 
- ## 개요
- 
- Yahoo Finance summaryDetail 모듈에서 제공하는 모든 필드를 노출합니다.
- 투자 분석에 필요한 재무 지표, 거래량 분석, 가격 대역, 배당 정보 등을 포함합니다.
- 
- ## 데이터 카테고리
- 
- ### 📊 재무 비율 및 지표
- - PE 비율 (`trailingPE`, `forwardPE`)
- - PB 비율, PSR 비율 (`priceToSalesTrailing12Months`)
- - 베타 계수 (`beta`)
- - 배당 수익률 (`dividendYield`)
- 
- ### 📈 가격 대역 분석
- - 52주 최고/최저가 (`fiftyTwoWeekHigh`, `fiftyTwoWeekLow`)
- - 이동평균선 (50일, 200일)
- - 일중 최고/최저가
- 
- ### 📊 거래량 분석
- - 평균 거래량 (10일, 3개월)
- - 현재 거래량
- - 매수/매도 호가 및 잔량
- 
- ### 💰 배당 정보  
- - 배당률 및 배당 수익률
- - 배당락일 (`exDividendDate`)
- - 배당 지급 비율 (`payoutRatio`)
- 
- ## 사용 예제
- 
- ```swift
- if let detail = quoteResult.summaryDetail {
-     // 재무 지표 분석
-     if let pe = detail.trailingPE {
-         print("PER: \(String(format: "%.2f", pe))")
-     }
-     
-     // 52주 최고가 대비 현재 위치
-     if let high = detail.fiftyTwoWeekHigh,
-        let current = quoteResult.price?.regularMarketPrice {
-         let ratio = (current / high) * 100
-         print("52주 최고가 대비: \(String(format: "%.1f", ratio))%")
-     }
-     
-     // 배당 수익률
-     if let dividend = detail.dividendYield {
-         print("배당 수익률: \(String(format: "%.2f", dividend * 100))%")
-     }
- }
- ```
- 
- - Important: 모든 필드가 Optional이므로 사용 전 nil 체크가 필요합니다.
- - Note: Unix timestamp 필드들은 Date(timeIntervalSince1970:)로 변환하여 사용하세요.
- */
+/// 종목의 상세 분석 정보 구조체
+/// 
+/// 재무 비율, 가격 대역, 거래량 분석, 배당 정보 등 투자 분석 지표들을 포함합니다.
 public struct YFQuoteSummaryDetail: Decodable, Sendable {
     
     // MARK: - 호가 정보
     
     /// 매수 잔량
-    /// 현재 최우선 매수 호가에 대기 중인 주식 수량입니다.
     public let bidSize: Int?
     
     /// 매수 호가
-    /// 현재 시장에서 제시되고 있는 최고 매수 호가입니다.
     public let bid: Double?
     
-    /// 매도 호가  
-    /// 현재 시장에서 제시되고 있는 최저 매도 호가입니다.
+    /// 매도 호가
     public let ask: Double?
     
     /// 매도 잔량
-    /// 현재 최우선 매도 호가에 대기 중인 주식 수량입니다.
     public let askSize: Int?
     
     // MARK: - 통화 및 시장 정보
     
     /// 거래 통화
-    /// 주식이 거래되는 통화 코드입니다 (예: "USD", "KRW").
     public let currency: String?
     
     /// 환전 원본 통화
-    /// 통화 환전 시 원본 통화 정보입니다.
     public let fromCurrency: String?
     
-    /// 환전 대상 통화  
-    /// 통화 환전 시 대상 통화 정보입니다.
+    /// 환전 대상 통화
     public let toCurrency: String?
     
     /// 암호화폐 마켓캡 링크
-    /// CoinMarketCap 등의 외부 링크 정보입니다.
     public let coinMarketCapLink: String?
     
     /// 마지막 거래 시장
-    /// 최근 거래가 발생한 시장 정보입니다.
     public let lastMarket: String?
     
     // MARK: - 가격 정보
