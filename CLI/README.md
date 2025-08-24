@@ -49,7 +49,69 @@ Volume:           12M
 Market Cap:       $3.3T
 ```
 
-### 2. 과거 데이터 조회 (history)
+### 2. 종합 기업 정보 조회 (quotesummary) 🆕
+
+```bash
+# 필수 정보 조회 (기본값)
+swift run swiftyfinance quotesummary AAPL --type essential
+
+# 종합 분석 데이터
+swift run swiftyfinance quotesummary AAPL --type comprehensive
+
+# 회사 기본 정보
+swift run swiftyfinance quotesummary AAPL --type company
+
+# 가격 및 시장 정보
+swift run swiftyfinance quotesummary AAPL --type price
+
+# 재무제표 데이터 (연간)
+swift run swiftyfinance quotesummary AAPL --type financials
+
+# 재무제표 데이터 (분기별)
+swift run swiftyfinance quotesummary AAPL --type financials --quarterly
+
+# 실적 데이터
+swift run swiftyfinance quotesummary AAPL --type earnings
+
+# 소유권 정보
+swift run swiftyfinance quotesummary AAPL --type ownership
+
+# 애널리스트 추천
+swift run swiftyfinance quotesummary AAPL --type analyst
+
+# JSON 원본 응답 출력
+swift run swiftyfinance quotesummary AAPL --type essential --json
+```
+
+**지원하는 데이터 타입:**
+- `essential` - 필수 정보 (기본값): 가격, 요약 상세, 재무 데이터, 주요 통계
+- `comprehensive` - 종합 분석 데이터: 필수 정보 + 회사 정보 + 재무제표 + 실적
+- `company` - 회사 프로필: 산업, 섹터, 임직원, 사업 개요
+- `price` - 가격 및 시장 정보: 실시간 가격, 거래량, 시장 상태
+- `financials` - 재무제표: 손익계산서, 대차대조표, 현금흐름표
+- `earnings` - 실적 데이터: 과거 실적, 실적 트렌드, 향후 발표일
+- `ownership` - 소유권 정보: 기관투자자, 펀드, 임원 지분
+- `analyst` - 애널리스트 데이터: 추천, 업그레이드/다운그레이드
+
+**출력 예시:**
+```
+🏢 AAPL - Apple Inc.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Current Price:    $227.76
+Change:           🟢 +$2.86 (+1.27%)
+Previous Close:   $224.90
+
+Open:             $226.17
+High:             $229.09
+Low:              $225.41
+Volume:           42M
+Market Cap:       $3.4T
+
+📊 Quote Summary Data Type: essential
+🕒 Retrieved at: Aug 24, 2025 at 00:39
+```
+
+### 3. 과거 데이터 조회 (history)
 
 ```bash
 # 1개월간 데이터
@@ -83,7 +145,7 @@ Date         Open      High      Low       Close     Volume
 08/19/25  $225.00  $226.20  $224.50  $225.80   9.2M
 ```
 
-### 3. 회사 검색 (search)
+### 4. 회사 검색 (search)
 
 ```bash
 # 회사명으로 검색
@@ -108,7 +170,7 @@ AAPL      📈 EQUITY  Apple Inc.
 APLE      📈 EQUITY  Apple Hospitality REIT, Inc.
 ```
 
-### 4. 기업 펀더멘털 데이터 (fundamentals)
+### 5. 기업 펀더멘털 데이터 (fundamentals)
 
 ```bash
 # 재무 데이터 조회
@@ -130,7 +192,7 @@ Available Data Metrics:
 💵 Free Cash Flow (Annual): $84.7B
 ```
 
-### 5. 종목 스크리닝 (screening)
+### 6. 종목 스크리닝 (screening)
 
 ```bash
 # 당일 상승 종목 조회
@@ -171,6 +233,65 @@ Found 3 stocks
    Average Change: 2.89%
 ```
 
+### 7. 옵션 체인 조회 (options)
+
+```bash
+# 기본 옵션 체인 조회
+swift run swiftyfinance options AAPL
+
+# 특정 만료일 옵션 (추후 지원 예정)
+swift run swiftyfinance options AAPL --expiration 2025-09-20
+
+# 디버그 모드로 실행
+swift run swiftyfinance options AAPL --debug
+
+# JSON 원본 응답 출력
+swift run swiftyfinance options AAPL --json
+```
+
+**출력 예시:**
+```
+⚡ AAPL - Options Chain
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📅 Available Expiration Dates:
+  1. Aug 29, 2025
+  2. Sep 5, 2025
+  3. Sep 12, 2025
+  ... and 17 more expiration dates
+
+📊 Option Chain - 2025-08-29
+
+📞 Call Options (first 5):
+Strike    Last    Bid     Ask     Volume  Impl Vol
+─────────────────────────────────────────────────────
+$110.00  $105.00 $116.90 $118.40 3       297.2%
+$120.00  $108.25 $106.95 $108.40 3       265.2%
+$125.00  $106.45 $101.90 $103.55 1       259.7%
+
+📉 Put Options (first 5):
+Strike    Last    Bid     Ask     Volume  Impl Vol
+─────────────────────────────────────────────────────
+$110.00  $0.01  $0.00   $0.01   1       175.0%
+$120.00  $0.02  $0.00   $0.01   3       153.1%
+$125.00  $0.04  $0.00   $0.01   100     143.8%
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Mini Options: No
+Total Expirations: 20
+Total Strikes: 53
+```
+
+### 8. 뉴스 조회 (news)
+
+```bash
+# 종목 관련 뉴스 조회
+swift run swiftyfinance news AAPL
+
+# JSON 원본 응답 출력
+swift run swiftyfinance news AAPL --json
+```
+
 ## 옵션
 
 ### 전역 옵션
@@ -180,6 +301,12 @@ Found 3 stocks
 ### 명령별 옵션
 
 **quote**
+- `--debug, -d`: 디버그 출력 활성화
+- `--json, -j`: 원본 JSON 응답 출력
+
+**quotesummary**
+- `--type, -t`: 데이터 타입 (essential, comprehensive, company, price, financials, earnings, ownership, analyst)
+- `--quarterly`: 분기별 재무제표 조회 (financials 타입과 함께 사용)
 - `--debug, -d`: 디버그 출력 활성화
 - `--json, -j`: 원본 JSON 응답 출력
 
@@ -199,6 +326,15 @@ Found 3 stocks
 
 **screening**
 - `--limit, -l`: 최대 결과 개수 (기본값: 25, 최대: 250)
+- `--debug, -d`: 디버그 출력 활성화
+- `--json, -j`: 원본 JSON 응답 출력
+
+**options**
+- `--expiration, -e`: 특정 만료일 (YYYY-MM-DD 형식, 선택사항)
+- `--debug, -d`: 디버그 출력 활성화
+- `--json, -j`: 원본 JSON 응답 출력
+
+**news**
 - `--debug, -d`: 디버그 출력 활성화
 - `--json, -j`: 원본 JSON 응답 출력
 
@@ -224,10 +360,13 @@ Found 3 stocks
 ```bash
 # 다양한 JSON 출력 예시
 swift run swiftyfinance quote AAPL --json
+swift run swiftyfinance quotesummary AAPL --type essential --json
 swift run swiftyfinance search "Apple" --json
 swift run swiftyfinance history TSLA --period 1mo --json
 swift run swiftyfinance fundamentals MSFT --json
 swift run swiftyfinance screening day_gainers --json
+swift run swiftyfinance options AAPL --json
+swift run swiftyfinance news AAPL --json
 ```
 
 **JSON 출력 특징:**
@@ -264,10 +403,11 @@ CLI는 다음과 같은 에러 상황을 친화적으로 처리합니다:
 
 ## 기술 스택
 
-- **Swift 6.2**: 최신 Swift 언어 기능 활용
-- **SwiftYFinance**: Yahoo Finance API 클라이언트
-- **ArgumentParser**: 명령줄 인자 파싱
-- **Protocol + Struct**: 현대적인 Swift 아키텍처
+- **Swift 6.1**: 최신 Swift 언어 기능 및 Swift Concurrency 활용
+- **SwiftYFinance**: Yahoo Finance API 클라이언트 (Protocol + Struct 아키텍처)
+- **ArgumentParser**: 명령줄 인자 파싱 및 서브커맨드 지원
+- **Sendable 프로토콜**: Thread-safe concurrent programming
+- **AsyncParsableCommand**: 비동기 명령어 처리
 
 ## 개발
 
@@ -283,12 +423,20 @@ swift build -c release
 
 ### 테스트
 ```bash
-# 기본 기능 테스트
+# 8개 명령어 기본 기능 테스트
 swift run swiftyfinance quote AAPL
+swift run swiftyfinance quotesummary AAPL --type essential
+swift run swiftyfinance history AAPL --period 1mo
 swift run swiftyfinance search "Apple" --limit 3
-swift run swiftyfinance history TSLA --period 1mo
+swift run swiftyfinance fundamentals AAPL
 swift run swiftyfinance screening day_gainers --limit 5
+swift run swiftyfinance options AAPL
+swift run swiftyfinance news AAPL
 ```
+
+### 명령어 커버리지
+✅ **8/8 완료**: 모든 SwiftYFinance 서비스가 CLI로 구현됨
+- quote, quotesummary, history, search, fundamentals, screening, options, news
 
 ## 라이선스
 
