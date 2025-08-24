@@ -41,7 +41,7 @@ public struct YFQuoteService: YFService {
             let quoteResponse = try await performFetch(url: requestURL, type: YFQuoteResponse.self, serviceName: "Quote")
             
             // quoteResponse 구조에서 result 데이터 추출  
-            guard let result = quoteResponse.quoteResponse?.result?.first else {
+            guard let result = quoteResponse.result?.first else {
                 throw YFError.invalidResponse
             }
             
