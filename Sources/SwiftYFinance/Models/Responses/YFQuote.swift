@@ -606,58 +606,6 @@ public struct YFQuoteSummaryDetail: Decodable, Sendable {
     public let algorithm: String?
 }
 
-// MARK: - Legacy YFQuote (Deprecated)
-
-/**
- @deprecated 레거시 YFQuote 구조체입니다. 새로운 모듈형 구조를 사용하는 `YFQuote`를 대신 사용하세요.
- 
- 이 구조체는 하위 호환성을 위해 유지되지만, 새로운 개발에서는 권장되지 않습니다.
- */
-@available(*, deprecated, message: "Use the new modular YFQuote instead for better performance and type safety")
-public struct YFLegacyQuote: Decodable, Sendable {
-    // 기존 YFQuote의 모든 필드들 (간소화를 위해 주석 제거)
-    public let symbol: String?
-    public let currency: String?
-    public let lastMarket: String?
-    public let preMarketSource: String?
-    public let regularMarketPreviousClose: Double?
-    public let regularMarketPrice: Double?
-    public let averageDailyVolume3Month: Int?
-    public let preMarketTime: Int?
-    public let exchangeDataDelayedBy: Int?
-    public let currencySymbol: String?
-    public let maxAge: Int?
-    public let regularMarketTime: Int?
-    public let preMarketChangePercent: Double?
-    public let regularMarketDayLow: Double?
-    public let fromCurrency: String?
-    public let regularMarketVolume: Int?
-    public let averageDailyVolume10Day: Int?
-    public let regularMarketOpen: Double?
-    public let toCurrency: String?
-    public let exchange: String?
-    public let marketState: String?
-    public let longName: String?
-    public let preMarketChange: Double?
-    public let underlyingSymbol: String?
-    public let regularMarketChangePercent: Double?
-    public let quoteSourceName: String?
-    public let regularMarketChange: Double?
-    public let exchangeName: String?
-    public let preMarketPrice: Double?
-    public let shortName: String?
-    public let regularMarketSource: String?
-    public let priceHint: Int?
-    public let quoteType: String?
-    public let marketCap: Double?
-    public let regularMarketDayHigh: Double?
-    public let postMarketPrice: Double?
-    public let postMarketTime: Int?
-    public let postMarketChange: Double?
-    public let postMarketChangePercent: Double?
-    public let postMarketSource: String?
-}
-
 // MARK: - Modular Quote Models
 
 /**
