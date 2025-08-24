@@ -39,21 +39,21 @@ extension YFQuoteType: CustomStringConvertible {
     public var description: String {
         switch self {
         case .equity:
-            return "주식"
+            return "Equity"
         case .etf:
             return "ETF"
         case .mutualFund:
-            return "뮤추얼펀드"
+            return "Mutual Fund"
         case .index:
-            return "지수"
+            return "Index"
         case .future:
-            return "선물"
+            return "Future"
         case .currency:
-            return "통화"
+            return "Currency"
         case .cryptocurrency:
-            return "암호화폐"
+            return "Cryptocurrency"
         case .option:
-            return "옵션"
+            return "Option"
         }
     }
 }
