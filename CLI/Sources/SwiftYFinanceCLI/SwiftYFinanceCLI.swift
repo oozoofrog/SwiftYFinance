@@ -8,6 +8,7 @@ struct SwiftYFinanceCLI: AsyncParsableCommand {
         version: "1.0.0",
         subcommands: [
             QuoteCommand.self,
+            QuoteSummaryCommand.self,
             HistoryCommand.self,
             SearchCommand.self,
             FundamentalsCommand.self,

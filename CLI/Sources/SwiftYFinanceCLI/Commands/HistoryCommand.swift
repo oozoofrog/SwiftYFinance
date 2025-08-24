@@ -41,10 +41,10 @@ struct HistoryCommand: AsyncParsableCommand {
         
         do {
             if json {
-                let rawData = try await client.history.fetchRawJSON(ticker: ticker, period: yfPeriod)
+                let rawData = try await client.chart.fetchRawJSON(ticker: ticker, period: yfPeriod)
                 print(formatJSONOutput(rawData))
             } else {
-                let history = try await client.history.fetch(ticker: ticker, period: yfPeriod)
+                let history = try await client.chart.fetch(ticker: ticker, period: yfPeriod)
                 printHistoryInfo(history, period: period)
             }
         } catch {

@@ -33,27 +33,12 @@ struct OptionsCommand: AsyncParsableCommand {
         }
         
         do {
-            // Parse expiration date if provided
-            var expirationDate: Date?
-            if let exp = expiration {
-                let formatter = DateFormatter()
-                formatter.dateFormat = "yyyy-MM-dd"
-                formatter.timeZone = TimeZone(abbreviation: "EST")
-                guard let date = formatter.date(from: exp) else {
-                    if !json {
-                        print("❌ Invalid date format. Please use YYYY-MM-DD")
-                    }
-                    throw ExitCode.failure
-                }
-                expirationDate = date
-            }
-            
             if json {
-                let rawData = try await client.options.fetchRawJSON(for: ticker, expiration: expirationDate)
+                let rawData = try await client.options.fetchRawJSON(for: ticker)
                 print(formatJSONOutput(rawData))
             } else {
-                let options = try await client.options.fetchOptionsChain(for: ticker, expiration: expirationDate)
-                printOptionsInfo(options, for: ticker.symbol)
+                let options = try await client.options.fetchOptionsChain(for: ticker)
+                printOptionsInfo(options)
             }
         } catch {
             if json {
@@ -65,105 +50,77 @@ struct OptionsCommand: AsyncParsableCommand {
         }
     }
     
-    private func printOptionsInfo(_ options: YFOptionsChainResult, for symbol: String) {
-        print("📊 Options Chain for \(symbol)")
+    private func printOptionsInfo(_ options: YFOptionsChainResult) {
+        let symbol = options.underlyingSymbol ?? self.symbol.uppercased()
+        
+        print("⚡ \(symbol) - Options Chain")
         print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        print("")
         
-        // Quote information
-        if let quote = options.quote {
-            print("📈 Current Price")
-            if let quotedSymbol = quote.symbol {
-                print("  Symbol: \(quotedSymbol)")
+        // Show available expiration dates (first few)
+        if let expirationDates = options.expirationDates, !expirationDates.isEmpty {
+            print("\n📅 Available Expiration Dates:")
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateStyle = .medium
+            
+            for (index, timestamp) in expirationDates.prefix(3).enumerated() {
+                let date = Date(timeIntervalSince1970: TimeInterval(timestamp))
+                let dateStr = dateFormatter.string(from: date)
+                print("  \(index + 1). \(dateStr)")
             }
-            if let price = quote.regularMarketPrice {
-                print("  Price: $\(String(format: "%.2f", price))")
+            
+            if expirationDates.count > 3 {
+                print("  ... and \(expirationDates.count - 3) more expiration dates")
             }
-            if let currency = quote.currency {
-                print("  Currency: \(currency)")
-            }
-            print("")
         }
         
-        // Expiration dates
-        print("📅 Available Expiration Dates")
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        dateFormatter.timeZone = TimeZone(abbreviation: "EST")
-        
-        if let expirationTimestamps = options.expirationDates {
-            let expirationDates = expirationTimestamps.map { Date(timeIntervalSince1970: TimeInterval($0)) }
-            for (index, date) in expirationDates.prefix(10).enumerated() {
-                print("  [\(index + 1)] \(dateFormatter.string(from: date))")
-            }
-            if expirationDates.count > 10 {
-                print("  ... and \(expirationDates.count - 10) more")
-            }
-        }
-        print("")
-        
-        // Strike prices
-        print("💰 Available Strike Prices")
-        if let strikes = options.strikes {
-            let sortedStrikes = strikes.sorted()
-            if sortedStrikes.count > 20 {
-                let minStrike = sortedStrikes.first ?? 0
-            let maxStrike = strikes.last ?? 0
-            print("  Range: $\(String(format: "%.2f", minStrike)) - $\(String(format: "%.2f", maxStrike))")
-            print("  Total: \(strikes.count) strikes")
-        } else {
-            for strike in strikes {
-                print("  $\(String(format: "%.2f", strike))")
-            }
-        }
-        print("")
-        
-        // Options data summary
-        if !options.options.isEmpty {
-            print("📊 Options Data")
-            for optionData in options.options.prefix(3) {
-                let expDateStr = dateFormatter.string(from: optionData.expirationDate)
-                print("\n  Expiration: \(expDateStr)")
-                print("  ├─ Calls: \(optionData.calls.count) contracts")
-                print("  └─ Puts: \(optionData.puts.count) contracts")
+        // Show option chain data for first expiration
+        if let optionsData = options.options, !optionsData.isEmpty {
+            let firstOption = optionsData[0]
+            
+            print("\n📊 Option Chain - \(Date(timeIntervalSince1970: TimeInterval(firstOption.expirationDate ?? 0)))")
+            
+            // Show calls
+            if let calls = firstOption.calls, !calls.isEmpty {
+                print("\n📞 Call Options (first 5):")
+                print("Strike    Last    Bid     Ask     Volume  Impl Vol")
+                print("─────────────────────────────────────────────────────")
                 
-                // Show sample call
-                if let firstCall = optionData.calls.first {
-                    print("\n    Sample Call:")
-                    print("    ├─ Strike: $\(String(format: "%.2f", firstCall.strike))")
-                    print("    ├─ Last Price: $\(String(format: "%.2f", firstCall.lastPrice))")
-                    if let bid = firstCall.bid, let ask = firstCall.ask {
-                        print("    ├─ Bid/Ask: $\(String(format: "%.2f", bid)) / $\(String(format: "%.2f", ask))")
-                    }
-                    if let volume = firstCall.volume {
-                        print("    ├─ Volume: \(volume)")
-                    }
-                    print("    └─ Open Interest: \(firstCall.openInterest)")
-                }
-                
-                // Show sample put
-                if let firstPut = optionData.puts.first {
-                    print("\n    Sample Put:")
-                    print("    ├─ Strike: $\(String(format: "%.2f", firstPut.strike))")
-                    print("    ├─ Last Price: $\(String(format: "%.2f", firstPut.lastPrice))")
-                    if let bid = firstPut.bid, let ask = firstPut.ask {
-                        print("    ├─ Bid/Ask: $\(String(format: "%.2f", bid)) / $\(String(format: "%.2f", ask))")
-                    }
-                    if let volume = firstPut.volume {
-                        print("    ├─ Volume: \(volume)")
-                    }
-                    print("    └─ Open Interest: \(firstPut.openInterest)")
+                for call in calls.prefix(5) {
+                    let strike = call.strike ?? 0
+                    let lastPrice = call.lastPrice ?? 0
+                    let bid = call.bid ?? 0
+                    let ask = call.ask ?? 0
+                    let volume = call.volume ?? 0
+                    let impliedVol = (call.impliedVolatility ?? 0) * 100
+                    
+                    print(String(format: "$%-7.2f $%-5.2f $%-6.2f $%-6.2f %-7d %.1f%%", 
+                                strike, lastPrice, bid, ask, volume, impliedVol))
                 }
             }
             
-            if options.options.count > 3 {
-                print("\n  ... and \(options.options.count - 3) more expiration dates")
+            // Show puts
+            if let puts = firstOption.puts, !puts.isEmpty {
+                print("\n📉 Put Options (first 5):")
+                print("Strike    Last    Bid     Ask     Volume  Impl Vol")
+                print("─────────────────────────────────────────────────────")
+                
+                for put in puts.prefix(5) {
+                    let strike = put.strike ?? 0
+                    let lastPrice = put.lastPrice ?? 0
+                    let bid = put.bid ?? 0
+                    let ask = put.ask ?? 0
+                    let volume = put.volume ?? 0
+                    let impliedVol = (put.impliedVolatility ?? 0) * 100
+                    
+                    print(String(format: "$%-7.2f $%-5.2f $%-6.2f $%-6.2f %-7d %.1f%%", 
+                                strike, lastPrice, bid, ask, volume, impliedVol))
+                }
             }
         }
         
         print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        print("Mini Options: \(options.hasMiniOptions ? "Yes" : "No")")
-        print("Total Expirations: \(options.expirationDates.count)")
-        print("Total Strikes: \(options.strikes.count)")
+        print("Mini Options: \(options.hasMiniOptions ?? false ? "Yes" : "No")")
+        print("Total Expirations: \(options.expirationDates?.count ?? 0)")
+        print("Total Strikes: \(options.strikes?.count ?? 0)")
     }
 }

@@ -58,3 +58,15 @@ func formatDateShort(_ date: Date) -> String {
     formatter.dateFormat = "MM/dd/yy"
     return formatter.string(from: date)
 }
+
+func formatYear(_ date: Date) -> String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy"
+    return formatter.string(from: date)
+}
+
+func formatNumber(_ number: Double) -> String {
+    let formatter = NumberFormatter()
+    formatter.numberStyle = .decimal
+    return formatter.string(from: NSNumber(value: number)) ?? String(format: "%.0f", number)
+}

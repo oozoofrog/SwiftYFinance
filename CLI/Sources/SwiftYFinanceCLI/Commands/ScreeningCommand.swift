@@ -55,11 +55,11 @@ struct ScreeningCommand: AsyncParsableCommand {
         do {
             if json {
                 // Raw JSON 출력 (CLI용)
-                let rawData = try await client.screening.fetchRawJSON(predefined: predefinedScreener, limit: actualLimit)
+                let rawData = try await client.screener.fetchRawJSON(predefined: predefinedScreener, limit: actualLimit)
                 print(formatJSONOutput(rawData))
             } else {
                 // 파싱된 결과 출력
-                let results = try await client.screening.screenPredefined(predefinedScreener, limit: actualLimit)
+                let results = try await client.screener.screenPredefined(predefinedScreener, limit: actualLimit)
                 printScreeningResults(results, screenerType: screenerType)
             }
         } catch {

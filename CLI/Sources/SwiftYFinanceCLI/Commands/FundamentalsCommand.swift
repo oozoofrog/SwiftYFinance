@@ -28,10 +28,10 @@ struct FundamentalsCommand: AsyncParsableCommand {
         
         do {
             if json {
-                let rawData = try await client.fundamentals.fetchRawJSON(ticker: ticker)
+                let rawData = try await client.fundamentalsTimeseries.fetchRawJSON(ticker: ticker)
                 print(formatJSONOutput(rawData))
             } else {
-                let fundamentals = try await client.fundamentals.fetch(ticker: ticker)
+                let fundamentals = try await client.fundamentalsTimeseries.fetch(ticker: ticker)
                 printFundamentalsInfo(fundamentals, ticker: ticker)
             }
         } catch {
