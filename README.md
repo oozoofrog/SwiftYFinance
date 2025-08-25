@@ -3,64 +3,28 @@
 [![Swift](https://img.shields.io/badge/Swift-6.1-orange.svg)](https://swift.org)
 [![Platform](https://img.shields.io/badge/Platform-macOS%2013%2B%20%7C%20iOS%2016%2B%20%7C%20tvOS%2016%2B%20%7C%20watchOS%209%2B-blue.svg)](https://developer.apple.com)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE.md)
-[![Tests](https://img.shields.io/badge/Tests-128%20tests-brightgreen.svg)](https://github.com/yourusername/SwiftYFinance/actions)
-[![Success Rate](https://img.shields.io/badge/Success%20Rate-100%25-brightgreen.svg)](https://github.com/yourusername/SwiftYFinance/actions)
-[![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg)](https://github.com/yourusername/SwiftYFinance)
-[![CLI](https://img.shields.io/badge/CLI-11%20Commands-blue.svg)](CLI/README.md)
 
-SwiftYFinance is a **complete Swift port** of the Python [yfinance](https://github.com/ranaroussi/yfinance) library with **100% feature parity** and real Yahoo Finance API integration. This production-ready library provides comprehensive access to live financial data with zero mock data, featuring complete financial analysis capabilities including real-time stock data, WebSocket streaming, and advanced fundamentals.
+A Swift port of the Python [yfinance](https://github.com/ranaroussi/yfinance) library for accessing Yahoo Finance data.
 
-## 🎉 Project Status: **PRODUCTION READY**
+## Features
 
-✅ **Phase 1-4 Complete** - All development phases finished  
-✅ **100% Feature Parity** - Complete Python yfinance compatibility  
-✅ **128 Tests** - 100% success rate, comprehensive coverage  
-✅ **11 CLI Commands** - Full command-line interface  
-✅ **Performance Optimized** - Release build with 60% improvement
+- **Real-time Stock Quotes** - Live price data and after-hours trading information
+- **Historical Data** - OHLCV data with customizable date ranges and intervals
+- **Financial Statements** - Income statements, balance sheets, cash flow statements
+- **Options Trading** - Complete options chains with Greeks calculation
+- **Technical Indicators** - SMA, EMA, RSI, MACD, Bollinger Bands, and more
+- **News & Sentiment** - Real-time news feeds with sentiment analysis
+- **Stock Screening** - Advanced filtering and screening capabilities
+- **WebSocket Streaming** - Real-time price data streaming
+- **Browser Impersonation** - Chrome 136 fingerprint emulation for reliable API access
 
-## 🚀 Key Features
+## Requirements
 
-### 🎯 Browser Impersonation (NEW!)
-- **Chrome 136 Emulation**: Complete Chrome 136 browser fingerprint impersonation
-- **Anti-Detection**: Advanced header rotation and User-Agent management
-- **CSRF Authentication**: Yahoo Finance compatible authentication system
-- **Rate Limiting Handling**: Intelligent request throttling and retry mechanisms
+- macOS 13.0+ / iOS 16.0+ / tvOS 16.0+ / watchOS 9.0+
+- Swift 6.1+
+- Xcode 15.0+
 
-### 📊 Complete Financial Data Suite (100% Real Data)
-- **Financial Statements**: ✅ Live income statements, balance sheets, cash flow statements from Yahoo Finance
-- **Real-time Quotes**: ✅ Live price data and after-hours trading information
-- **News & Sentiment**: ✅ Real-time news feeds from Yahoo Finance Search API with sentiment analysis
-- **Screening & Filtering**: ✅ Live stock screeners using Yahoo Finance Screener API
-- **Historical Data**: ✅ OHLCV data with custom date ranges and intervals
-- **WebSocket Streaming**: Real-time price data streaming (Python yfinance `live` equivalent)
-- **Earnings Data**: Quarterly and annual earnings with estimates
-- **Options Trading**: Complete options chains, Greeks, expiration dates
-- **Advanced Fundamentals**: Quarterly financials, ratios, growth metrics, industry comparisons
-- **Technical Indicators**: SMA, EMA, RSI, MACD, Bollinger Bands, Stochastic, comprehensive signals
-
-### 🏗️ Robust Architecture
-- **Zero Mock Data**: 100% real Yahoo Finance API integration with no mock or dummy data
-- **Production Ready**: All APIs tested with real financial data (AAPL, MSFT, GOOGL verified)
-- **TDD-Driven**: 128 tests with 100% success rate, Test-Driven Development methodology
-- **Error Resilience**: Comprehensive error handling and recovery strategies
-- **Performance Optimized**: Efficient HTTP/2 connections, concurrent processing, intelligent caching
-
-### 🔧 Developer Experience
-- **Swift 6.1 Compatible**: Latest Swift language features
-- **Async/Await**: Modern concurrency for all API calls
-- **Protocol-Oriented**: Flexible and testable architecture
-- **Command Line Interface**: Full-featured CLI for testing and data access
-- **JSON Samples**: Real API response samples for all commands (AAPL ticker)
-- **Documentation**: Comprehensive API documentation and examples
-
-## 📱 Supported Platforms
-
-- **macOS** 13.0+
-- **iOS** 16.0+
-- **tvOS** 16.0+
-- **watchOS** 9.0+
-
-## 🛠️ Installation
+## Installation
 
 ### Swift Package Manager
 
@@ -76,57 +40,7 @@ dependencies: [
 2. Enter URL: `https://github.com/yourusername/SwiftYFinance.git`
 3. Select version and Add Package
 
-## 📖 Usage
-
-### 🖥️ Command Line Interface (CLI)
-
-SwiftYFinance includes a powerful CLI tool for quick data access and testing:
-
-```bash
-# Build and run CLI
-cd CLI
-swift build
-swift run swiftyfinance --help
-
-# Get real-time quote
-swift run swiftyfinance quote AAPL
-swift run swiftyfinance quote AAPL --json  # Raw JSON output
-
-# Historical data with different periods
-swift run swiftyfinance history AAPL --period 1mo
-swift run swiftyfinance history AAPL --period 1y --json
-
-# Search for stocks
-swift run swiftyfinance search Apple --limit 5
-swift run swiftyfinance search "Apple Inc" --json
-
-# Comprehensive fundamentals data
-swift run swiftyfinance fundamentals AAPL
-swift run swiftyfinance fundamentals AAPL --json
-
-# Debug mode for troubleshooting
-swift run swiftyfinance quote AAPL --debug
-```
-
-#### CLI Commands
-
-| Command | Description | Options |
-|---------|-------------|---------|
-| `quote` | Real-time stock quotes | `--json`, `--debug` |
-| `history` | Historical price data | `--period 1d/5d/1mo/3mo/6mo/1y/2y/5y/10y/ytd/max`, `--json`, `--debug` |
-| `search` | Search stocks by name | `--limit N`, `--json`, `--debug` |
-| `fundamentals` | Financial statements & metrics | `--json`, `--debug` |
-
-#### JSON Sample Files
-
-Complete JSON response samples for all CLI commands are available in `json-samples/`:
-
-- **`aapl-quote.json`** (3.2KB) - Real-time quote data
-- **`aapl-history.json`** (7.5KB) - 1-month historical data  
-- **`aapl-search.json`** (11KB) - Search results with news
-- **`aapl-fundamentals.json`** (561KB) - Complete financial data
-
-These samples provide real Yahoo Finance API responses for development, testing, and integration.
+## Usage
 
 ### Quick Start
 
@@ -224,212 +138,89 @@ let chromeHeaders = impersonator.getChrome136Headers()
 let configuredSession = impersonator.createConfiguredURLSession()
 ```
 
-## 🧪 Development Principles
+## Command Line Interface
 
-This project follows **TDD (Test-Driven Development)** and **Tidy First** principles:
-
-- ✅ **Red → Green → Refactor** cycle
-- ✅ **Separation of structural and behavioral changes**
-- ✅ **Work on one test at a time**
-- ✅ **Implement minimal code needed to pass tests**
-
-## 📋 Development Progress
-
-- **Phase 1-4**: ✅ **Complete** - Core architecture, models, network layer, API integration
-- **Phase 4.5**: ✅ **Complete** - Chrome 136 browser impersonation ([curl_cffi](https://github.com/yifeikong/curl_cffi) port)
-- **Phase 5**: ✅ **Complete** - Advanced Financial Features
-
-### Current Project Status
-- **✅ 128 구현된 테스트** - 100% 성공률 (모두 통과)
-- **🚧 Protocol + Struct 리팩토링** - 7개 서비스 완료, 2개 진행중
-- **✅ Advanced Features** - Options, News, Screening 완료
-- **🚧 추가 구현 예정** - WebSocket 실시간 스트리밍, Technical Indicators
-- **✅ Browser Impersonation** - Chrome 136 fingerprint emulation
-- **✅ Production Ready** - Comprehensive error handling and validation
-
-### Phase 5 Achievements (2025-08-13)
-- **🎯 Options Trading API**: Complete options chains with Greeks calculation
-- **📊 Technical Indicators**: SMA, EMA, RSI, MACD, Bollinger Bands, Stochastic
-- **📰 News & Sentiment**: Real-time news feeds with sentiment analysis
-- **🔍 Advanced Screening**: Fluent API for complex stock filtering
-- **📈 Enhanced Fundamentals**: Quarterly data, ratios, growth metrics
-- **🤖 Signal Analysis**: Comprehensive technical trading signals
-
-## 🏗️ Project Structure
-
-```
-SwiftYFinance/
-├── CLI/                            # Command Line Interface
-│   ├── Package.swift               # CLI dependencies
-│   └── Sources/SwiftYFinanceCLI/
-│       └── SwiftYFinanceCLI.swift  # CLI implementation
-├── json-samples/                   # JSON API Response Samples
-│   ├── README.md                   # Sample documentation
-│   ├── aapl-quote.json             # Real-time quote (3.2KB)
-│   ├── aapl-history.json           # Historical data (7.5KB)
-│   ├── aapl-search.json            # Search results (11KB)
-│   └── aapl-fundamentals.json      # Financial data (561KB)
-├── Sources/SwiftYFinance/
-│   ├── Core/                        # Core infrastructure  
-│   │   ├── YFClient.swift           # Main client API (157 lines)
-│   │   ├── YFSession.swift          # Network session (117 lines)
-│   │   ├── YFSessionAuth.swift      # CSRF authentication (189 lines)
-│   │   ├── YFSessionCookie.swift    # User-Agent rotation (43 lines)
-│   │   ├── YFBrowserImpersonator.swift # Chrome 136 emulation
-│   │   ├── YF*API.swift            # 12 specialized API endpoints
-│   │   │   ├── YFHistoryAPI.swift   # Historical data
-│   │   │   ├── YFQuoteAPI.swift     # Real-time quotes  
-│   │   │   ├── YFFinancialsAPI.swift # Financial statements
-│   │   │   ├── YFFinancialsAdvancedAPI.swift # Advanced financials
-│   │   │   ├── YFBalanceSheetAPI.swift # Balance sheet data
-│   │   │   ├── YFCashFlowAPI.swift  # Cash flow statements
-│   │   │   ├── YFEarningsAPI.swift  # Earnings data
-│   │   │   ├── YFOptionsAPI.swift   # Options trading
-│   │   │   ├── YFNewsAPI.swift      # News & sentiment
-│   │   │   ├── YFScreeningAPI.swift # Stock screening
-│   │   │   ├── YFSearchAPI.swift    # Search functionality
-│   │   │   └── YFTechnicalIndicatorsAPI.swift # Technical analysis
-│   │   └── YFEnums.swift           # Core enumerations
-│   ├── Models/                     # Complete data models
-│   │   ├── Core Models/            # Basic data structures
-│   │   │   ├── YFTicker.swift      # Stock ticker
-│   │   │   ├── YFPrice.swift       # OHLCV price data
-│   │   │   └── YFError.swift       # Error definitions
-│   │   ├── Financial Models/       # Financial data structures
-│   │   │   ├── YFFinancials*.swift # Financial statements (4 files)
-│   │   │   └── YFQuote.swift       # Quote data
-│   │   └── Advanced Models/        # Phase 5 models
-│   │       ├── YFOptions.swift     # Options chains & Greeks (NEW!)
-│   │       ├── YFNews.swift        # News & sentiment analysis (NEW!)  
-│   │       ├── YFScreener.swift    # Stock screening models (NEW!)
-│   │       └── YFTechnicalIndicators.swift # Technical indicators (NEW!)
-│   └── Utils/                      # Utilities
-│       ├── YFRequestBuilder.swift  # Request construction
-│       ├── YFResponseParser.swift  # Response parsing
-│       └── YFHTMLParser.swift      # HTML parsing
-├── Tests/SwiftYFinanceTests/       # 144 comprehensive tests
-│   ├── Core/                       # Core component tests
-│   ├── Client/                     # API integration tests  
-│   ├── Models/                     # Data model tests
-│   └── Utils/                      # Utility tests
-└── docs/plans/                     # Development documentation
-```
-
-## 🧪 Running Tests
+SwiftYFinance includes a CLI tool for quick data access and testing:
 
 ```bash
-# Run all tests (현재 128개 테스트, 100% 성공률)
-swift test --no-parallel
+# Build and run CLI
+cd CLI
+swift build
+swift run swiftyfinance --help
 
-# Run core API test suites
-swift test --filter YFClientTests          # Main API tests
-swift test --filter YFBrowserImpersonator  # Browser emulation tests
-swift test --filter RealAPITests           # Live API integration tests
+# Get real-time quote
+swift run swiftyfinance quote AAPL
 
-# Run Phase 5 advanced feature tests
-swift test --filter OptionsDataTests       # Options trading tests
-swift test --filter TechnicalIndicatorsTests # Technical indicators tests
-swift test --filter NewsTests              # News & sentiment tests
-swift test --filter ScreeningTests         # Stock screening tests
-swift test --filter FundamentalsAdvancedTests # Advanced fundamentals tests
+# Historical data
+swift run swiftyfinance history AAPL --period 1mo
 
-# Run performance-sensitive tests
-swift test --filter FinancialDataTests     # Financial data parsing
-swift test --filter QuoteSummaryTests      # Real-time quote tests
+# Search for stocks
+swift run swiftyfinance search Apple --limit 5
 
-# Verbose output with timing
-swift test --verbose
+# Financial data
+swift run swiftyfinance fundamentals AAPL
 ```
 
-### Test Categories
+### Available Commands
 
-- **Service Tests** (70 tests): Protocol + Struct service layer tests
-  - YFQuoteServiceTests: 4 tests
-  - YFHistoryServiceTests: 16 tests
-  - YFSearchServiceTests: 20 tests
-  - YFFundamentalsServiceTests: 14 tests
-  - YFNewsServiceTests: 4 tests
-  - YFOptionsServiceTests: 6 tests
-  - YFScreeningServiceTests: 6 tests
-- **Model Tests** (24 tests): Data model validation and parsing
-  - YFQuoteTests: 6 tests
-  - YFHistoricalDataTests: 6 tests
-  - YFPriceTests: 6 tests
-  - YFTickerTests: 6 tests
-- **Integration Tests** (20 tests): End-to-end workflows
-  - YFSearchIntegrationTests: 20 tests
-- **Performance Tests** (14 tests): Memory and performance validation
-  - YFSearchMemoryTests: 12 tests
-  - TestHelper utilities: 2 tests
+| Command | Description | Options |
+|---------|-------------|---------|
+| `quote` | Real-time stock quotes | `--json`, `--debug` |
+| `history` | Historical price data | `--period`, `--json`, `--debug` |
+| `search` | Search stocks by name | `--limit`, `--json`, `--debug` |
+| `fundamentals` | Financial statements | `--json`, `--debug` |
+| `news` | Latest news articles | `--limit`, `--json`, `--debug` |
+| `options` | Options chains | `--expiration`, `--json`, `--debug` |
+| `screener` | Stock screening | `--type`, `--json`, `--debug` |
+| `domain` | Domain listings | `--type`, `--json`, `--debug` |
+| `custom-screener` | Custom filters | `--file`, `--json`, `--debug` |
+| `stream` | WebSocket streaming | `--symbols`, `--debug` |
+| `technicals` | Technical indicators | `--indicators`, `--json`, `--debug` |
 
-## 🎯 Browser Impersonation Technology
+## API Documentation
 
-SwiftYFinance includes advanced browser impersonation capabilities ported from Python's [curl_cffi](https://github.com/yifeikong/curl_cffi) library:
-
-### Chrome 136 Fingerprint Emulation
-- **Complete Header Matching**: User-Agent, Accept, Sec-CH-UA client hints
-- **HTTP/2 Settings**: Chrome-identical network behavior
-- **Session Management**: Browser-level authentication and state handling
-- **Anti-Detection**: Header rotation and request timing
-
-### Why Browser Impersonation?
-Yahoo Finance implements sophisticated detection systems to identify automated requests. Our browser impersonation ensures:
-- ✅ **Reliable Access**: Bypass anti-bot detection systems
-- ✅ **Rate Limit Avoidance**: Appear as legitimate browser traffic  
-- ✅ **Long-term Stability**: Reduced risk of API access blocking
-- ✅ **Data Integrity**: Consistent access to all Yahoo Finance endpoints
+### Basic Usage
 
 ```swift
-// Automatic Chrome 136 impersonation - no configuration needed
-let client = YFClient() 
-let data = try await client.fetchHistory(ticker: YFTicker(symbol: "AAPL"))
+import SwiftYFinance
 
-// Manual browser configuration (advanced users)
-let impersonator = YFBrowserImpersonator()
-impersonator.rotateUserAgent() // Switch to different Chrome version
-let session = impersonator.createConfiguredURLSession()
+let client = YFClient()
+let ticker = YFTicker(symbol: "AAPL")
+
+// Fetch real-time quote
+let quote = try await client.fetchQuote(ticker: ticker)
+print("Price: \(quote.price)")
+
+// Get historical data
+let history = try await client.fetchHistory(ticker: ticker, period: .oneMonth)
+for price in history.prices {
+    print("\(price.date): \(price.close)")
+}
 ```
 
-## 🤝 Contributing
+### Advanced Features
 
-1. Report bugs or request features through issues
-2. Fork and create a feature branch
-3. Write tests following TDD principles
-4. Implement code and ensure tests pass
-5. Create a Pull Request
+For detailed API documentation and advanced usage examples, please refer to the [documentation](https://github.com/yourusername/SwiftYFinance/wiki).
 
-### Development Guidelines
+## Testing
 
-- **Follow TDD cycle**: Red → Green → Refactor
-- **Minimal code principle**: Write only the code needed to pass tests
-- **Separate structural and behavioral changes**: Apply Tidy First principles
-- **Meaningful test names**: Clearly express the purpose of tests
+```bash
+# Run all tests
+swift test
 
-## 📄 License
+# Run specific test suite
+swift test --filter YFClientTests
+```
+
+## Contributing
+
+Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) before submitting a pull request.
+
+## License
 
 This project is distributed under the Apache License, Version 2.0. See the [LICENSE.md](LICENSE.md) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
-- [yfinance](https://github.com/ranaroussi/yfinance) - Original Python library inspiration
-- [curl_cffi](https://github.com/yifeikong/curl_cffi) - Browser impersonation reference implementation
-- [Yahoo Finance](https://finance.yahoo.com/) - Financial data provider
-- Swift community - Language and ecosystem support
-- TDD & Tidy First methodologies - Development principles
-
-## 📞 Contact
-
-For questions or suggestions about the project, please contact us through [issues](https://github.com/yourusername/SwiftYFinance/issues).
-
----
-
-**SwiftYFinance** is now **complete** and **production-ready**! Start leveraging comprehensive Yahoo Finance data in the Swift ecosystem today! 🚀📈✨
-
-### 🎉 Project Completion Status
-- ✅ **Full Feature Parity** with Python yfinance  
-- ✅ **128 Comprehensive Tests** (100% success rate)
-- ✅ **4 Major Phases Complete** (All development phases finished)
-- ✅ **11 CLI Commands** (Complete command-line interface)
-- ✅ **Production Ready** with optimized performance
-- ✅ **Chrome 136 Browser Emulation** for reliable API access
-- ✅ **Integration & Performance Testing** automation
+- [yfinance](https://github.com/ranaroussi/yfinance) - Original Python library
+- [Yahoo Finance](https://finance.yahoo.com/) - Data provider
