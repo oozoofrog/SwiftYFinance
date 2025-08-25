@@ -23,7 +23,23 @@ struct YFQuoteServiceTests {
         #expect((quote.volumeInfo.marketCap ?? 0) > 0)
         #expect(!(quote.basicInfo.shortName ?? "").isEmpty)
     }
-    
+
+    @Test("AAPL, MSFT, UNH 다중 시세 조회")
+    func testFetchQuoteSymbols() async throws {
+        let client = YFClient()
+        let symbols = ["AAPL", "MSFT", "UNH"]
+
+        let response = try await client.quote.fetch(symbols: symbols)
+
+        let quotes: [YFQuote] = response.result ?? []
+
+        try #require(quotes.count == 3)
+        for (offset, symbol) in symbols.enumerated() {
+            #expect(quotes[offset].basicInfo.symbol == symbol)
+            #expect(quotes[offset].marketData.regularMarketPrice ?? 0.0 > 0)
+        }
+    }
+
     @Test("TSLA 종목 시세 및 시간 데이터 유효성 검증")
     func testFetchQuoteWithValidSymbol_TSLA() async throws {
         // Given

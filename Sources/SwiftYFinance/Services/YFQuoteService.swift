@@ -35,7 +35,7 @@ public struct YFQuoteService: YFService {
         
         do {
             // URL 구성
-            let requestURL = try await buildQuoteURL(ticker: ticker)
+            let requestURL = try await buildQuoteURL(tickers: [ticker])
             
             // 인증이 필요한 API 호출 (공통 메서드 사용)
             let quoteResponse = try await performFetch(url: requestURL, type: YFQuoteResponse.self, serviceName: "Quote")
@@ -52,7 +52,44 @@ public struct YFQuoteService: YFService {
             throw error
         }
     }
-    
+
+    /// 여러 심볼의 실시간 주식 시세 조회
+    ///
+    /// Yahoo Finance에서 지정된 주식 심볼들의 현재 시장 데이터를 조회합니다.
+    /// 이 메서드는 여러 심볼을 한 번의 API 호출로 일괄 처리할 수 있습니다.
+    ///
+    /// - Parameter symbols: 주식 티커 심볼 배열 (예: ["AAPL", "GOOGL", "MSFT"])
+    /// - Returns: 요청한 모든 심볼의 시세 데이터를 담은 `YFQuoteResponse`
+    /// - Throws: 요청 실패 또는 잘못된 심볼의 경우 `YFError` 발생
+    ///
+    /// - Note: 이 메서드는 CSRF 토큰을 통한 인증이 필요하며, Yahoo Finance API에
+    ///         안정적으로 접근하기 위해 브라우저 위장 기능을 사용합니다.
+    ///
+    /// 사용 예시:
+    /// ```swift
+    /// let quotes = try await quoteService.fetch(symbols: ["AAPL", "TSLA"])
+    /// for quote in quotes.quoteResponse.result {
+    ///     print("\(quote.symbol): $\(quote.regularMarketPrice)")
+    /// }
+    /// ```
+    public func fetch(symbols: [String]) async throws -> YFQuoteResponse {
+        DebugPrint("🚀 [QuoteService] fetch() 시작 - 심볼: \(symbols)")
+
+        do {
+            // URL 구성
+            let requestURL = try await buildQuoteURL(tickers: symbols.map(YFTicker.init))
+
+            // 인증이 필요한 API 호출 (공통 메서드 사용)
+            let quoteResponse = try await performFetch(url: requestURL, type: YFQuoteResponse.self, serviceName: "Quote")
+
+            DebugPrint("✅ [QuoteService] fetch() 완료")
+            return quoteResponse
+        } catch {
+            DebugPrint("❌ [QuoteService] fetch() 실패: \(error)")
+            throw error
+        }
+    }
+
     /// 주식 시세 원본 JSON 조회 (인증 필요)
     ///
     /// Yahoo Finance API에서 반환하는 원본 JSON 응답을 그대로 반환합니다.
@@ -65,8 +102,8 @@ public struct YFQuoteService: YFService {
         DebugPrint("🚀 [QuoteService] fetchRawJSON() 시작 - 심볼: \(ticker.symbol)")
         
         // URL 구성
-        let requestURL = try await buildQuoteURL(ticker: ticker)
-        
+        let requestURL = try await buildQuoteURL(tickers: [ticker])
+
         // 인증이 필요한 Raw JSON 호출 (공통 메서드 사용)
         return try await performFetchRawJSON(url: requestURL, serviceName: "Quote")
     }
@@ -76,14 +113,14 @@ public struct YFQuoteService: YFService {
     /// Python yfinance와 동일한 방식으로 formatted=false 파라미터를 사용합니다.
     /// crumb 파라미터는 YFServiceCore에서 자동으로 추가됩니다.
     ///
-    /// - Parameter ticker: 조회할 주식 심볼
+    /// - Parameter tickers: 조회할 주식 심볼 리스트
     /// - Returns: 구성된 API 요청 URL
     /// - Throws: URL 구성 중 발생하는 에러
-    private func buildQuoteURL(ticker: YFTicker) async throws -> URL {
+    private func buildQuoteURL(tickers: [YFTicker]) async throws -> URL {
         return try await YFAPIURLBuilder.quote(session: client.session)
-            .symbol(ticker.symbol)
-            .parameter("formatted", "false")  // Python yfinance와 동일
-            .build()  // 인증과 함께 빌드
+            .symbols(tickers.map(\.symbol))
+            .parameter("formatted", "false")
+            .build()
     }
-    
+
 }
