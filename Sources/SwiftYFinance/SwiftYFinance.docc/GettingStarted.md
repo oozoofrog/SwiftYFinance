@@ -44,6 +44,56 @@ let package = Package(
 
 ## First Steps
 
+### Option 1: CLI 도구로 빠른 시작 (권장)
+
+가장 빠르게 SwiftYFinance를 사용해보는 방법입니다:
+
+```bash
+# CLI 빌드
+cd CLI
+swift build -c release
+
+# 기본 사용법 - Apple 주식 시세 조회
+swift run swiftyfinance quote AAPL
+
+# 결과 예시:
+# AAPL: $150.25 (+2.15, +1.45%) 
+# Vol: 65,234,567 | Cap: $2.4T | P/E: 25.3
+```
+
+#### CLI 주요 명령어들
+
+```bash
+# 1. 실시간 시세
+swift run swiftyfinance quote AAPL GOOGL MSFT
+
+# 2. 과거 데이터
+swift run swiftyfinance history AAPL --period 1mo
+
+# 3. 종목 검색
+swift run swiftyfinance search Apple --limit 5
+
+# 4. 재무제표
+swift run swiftyfinance fundamentals AAPL
+
+# 5. 뉴스
+swift run swiftyfinance news AAPL --limit 3
+
+# 6. JSON 형식 출력 (스크립팅용)
+swift run swiftyfinance quote AAPL --json
+```
+
+#### CLI 장점
+
+- **즉시 사용 가능**: 복잡한 설정 없이 바로 데이터 조회
+- **스크립팅 친화적**: Bash, Python 등과 쉽게 연동
+- **JSON 출력**: 프로그래밍 언어들과 완벽 호환
+- **11개 전문 명령어**: 모든 Yahoo Finance 기능 지원
+
+더 자세한 내용은 <doc:CLI> 문서를 참고하세요.
+
+### Option 2: Swift 라이브러리로 시작
+
 ### 1. 라이브러리 Import
 
 Swift 파일 상단에 SwiftYFinance를 import합니다:
@@ -63,6 +113,8 @@ let client = YFClient()
 ### 3. 첫 번째 API 호출
 
 Apple(AAPL) 주식의 현재 시세를 가져와보겠습니다:
+
+#### 방법 1: YFClient 사용 (간단한 경우)
 
 ```swift
 import SwiftYFinance
@@ -85,10 +137,88 @@ func fetchAppleStock() async {
         print("에러 발생: \(error)")
     }
 }
+```
+
+#### 방법 2: 서비스 레이어 사용 (권장)
+
+더 전문적이고 확장 가능한 방법입니다:
+
+```swift
+import SwiftYFinance
+
+func fetchMultipleStocks() async {
+    let quoteService = YFQuoteService()
+    
+    do {
+        // 여러 종목 동시 조회
+        let symbols = ["AAPL", "GOOGL", "MSFT", "AMZN", "TSLA"]
+        let quotes = try await quoteService.fetchQuotes(symbols: symbols)
+        
+        print("Tech Giants Portfolio:")
+        print("====================")
+        
+        for (symbol, quote) in quotes {
+            let price = quote.regularMarketPrice
+            let change = quote.regularMarketChangePercent ?? 0
+            let changeStr = change >= 0 ? "+\(String(format: "%.2f", change))%" : "\(String(format: "%.2f", change))%"
+            
+            print("\(symbol): $\(String(format: "%.2f", price)) (\(changeStr))")
+        }
+        
+    } catch {
+        print("에러 발생: \(error)")
+    }
+}
+```
+
+#### 서비스별 전문 기능 활용
+
+```swift
+import SwiftYFinance
+
+func comprehensiveAnalysis() async {
+    let ticker = YFTicker(symbol: "AAPL")
+    
+    // 1. 실시간 시세 서비스
+    let quoteService = YFQuoteService()
+    
+    // 2. 차트 데이터 서비스
+    let chartService = YFChartService()
+    
+    // 3. 뉴스 서비스
+    let newsService = YFNewsService()
+    
+    do {
+        // 병렬로 데이터 수집
+        async let quote = quoteService.fetchQuote(symbol: "AAPL")
+        async let history = chartService.fetchHistory(ticker: ticker, period: .oneMonth, interval: .oneDay)
+        async let news = newsService.fetchNews(ticker: ticker, limit: 5)
+        
+        // 결과 대기 및 출력
+        let currentQuote = try await quote
+        let priceHistory = try await history
+        let latestNews = try await news
+        
+        print("=== AAPL 종합 분석 ===")
+        print("현재 가격: $\(currentQuote?.regularMarketPrice ?? 0)")
+        print("30일 데이터 포인트: \(priceHistory.prices.count)개")
+        print("최신 뉴스: \(latestNews.articles.count)건")
+        
+        // 간단한 기술적 분석
+        if let latestPrice = priceHistory.prices.last?.close,
+           let monthAgoPrice = priceHistory.prices.first?.close {
+            let monthlyReturn = ((latestPrice - monthAgoPrice) / monthAgoPrice) * 100
+            print("월간 수익률: \(String(format: "%.2f", monthlyReturn))%")
+        }
+        
+    } catch {
+        print("분석 중 에러 발생: \(error)")
+    }
+}
 
 // async 함수 호출
 Task {
-    await fetchAppleStock()
+    await comprehensiveAnalysis()
 }
 ```
 

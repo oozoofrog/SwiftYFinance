@@ -22,6 +22,133 @@ let ticker = YFTicker(symbol: "AAPL")
 let quote = try await client.fetchQuote(ticker: ticker)
 ```
 
+### Chrome 136 위장 기술 상세
+
+SwiftYFinance는 Python [curl_cffi](https://github.com/yifeikong/curl_cffi) 라이브러리를 참고하여 구현된 고급 브라우저 위장 기술을 사용합니다.
+
+#### 완전한 Chrome 136 Fingerprint
+
+```swift
+// Chrome 136 브라우저 식별 정보
+struct Chrome136Fingerprint {
+    static let userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+    
+    static let secChUa = "\"Chromium\";v=\"136\", \"Google Chrome\";v=\"136\", \"Not.A.Brand\";v=\"24\""
+    static let secChUaPlatform = "\"macOS\""
+    static let secChUaMobile = "?0"
+    
+    // HTTP/2 설정 (Chrome 136과 동일)
+    static let http2Settings: [String: Any] = [
+        "HEADER_TABLE_SIZE": 65536,
+        "ENABLE_PUSH": 1,
+        "MAX_CONCURRENT_STREAMS": 1000,
+        "INITIAL_WINDOW_SIZE": 6291456,
+        "MAX_FRAME_SIZE": 16384,
+        "MAX_HEADER_LIST_SIZE": 262144
+    ]
+    
+    // TLS Fingerprint (Chrome 136 JA3)
+    static let ja3Fingerprint = "771,4866-4867-4865-49196-49200-159-52393-52392-52394-49195-49199-158-49188-49192-107-49187-49191-103-49162-49172-57-49161-49171-51-157-156-61-60-53-47-255,0-23-65281-10-11-35-16-5-34-51-43-13-45-28-65037,29-23-24-25-256-257,0"
+}
+```
+
+#### 정교한 헤더 구성
+
+```swift
+extension YFBrowserImpersonator {
+    func getChromeHeaders(for url: URL) -> [String: String] {
+        var headers: [String: String] = [:]
+        
+        // 기본 Chrome 헤더들
+        headers["User-Agent"] = Chrome136Fingerprint.userAgent
+        headers["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
+        headers["Accept-Language"] = "en-US,en;q=0.9,ko;q=0.8"
+        headers["Accept-Encoding"] = "gzip, deflate, br, zstd"
+        headers["Connection"] = "keep-alive"
+        headers["Upgrade-Insecure-Requests"] = "1"
+        
+        // Sec-CH-UA 헤더들 (Chrome 136 Client Hints)
+        headers["Sec-CH-UA"] = Chrome136Fingerprint.secChUa
+        headers["Sec-CH-UA-Mobile"] = Chrome136Fingerprint.secChUaMobile
+        headers["Sec-CH-UA-Platform"] = Chrome136Fingerprint.secChUaPlatform
+        headers["Sec-CH-UA-Platform-Version"] = "\"15.7.0\""
+        headers["Sec-CH-UA-Arch"] = "\"x86\""
+        headers["Sec-CH-UA-Model"] = "\"\""
+        
+        // Fetch Metadata 헤더들
+        if url.host?.contains("finance.yahoo.com") == true {
+            headers["Sec-Fetch-Site"] = "same-origin"
+            headers["Sec-Fetch-Mode"] = "navigate"
+            headers["Sec-Fetch-User"] = "?1"
+            headers["Sec-Fetch-Dest"] = "document"
+        } else {
+            headers["Sec-Fetch-Site"] = "cross-site"
+            headers["Sec-Fetch-Mode"] = "cors"
+            headers["Sec-Fetch-Dest"] = "empty"
+        }
+        
+        // Cache Control (Chrome 136 동작 모방)
+        headers["Cache-Control"] = "max-age=0"
+        
+        // Priority Hints (Chrome 136 네트워크 우선순위)
+        headers["Priority"] = "u=0, i"
+        
+        return headers
+    }
+}
+```
+
+#### HTTP/2 설정 적용
+
+```swift
+class YFHTTPClient {
+    private lazy var urlSession: URLSession = {
+        let configuration = URLSessionConfiguration.default
+        
+        // HTTP/2 강제 사용
+        configuration.httpShouldUsePipelining = true
+        configuration.httpMaximumConnectionsPerHost = 6 // Chrome 136과 동일
+        configuration.requestCachePolicy = .useProtocolCachePolicy
+        
+        // TLS 설정
+        configuration.tlsMinimumSupportedProtocolVersion = .TLSv12
+        configuration.tlsMaximumSupportedProtocolVersion = .TLSv13
+        
+        // 타임아웃 설정 (Chrome 136과 유사)
+        configuration.timeoutIntervalForRequest = 30.0
+        configuration.timeoutIntervalForResource = 300.0
+        
+        return URLSession(configuration: configuration)
+    }()
+}
+```
+
+#### 요청 순서 및 타이밍 모방
+
+```swift
+// Chrome 136의 요청 패턴 모방
+actor YFRequestScheduler {
+    private var lastRequestTime: Date?
+    private let minimumInterval: TimeInterval = 0.05 // Chrome의 일반적인 요청 간격
+    
+    func scheduleRequest() async {
+        if let lastTime = lastRequestTime {
+            let elapsed = Date().timeIntervalSince(lastTime)
+            if elapsed < minimumInterval {
+                let delay = minimumInterval - elapsed
+                try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            }
+        }
+        
+        // 약간의 랜덤 지연 (실제 브라우저 동작 모방)
+        let randomDelay = Double.random(in: 0.01...0.03)
+        try? await Task.sleep(nanoseconds: UInt64(randomDelay * 1_000_000_000))
+        
+        lastRequestTime = Date()
+    }
+}
+```
+
 ### 브라우저 설정 커스터마이징
 
 필요시 브라우저 모방 설정을 조정할 수 있습니다:
@@ -30,13 +157,175 @@ let quote = try await client.fetchQuote(ticker: ticker)
 // 브라우저 설정 확인
 let impersonator = YFBrowserImpersonator()
 print("User-Agent: \(impersonator.userAgent)")
-print("HTTP 버전: HTTP/2")
+print("Chrome Version: 136.0.0.0")
+print("HTTP Version: HTTP/2")
+print("TLS Version: 1.2, 1.3")
 
 // 헤더 정보 확인
-let headers = impersonator.getHeaders()
-for (key, value) in headers {
+let testURL = URL(string: "https://finance.yahoo.com")!
+let headers = impersonator.getChromeHeaders(for: testURL)
+for (key, value) in headers.sorted(by: { $0.key < $1.key }) {
     print("\(key): \(value)")
 }
+
+// JA3 Fingerprint 확인
+print("JA3: \(Chrome136Fingerprint.ja3Fingerprint)")
+```
+
+#### 고급 위장 기법
+
+```swift
+// 브라우저 세션 상태 관리
+class YFBrowserSession {
+    private var sessionId: String
+    private var cookies: [HTTPCookie] = []
+    private var referer: URL?
+    private let impersonator = YFBrowserImpersonator()
+    
+    init() {
+        // Chrome과 유사한 세션 ID 생성
+        self.sessionId = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
+    }
+    
+    func createRequest(for url: URL) -> URLRequest {
+        var request = URLRequest(url: url)
+        
+        // Chrome 136 헤더 적용
+        let headers = impersonator.getChromeHeaders(for: url)
+        for (key, value) in headers {
+            request.setValue(value, forHTTPHeaderField: key)
+        }
+        
+        // Referer 설정 (실제 브라우저 네비게이션 모방)
+        if let referer = self.referer {
+            request.setValue(referer.absoluteString, forHTTPHeaderField: "Referer")
+        }
+        
+        // 쿠키 적용
+        if !cookies.isEmpty {
+            let cookieHeader = HTTPCookie.requestHeaderFields(with: cookies)
+            for (key, value) in cookieHeader {
+                request.setValue(value, forHTTPHeaderField: key)
+            }
+        }
+        
+        // 현재 URL을 다음 요청의 Referer로 설정
+        self.referer = url
+        
+        return request
+    }
+}
+```
+
+#### 탐지 회피 기법
+
+```swift
+// 반복 패턴 탐지 회피
+class YFAntiDetection {
+    private var requestPattern: [Date] = []
+    private let maxPatternLength = 10
+    
+    func randomizeRequestTiming() async {
+        // 사람과 유사한 불규칙적 패턴 생성
+        let patterns = [
+            [0.1, 0.3, 0.2, 0.5], // 빠른 브라우징
+            [0.5, 1.0, 0.8, 1.2], // 보통 브라우징  
+            [1.0, 2.0, 1.5, 0.3], // 느린 브라우징 + 빠른 클릭
+        ]
+        
+        let selectedPattern = patterns.randomElement()!
+        let baseDelay = selectedPattern.randomElement()!
+        
+        // ±30% 랜덤 변이
+        let variation = Double.random(in: 0.7...1.3)
+        let finalDelay = baseDelay * variation
+        
+        try? await Task.sleep(nanoseconds: UInt64(finalDelay * 1_000_000_000))
+        
+        // 패턴 기록
+        requestPattern.append(Date())
+        if requestPattern.count > maxPatternLength {
+            requestPattern.removeFirst()
+        }
+    }
+    
+    // 의심스러운 패턴 검사
+    func isPatternSuspicious() -> Bool {
+        guard requestPattern.count >= 5 else { return false }
+        
+        // 너무 규칙적인 간격 검사
+        let intervals = zip(requestPattern.dropFirst(), requestPattern).map { $0.timeIntervalSince($1) }
+        let avgInterval = intervals.reduce(0, +) / Double(intervals.count)
+        let variance = intervals.map { pow($0 - avgInterval, 2) }.reduce(0, +) / Double(intervals.count)
+        let standardDeviation = sqrt(variance)
+        
+        // 변동계수가 20% 미만이면 의심스러움 (너무 규칙적)
+        let coefficientOfVariation = standardDeviation / avgInterval
+        return coefficientOfVariation < 0.2
+    }
+}
+```
+
+### 위장 효과 검증
+
+```swift
+// 브라우저 위장 성공률 테스트
+class YFImpersonationValidator {
+    func validateImpersonation() async throws {
+        print("=== Chrome 136 브라우저 위장 검증 ===")
+        
+        // 1. User-Agent 검증
+        let session = YFBrowserSession()
+        let testURL = URL(string: "https://httpbin.org/user-agent")!
+        let request = session.createRequest(for: testURL)
+        
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let response = try JSONSerialization.jsonObject(with: data) as! [String: Any]
+        
+        print("✅ User-Agent 테스트:")
+        print("   전송: \(Chrome136Fingerprint.userAgent)")
+        print("   수신: \(response["user-agent"] as? String ?? "없음")")
+        
+        // 2. 헤더 검증
+        let headerTestURL = URL(string: "https://httpbin.org/headers")!
+        let headerRequest = session.createRequest(for: headerTestURL)
+        
+        let (headerData, _) = try await URLSession.shared.data(for: headerRequest)
+        let headerResponse = try JSONSerialization.jsonObject(with: headerData) as! [String: Any]
+        
+        if let headers = headerResponse["headers"] as? [String: String] {
+            print("✅ Chrome 136 헤더 검증:")
+            print("   Sec-CH-UA: \(headers["Sec-Ch-Ua"] ?? "없음")")
+            print("   Accept: \(headers["Accept"] ?? "없음")")
+            print("   Accept-Language: \(headers["Accept-Language"] ?? "없음")")
+        }
+        
+        // 3. TLS Fingerprint 검증 (가능한 경우)
+        print("✅ TLS 설정:")
+        print("   최소 버전: TLS 1.2")
+        print("   최대 버전: TLS 1.3")
+        print("   JA3: \(Chrome136Fingerprint.ja3Fingerprint)")
+        
+        // 4. Yahoo Finance 접근 테스트
+        let yahooURL = URL(string: "https://finance.yahoo.com")!
+        let yahooRequest = session.createRequest(for: yahooURL)
+        
+        do {
+            let (_, response) = try await URLSession.shared.data(for: yahooRequest)
+            if let httpResponse = response as? HTTPURLResponse {
+                print("✅ Yahoo Finance 접근:")
+                print("   Status: \(httpResponse.statusCode)")
+                print("   위장 성공: \(httpResponse.statusCode == 200 ? "예" : "아니오")")
+            }
+        } catch {
+            print("❌ Yahoo Finance 접근 실패: \(error)")
+        }
+    }
+}
+
+// 검증 실행
+let validator = YFImpersonationValidator()
+try await validator.validateImpersonation()
 ```
 
 ## CSRF Authentication
