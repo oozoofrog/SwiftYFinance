@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 /// Yahoo Finance WebSocket 클라이언트
 /// 
