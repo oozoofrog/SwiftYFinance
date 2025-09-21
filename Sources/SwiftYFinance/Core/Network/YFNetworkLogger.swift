@@ -1,5 +1,5 @@
 import Foundation
-import os.log
+import os
 
 /// 네트워크 요청/응답 로깅 시스템
 /// 
