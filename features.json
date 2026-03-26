@@ -360,7 +360,7 @@
         "expect": "0 — YFServiceCore 파일 내 public 선언 0개"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 8,
     "scores": null
