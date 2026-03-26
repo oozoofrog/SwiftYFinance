@@ -496,7 +496,7 @@
         "expect": "Test run with 0 failures"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": "references/swift-concurrency.md",
     "priority": 11,
     "scores": null
