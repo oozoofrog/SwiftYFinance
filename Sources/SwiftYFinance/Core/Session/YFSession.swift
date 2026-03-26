@@ -58,6 +58,9 @@ public final actor YFSession {
     nonisolated internal let htmlParser = YFHTMLParser()
     nonisolated internal let browserImpersonator = YFBrowserImpersonator()
     nonisolated internal let networkLogger = YFNetworkLogger.shared
+
+    // 네트워크 제공자 (테스트에서 MockNetworkProvider 주입 가능)
+    nonisolated internal let networkProvider: any YFNetworkProvider
     
     // MARK: - Computed Properties
     
@@ -96,26 +99,32 @@ public final actor YFSession {
     
     // MARK: - Initialization
     
-    /// YFSession 초기화 (Phase 4.5.3 네트워크 최적화)
+    /// YFSession 초기화
     /// - Parameters:
     ///   - baseURL: 기본 API URL (기본값: finance.yahoo.com)
-    ///   - timeout: 요청 타임아웃 (기본값: 15초로 단축)
+    ///   - timeout: 요청 타임아웃 (기본값: 15초)
     ///   - additionalHeaders: 추가 HTTP 헤더
     ///   - debugEnabled: 디버깅 로그 활성화 여부 (기본값: false)
+    ///   - networkProvider: 네트워크 제공자 (기본값: URLSession. 테스트에서 MockNetworkProvider 주입 가능)
     public init(
         baseURL: URL = URL(string: "https://finance.yahoo.com")!,
-        timeout: TimeInterval = 15.0,  // Phase 4.5.3: 30초 → 15초 단축
+        timeout: TimeInterval = 15.0,
         additionalHeaders: [String: String] = [:],
-        debugEnabled: Bool = false
+        debugEnabled: Bool = false,
+        networkProvider: (any YFNetworkProvider)? = nil
     ) {
         self.baseURL = baseURL
         self.timeout = timeout
         self.additionalHeaders = additionalHeaders
         self.debugEnabled = debugEnabled
-        
+
         // YFBrowserImpersonator를 사용한 네트워크 최적화된 URLSession 생성
-        self.urlSession = browserImpersonator.createConfiguredURLSession()
-        
+        let configuredSession = browserImpersonator.createConfiguredURLSession()
+        self.urlSession = configuredSession
+
+        // networkProvider 미지정 시 URLSession을 기본값으로 사용
+        self.networkProvider = networkProvider ?? configuredSession
+
         // 전역 디버그 설정
         setGlobalDebugEnabled(debugEnabled)
     }

@@ -106,7 +106,7 @@ extension YFSession {
                 request.setValue(value, forHTTPHeaderField: key)
             }
             
-            let (_, response) = try await urlSession.data(for: request)
+            let (_, response) = try await networkProvider.data(for: request)
 
             guard let _ = response as? HTTPURLResponse else {
                 return false
@@ -138,8 +138,8 @@ extension YFSession {
                 request.setValue(value, forHTTPHeaderField: key)
             }
             
-            let (data, response) = try await urlSession.data(for: request)
-            
+            let (data, response) = try await networkProvider.data(for: request)
+
             guard let httpResponse = response as? HTTPURLResponse,
                   httpResponse.statusCode == 200 else {
                 return nil
@@ -182,18 +182,18 @@ extension YFSession {
             postRequest.httpBody = try encodeFormData(postData)
             postRequest.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
             
-            let (_, response) = try await urlSession.data(for: postRequest)
-            
+            let (_, response) = try await networkProvider.data(for: postRequest)
+
             guard let httpResponse = response as? HTTPURLResponse,
                   (200...299).contains(httpResponse.statusCode) else {
                 return false
             }
-            
+
             // GET 요청으로 동의 복사
             let getURL = URL(string: "https://guce.yahoo.com/copyConsent?sessionId=\(sessionId)")!
             let getRequest = URLRequest(url: getURL, timeoutInterval: timeout)
-            
-            let (_, getResponse) = try await urlSession.data(for: getRequest)
+
+            let (_, getResponse) = try await networkProvider.data(for: getRequest)
             
             guard let getHttpResponse = getResponse as? HTTPURLResponse,
                   (200...299).contains(getHttpResponse.statusCode) else {
@@ -222,7 +222,7 @@ extension YFSession {
                 request.setValue(value, forHTTPHeaderField: key)
             }
             
-            let (data, response) = try await urlSession.data(for: request)
+            let (data, response) = try await networkProvider.data(for: request)
 
             guard let httpResponse = response as? HTTPURLResponse else {
                 return false
@@ -402,7 +402,7 @@ extension YFSession {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         }
         
-        return try await urlSession.data(for: request)
+        return try await networkProvider.data(for: request)
     }
 }
 

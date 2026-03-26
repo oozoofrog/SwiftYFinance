@@ -407,7 +407,7 @@
         "expect": "3 이상 — MockNetworkProvider를 사용하는 테스트 케이스가 최소 3개"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 9,
     "scores": null
