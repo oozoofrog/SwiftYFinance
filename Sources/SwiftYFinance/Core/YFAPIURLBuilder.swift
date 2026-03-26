@@ -19,7 +19,7 @@ import Foundation
 ///     .interval(.oneDay)
 ///     .build()
 /// ```
-public struct YFAPIURLBuilder: Sendable {
+struct YFAPIURLBuilder: Sendable {
     
     // MARK: - Static Factory Methods
     

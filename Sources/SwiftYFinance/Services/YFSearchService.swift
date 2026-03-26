@@ -10,16 +10,11 @@ public struct YFSearchService: YFService {
     
     /// YFClient 참조
     public let client: YFClient
-    
-    
-    /// 공통 로직을 처리하는 핵심 구조체
-    private let core: YFServiceCore
-    
+
     /// YFSearchService 초기화
     /// - Parameter client: YFClient 인스턴스
     public init(client: YFClient) {
         self.client = client
-        self.core = YFServiceCore(client: client)
     }
     
     /// 회사명으로 검색을 수행합니다
