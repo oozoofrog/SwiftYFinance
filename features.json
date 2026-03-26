@@ -580,7 +580,7 @@
         "expect": "recoverabilityLevel, recommendedRecoveryStrategy, recommendedDelaySeconds의 switch가 exhaustive하게 컴파일됨 (빌드 성공으로 간접 검증)"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 13,
     "scores": null
