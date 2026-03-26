@@ -669,7 +669,7 @@
         "expect": "출력 0줄 — exclude/resources 관련 경고 없음"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 15,
     "scores": null
