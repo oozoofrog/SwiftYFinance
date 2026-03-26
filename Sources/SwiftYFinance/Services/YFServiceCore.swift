@@ -2,7 +2,6 @@ import Foundation
 
 /// Yahoo Finance 서비스들의 공통 로직을 제공하는 핵심 구조체
 ///
-/// YFBaseService의 모든 기능을 struct로 재구현한 것입니다.
 /// Sendable 프로토콜을 준수하며 @unchecked 없이도 thread-safe합니다.
 /// 모든 서비스 구현체에서 composition으로 사용됩니다.
 struct YFServiceCore: Sendable {
@@ -13,16 +12,58 @@ struct YFServiceCore: Sendable {
     /// 기본 재시도 횟수
     private let maxRetryAttempts = 2
 
-
     /// YFServiceCore 초기화
     /// - Parameter client: YFClient 인스턴스
     init(client: YFClient) {
         self.client = client
     }
 
-    /// 인증된 요청을 수행합니다 (재시도 로직 포함)
+    // MARK: - 공통 HTTP 응답 검증
+
+    /// HTTP 응답의 상태 코드를 검증합니다
     ///
-    /// Yahoo Finance API에 대한 인증된 요청을 수행하며, 401/403 오류 시 자동으로 재시도합니다.
+    /// 2xx 범위를 성공으로 처리하고, 401/403은 인증 재시도 신호를,
+    /// 그 외 오류 코드는 YFError.networkError를 throw합니다.
+    ///
+    /// - Parameters:
+    ///   - response: URLResponse 객체
+    ///   - url: 로그용 요청 URL
+    ///   - attempt: 현재 재시도 횟수 (401/403 재시도 판단에 사용)
+    /// - Returns: 성공(2xx)이면 true, 401/403이고 첫 시도면 false(재시도 신호)
+    /// - Throws: 401/403 최종 실패 시, 또는 기타 HTTP 오류 시 YFError
+    private func validateHTTPResponse(
+        _ response: URLResponse,
+        url: URL,
+        attempt: Int
+    ) throws -> Bool {
+        guard let httpResponse = response as? HTTPURLResponse else {
+            return true // URLResponse이면 상태 코드 없음 → 성공으로 처리
+        }
+
+        let statusCode = httpResponse.statusCode
+
+        // 2xx 범위 전체를 성공으로 처리 (200, 201, 204 등)
+        if statusCode >= 200 && statusCode < 300 {
+            return true
+        }
+
+        // 인증 실패 — 첫 시도면 재시도 신호, 마지막 시도면 오류
+        if statusCode == 401 || statusCode == 403 {
+            if attempt == 0 {
+                return false // 재시도 신호
+            } else {
+                throw YFError.apiError("Authentication failed after \(maxRetryAttempts) attempts")
+            }
+        }
+
+        // 그 외 HTTP 오류
+        YFLogger.network.error("HTTP \(statusCode) 오류: \(url.absoluteString)")
+        throw YFError.networkError("HTTP \(statusCode)")
+    }
+
+    // MARK: - 인증 요청 실행
+
+    /// 인증된 GET 요청을 수행합니다 (재시도 로직 포함)
     ///
     /// - Parameter url: 요청할 URL
     /// - Returns: 응답 데이터와 URLResponse 튜플
@@ -33,35 +74,15 @@ struct YFServiceCore: Sendable {
         for attempt in 0..<maxRetryAttempts {
             do {
                 let (data, response) = try await client.session.makeAuthenticatedRequest(url: url)
-
-                if let httpResponse = response as? HTTPURLResponse {
-                    if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
-                        if attempt == 0 {
-                            lastError = YFError.apiError("Authentication failed, retrying...")
-                            continue
-                        } else {
-                            throw YFError.apiError("Authentication failed after \(maxRetryAttempts) attempts")
-                        }
-                    } else if httpResponse.statusCode != 200 {
-                        YFLogger.network.error("HTTP \(httpResponse.statusCode) 오류: \(url.absoluteString)")
-                        throw YFError.networkError("HTTP \(httpResponse.statusCode)")
-                    }
+                let shouldContinue = try validateHTTPResponse(response, url: url, attempt: attempt)
+                if !shouldContinue {
+                    lastError = YFError.apiError("Authentication failed, retrying...")
+                    continue
                 }
-
                 return (data, response)
-
             } catch {
                 lastError = error
-
-                // 인증 관련 에러가 아닌 경우 즉시 실패
-                if let yfError = error as? YFError,
-                   case .networkError(let message) = yfError,
-                   let message,
-                   !message.contains("401") && !message.contains("403") {
-                    throw error
-                }
-
-                if attempt == maxRetryAttempts - 1 {
+                if !isAuthError(error) || attempt == maxRetryAttempts - 1 {
                     YFLogger.network.error("요청 최종 실패: \(error.localizedDescription)")
                     throw error
                 }
@@ -72,8 +93,6 @@ struct YFServiceCore: Sendable {
     }
 
     /// 인증된 POST 요청을 수행합니다 (재시도 로직 포함)
-    ///
-    /// Yahoo Finance Custom Screener와 같은 POST 요청이 필요한 API에서 사용합니다.
     ///
     /// - Parameters:
     ///   - url: 요청할 URL
@@ -86,34 +105,15 @@ struct YFServiceCore: Sendable {
         for attempt in 0..<maxRetryAttempts {
             do {
                 let (data, response) = try await client.session.makeAuthenticatedPostRequest(url: url, requestBody: requestBody)
-
-                if let httpResponse = response as? HTTPURLResponse {
-                    if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
-                        if attempt == 0 {
-                            lastError = YFError.apiError("Authentication failed, retrying...")
-                            continue
-                        } else {
-                            throw YFError.apiError("Authentication failed after \(maxRetryAttempts) attempts")
-                        }
-                    } else if httpResponse.statusCode != 200 {
-                        YFLogger.network.error("POST HTTP \(httpResponse.statusCode) 오류: \(url.absoluteString)")
-                        throw YFError.networkError("HTTP \(httpResponse.statusCode)")
-                    }
+                let shouldContinue = try validateHTTPResponse(response, url: url, attempt: attempt)
+                if !shouldContinue {
+                    lastError = YFError.apiError("Authentication failed, retrying...")
+                    continue
                 }
-
                 return (data, response)
-
             } catch {
                 lastError = error
-
-                if let yfError = error as? YFError,
-                   case .networkError(let message) = yfError,
-                   let message,
-                   !message.contains("401") && !message.contains("403") {
-                    throw error
-                }
-
-                if attempt == maxRetryAttempts - 1 {
+                if !isAuthError(error) || attempt == maxRetryAttempts - 1 {
                     YFLogger.network.error("POST 요청 최종 실패: \(error.localizedDescription)")
                     throw error
                 }
@@ -121,6 +121,16 @@ struct YFServiceCore: Sendable {
         }
 
         throw lastError ?? YFError.apiError("Request failed after \(maxRetryAttempts) attempts")
+    }
+
+    // MARK: - 공통 유틸리티
+
+    /// 에러가 인증 관련 오류인지 판단합니다 (재시도 여부 결정용)
+    private func isAuthError(_ error: Error) -> Bool {
+        guard let yfError = error as? YFError,
+              case .networkError(let message) = yfError,
+              let message else { return false }
+        return message.contains("401") || message.contains("403")
     }
 
     /// JSON 응답을 파싱합니다
