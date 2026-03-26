@@ -85,7 +85,7 @@ public struct YFResponseParser: Sendable {
                     print("   - 알 수 없는 DecodingError")
                 }
             }
-            throw YFError.parsingError
+            throw YFError.parsingError("JSON 파싱 실패: \(error.localizedDescription)")
         }
     }
     

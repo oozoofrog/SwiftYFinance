@@ -59,7 +59,7 @@ public struct YFServiceCore: Sendable {
                         }
                     } else if httpResponse.statusCode != 200 {
                         DebugPrint("❌ [ServiceCore] 비정상 상태 코드: \(httpResponse.statusCode)")
-                        throw YFError.networkErrorWithMessage("HTTP \(httpResponse.statusCode)")
+                        throw YFError.networkError("HTTP \(httpResponse.statusCode)")
                     } else {
                         DebugPrint("✅ [ServiceCore] HTTP 200 OK 응답")
                     }
@@ -77,7 +77,8 @@ public struct YFServiceCore: Sendable {
                 
                 // 인증 관련 에러가 아닌 경우 바로 재시도하지 않고 에러 던지기
                 if let yfError = error as? YFError,
-                   case .networkErrorWithMessage(let message) = yfError,
+                   case .networkError(let message) = yfError,
+                   let message,
                    !message.contains("401") && !message.contains("403") {
                     DebugPrint("❌ [ServiceCore] 비인증 관련 네트워크 오류, 즉시 실패: \(message)")
                     throw error
@@ -142,7 +143,7 @@ public struct YFServiceCore: Sendable {
                         }
                     } else if httpResponse.statusCode != 200 {
                         DebugPrint("❌ [ServiceCore] 비정상 상태 코드: \(httpResponse.statusCode)")
-                        throw YFError.networkErrorWithMessage("HTTP \(httpResponse.statusCode)")
+                        throw YFError.networkError("HTTP \(httpResponse.statusCode)")
                     } else {
                         DebugPrint("✅ [ServiceCore] HTTP 200 OK 응답")
                     }
@@ -160,7 +161,8 @@ public struct YFServiceCore: Sendable {
                 
                 // 인증 관련 에러가 아닌 경우 바로 재시도하지 않고 에러 던지기
                 if let yfError = error as? YFError,
-                   case .networkErrorWithMessage(let message) = yfError,
+                   case .networkError(let message) = yfError,
+                   let message,
                    !message.contains("401") && !message.contains("403") {
                     DebugPrint("❌ [ServiceCore] 비인증 관련 네트워크 오류, 즉시 실패: \(message)")
                     throw error
@@ -191,13 +193,13 @@ public struct YFServiceCore: Sendable {
     ///   - data: 파싱할 JSON 데이터
     ///   - type: 디코딩할 타입
     /// - Returns: 디코딩된 객체
-    /// - Throws: 파싱 실패 시 YFError.parsingErrorWithMessage
+    /// - Throws: 파싱 실패 시 YFError.parsingError
     public func parseJSON<T: Decodable>(data: Data, type: T.Type) throws -> T {
         do {
             let decoder = JSONDecoder()
             return try decoder.decode(type, from: data)
         } catch {
-            throw YFError.parsingErrorWithMessage("JSON 파싱 실패: \(error.localizedDescription)")
+            throw YFError.parsingError("JSON 파싱 실패: \(error.localizedDescription)")
         }
     }
     

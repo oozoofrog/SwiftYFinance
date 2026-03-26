@@ -42,25 +42,17 @@ public enum YFError: Error, Equatable {
     
     /// API 응답 파싱 오류
     ///
-    /// Yahoo Finance API 응답을 Swift 모델로 변환 중 오류
-    case parsingError
-    
+    /// Yahoo Finance API 응답을 Swift 모델로 변환 중 오류.
+    /// 기존 `parsingError`와 `parsingErrorWithMessage(_:)`를 통합한 케이스입니다.
+    /// - Parameter message: 파싱 오류 상세 메시지 (nil이면 상세 메시지 없음)
+    case parsingError(String?)
+
     /// 네트워크 통신 오류
-    /// 
-    /// Yahoo Finance API와의 통신 중 발생하는 오류
-    case networkError
-    
-    /// API 응답 파싱 오류 (상세 메시지 포함)
     ///
-    /// Yahoo Finance API 응답을 Swift 모델로 변환 중 오류
-    /// - Parameter message: 파싱 오류 상세 메시지
-    case parsingErrorWithMessage(String)
-    
-    /// 네트워크 통신 오류 (상세 메시지 포함)
-    /// 
-    /// Yahoo Finance API와의 통신 중 발생하는 오류
-    /// - Parameter message: 네트워크 오류 상세 메시지
-    case networkErrorWithMessage(String)
+    /// Yahoo Finance API와의 통신 중 발생하는 오류.
+    /// 기존 `networkError`와 `networkErrorWithMessage(_:)`를 통합한 케이스입니다.
+    /// - Parameter message: 네트워크 오류 상세 메시지 (nil이면 상세 메시지 없음)
+    case networkError(String?)
     
     /// API 서버 오류
     ///
@@ -146,15 +138,10 @@ public enum YFWebSocketError: Error, Equatable {
     
     /// 연결 타임아웃
     ///
-    /// WebSocket 연결 시도 시간 초과
+    /// WebSocket 연결 시도 시간 초과.
+    /// 기존 `timeout`과 `connectionTimeout`을 통합한 케이스입니다.
     /// - Parameter message: 타임아웃 상세 메시지
     case timeout(String)
-    
-    /// 연결 타임아웃
-    ///
-    /// WebSocket 연결 시도 시간 초과 (구체적인 타임아웃)
-    /// - Parameter message: 연결 타임아웃 상세 메시지
-    case connectionTimeout(String)
     
     /// 예기치 않은 연결 끊김
     ///
@@ -219,7 +206,7 @@ extension YFWebSocketError {
     /// - Returns: 복구 가능성 수준
     public var recoverabilityLevel: RecoverabilityLevel {
         switch self {
-        case .connectionTimeout, .timeout:
+        case .timeout:
             return .delayedRetry
         case .connectionFailed, .unexpectedDisconnection:
             return .immediateRetry
@@ -243,7 +230,7 @@ extension YFWebSocketError {
     /// - Returns: 권장 복구 전략
     public var recommendedRecoveryStrategy: RecoveryStrategy {
         switch self {
-        case .connectionTimeout, .timeout:
+        case .timeout:
             return .exponentialBackoffReconnect
         case .connectionFailed:
             return .networkCheckReconnect

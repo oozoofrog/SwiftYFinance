@@ -44,7 +44,7 @@ public struct YFMetricsLoader: Sendable {
     /// - Throws: 파일 로딩 또는 파싱 실패 시 YFError
     public static func loadFundamentalsMetrics() throws -> FundamentalsMetrics {
         guard let metrics = _cachedMetrics else {
-            throw YFError.parsingErrorWithMessage("Failed to load FundamentalsMetrics.json resource file")
+            throw YFError.parsingError("Failed to load FundamentalsMetrics.json resource file")
         }
         return metrics
     }
@@ -58,7 +58,7 @@ public struct YFMetricsLoader: Sendable {
         let bundle = Bundle.module
         
         guard let url = bundle.url(forResource: "FundamentalsMetrics", withExtension: "json") else {
-            throw YFError.parsingErrorWithMessage("FundamentalsMetrics.json not found in bundle")
+            throw YFError.parsingError("FundamentalsMetrics.json not found in bundle")
         }
         
         // JSON 파일 데이터 읽기
