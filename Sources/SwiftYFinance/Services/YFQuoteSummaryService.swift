@@ -34,22 +34,14 @@ public struct YFQuoteSummaryService: YFService {
     /// - Returns: Quote Summary 응답 데이터
     /// - Throws: API 호출 중 발생하는 에러
     public func fetch(ticker: YFTicker, modules: [YFQuoteSummaryModule]) async throws -> YFQuoteSummary {
-        DebugPrint("🚀 [QuoteSummaryService] fetch() 시작 - 심볼: \(ticker.symbol), 모듈: \(modules.count)개")
-        
-        do {
-            let requestURL = try await buildQuoteSummaryURL(ticker: ticker, modules: modules)
-            let response = try await performFetch(url: requestURL, type: YFQuoteSummaryResponse.self, serviceName: "QuoteSummary")
-            
-            guard let quoteSummary = response.quoteSummary else {
-                throw YFError.invalidResponse
-            }
-            
-            DebugPrint("✅ [QuoteSummaryService] fetch() 완료")
-            return quoteSummary
-        } catch {
-            DebugPrint("❌ [QuoteSummaryService] fetch() 실패: \(error)")
-            throw error
+        let requestURL = try await buildQuoteSummaryURL(ticker: ticker, modules: modules)
+        let response = try await performFetch(url: requestURL, type: YFQuoteSummaryResponse.self, serviceName: "QuoteSummary")
+
+        guard let quoteSummary = response.quoteSummary else {
+            throw YFError.invalidResponse
         }
+
+        return quoteSummary
     }
     
     /// 단일 모듈로 Quote Summary 데이터 조회

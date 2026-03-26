@@ -125,7 +125,7 @@
         "expect": "6 이하 (현재 10개 → 핵심 에러 이벤트만 유지)"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 3,
     "scores": null
