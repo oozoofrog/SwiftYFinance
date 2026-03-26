@@ -627,7 +627,7 @@
         "expect": "F002 LocalizedError 구현 검증 어서션이 YFErrorTests 내에 존재"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 14,
     "scores": null

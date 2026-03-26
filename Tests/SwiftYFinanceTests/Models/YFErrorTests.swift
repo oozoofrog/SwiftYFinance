@@ -157,3 +157,158 @@ struct YFErrorTests {
         }
     }
 }
+
+// MARK: - YFWebSocketError 복구 프로퍼티 테스트
+
+@Suite("YFWebSocketError Recovery Tests")
+struct YFWebSocketErrorRecoveryTests {
+
+    // MARK: - recoverabilityLevel
+
+    @Test("connectionFailed — immediateRetry 수준")
+    func connectionFailedIsImmediateRetry() {
+        let error = YFWebSocketError.connectionFailed("서버 연결 실패")
+        #expect(error.recoverabilityLevel == .immediateRetry)
+    }
+
+    @Test("timeout — delayedRetry 수준")
+    func timeoutIsDelayedRetry() {
+        let error = YFWebSocketError.timeout("30초 초과")
+        #expect(error.recoverabilityLevel == .delayedRetry)
+    }
+
+    @Test("invalidURL — permanent 수준 (복구 불가)")
+    func invalidURLIsPermanent() {
+        let error = YFWebSocketError.invalidURL("잘못된 주소")
+        #expect(error.recoverabilityLevel == .permanent)
+    }
+
+    @Test("messageDecodingFailed — extendedDelayRetry 수준")
+    func messageDecodingFailedIsExtendedDelayRetry() {
+        let error = YFWebSocketError.messageDecodingFailed("Protobuf 파싱 실패")
+        #expect(error.recoverabilityLevel == .extendedDelayRetry)
+    }
+
+    @Test("authenticationFailed — permanent 수준")
+    func authenticationFailedIsPermanent() {
+        let error = YFWebSocketError.authenticationFailed("인증 실패")
+        #expect(error.recoverabilityLevel == .permanent)
+    }
+
+    // MARK: - recommendedRecoveryStrategy
+
+    @Test("connectionFailed — networkCheckReconnect 전략")
+    func connectionFailedUsesNetworkCheckReconnect() {
+        let error = YFWebSocketError.connectionFailed("실패")
+        #expect(error.recommendedRecoveryStrategy == .networkCheckReconnect)
+    }
+
+    @Test("unexpectedDisconnection — immediateReconnect 전략")
+    func unexpectedDisconnectionUsesImmediateReconnect() {
+        let error = YFWebSocketError.unexpectedDisconnection("끊김")
+        #expect(error.recommendedRecoveryStrategy == .immediateReconnect)
+    }
+
+    @Test("authenticationFailed — userIntervention 전략")
+    func authenticationFailedRequiresUserIntervention() {
+        let error = YFWebSocketError.authenticationFailed("실패")
+        #expect(error.recommendedRecoveryStrategy == .userIntervention)
+    }
+
+    @Test("invalidURL — abort 전략")
+    func invalidURLShouldAbort() {
+        let error = YFWebSocketError.invalidURL("잘못됨")
+        #expect(error.recommendedRecoveryStrategy == .abort)
+    }
+
+    // MARK: - isRecoverable
+
+    @Test("연결 가능한 에러는 isRecoverable = true")
+    func recoverableErrorsAreRecoverable() {
+        let recoverable: [YFWebSocketError] = [
+            .connectionFailed("실패"),
+            .timeout("타임아웃"),
+            .unexpectedDisconnection("끊김"),
+            .notConnected("미연결"),
+            .subscriptionFailed("구독 실패"),
+            .protocolError("프로토콜 오류"),
+            .messageDecodingFailed("디코딩 실패"),
+            .reconnectionFailed("재연결 실패")
+        ]
+
+        for error in recoverable {
+            #expect(error.isRecoverable == true,
+                    "\(error)는 복구 가능해야 합니다.")
+        }
+    }
+
+    @Test("복구 불가 에러는 isRecoverable = false")
+    func permanentErrorsAreNotRecoverable() {
+        let permanent: [YFWebSocketError] = [
+            .invalidURL("잘못된 URL"),
+            .invalidSubscription("잘못된 구독"),
+            .authenticationFailed("인증 실패")
+        ]
+
+        for error in permanent {
+            #expect(error.isRecoverable == false,
+                    "\(error)는 복구 불가능해야 합니다.")
+        }
+    }
+
+    // MARK: - canRetryImmediately
+
+    @Test("immediateRetry 수준 에러는 canRetryImmediately = true")
+    func immediateRetryErrorsCanRetryImmediately() {
+        let immediate: [YFWebSocketError] = [
+            .connectionFailed("실패"),
+            .unexpectedDisconnection("끊김"),
+            .notConnected("미연결")
+        ]
+
+        for error in immediate {
+            #expect(error.canRetryImmediately == true,
+                    "\(error)는 즉시 재시도 가능해야 합니다.")
+        }
+    }
+
+    @Test("delayedRetry 이상 수준 에러는 canRetryImmediately = false")
+    func delayedRetryErrorsCannotRetryImmediately() {
+        let notImmediate: [YFWebSocketError] = [
+            .timeout("타임아웃"),
+            .invalidURL("잘못됨"),
+            .authenticationFailed("실패")
+        ]
+
+        for error in notImmediate {
+            #expect(error.canRetryImmediately == false,
+                    "\(error)는 즉시 재시도 불가여야 합니다.")
+        }
+    }
+
+    // MARK: - recommendedDelaySeconds
+
+    @Test("immediateRetry 에러의 권장 지연 시간은 0.1초")
+    func immediateRetryDelayIsShort() {
+        let error = YFWebSocketError.connectionFailed("실패")
+        #expect(error.recommendedDelaySeconds == 0.1)
+    }
+
+    @Test("delayedRetry 에러의 권장 지연 시간은 1.0초")
+    func delayedRetryDelayIsOneSecond() {
+        let error = YFWebSocketError.timeout("타임아웃")
+        #expect(error.recommendedDelaySeconds == 1.0)
+    }
+
+    @Test("extendedDelayRetry 에러의 권장 지연 시간은 5.0초")
+    func extendedDelayRetryDelayIsFiveSeconds() {
+        let error = YFWebSocketError.messageDecodingFailed("실패")
+        #expect(error.recommendedDelaySeconds == 5.0)
+    }
+
+    @Test("permanent 에러의 권장 지연 시간은 infinity")
+    func permanentErrorDelayIsInfinity() {
+        let error = YFWebSocketError.invalidURL("잘못됨")
+        #expect(error.recommendedDelaySeconds == Double.infinity)
+    }
+}
