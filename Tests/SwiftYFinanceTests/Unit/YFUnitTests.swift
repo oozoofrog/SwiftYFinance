@@ -6,10 +6,38 @@ import Foundation
 ///
 /// 실제 Yahoo Finance API 연결 없이 서비스 로직을 검증합니다.
 /// 모든 테스트는 MockNetworkProvider를 통해 미리 정의된 응답을 사용합니다.
+///
+/// @Suite의 init/deinit에서 TestHelper.setUp/tearDown을 자동 호출합니다.
 @Suite("Unit Tests - MockNetworkProvider 기반 단위 테스트")
 struct YFUnitTests {
 
+    init() async {
+        await TestHelper.setUp()
+    }
+
     // MARK: - YFSession Mock 주입 테스트
+
+    @Test("TestFixtures 티커 상수 검증")
+    func testTestFixturesTickers() {
+        #expect(TestFixtures.Tickers.apple.symbol == "AAPL")
+        #expect(TestFixtures.Tickers.microsoft.symbol == "MSFT")
+        #expect(TestFixtures.Tickers.google.symbol == "GOOGL")
+        #expect(TestFixtures.Tickers.bitcoinUSD.symbol == "BTC-USD")
+    }
+
+    @Test("TestFixtures 심볼 배열 검증")
+    func testTestFixturesSymbols() {
+        #expect(TestFixtures.Symbols.largeCaps.count == 5)
+        #expect(TestFixtures.Symbols.largeCaps.contains("AAPL"))
+        #expect(!TestFixtures.Symbols.invalid.isEmpty)
+    }
+
+    @Test("TestFixtures Mock 팩토리 검증")
+    func testTestFixturesMocks() async throws {
+        let session = TestFixtures.mockSession(provider: .success)
+        let isAuthenticated = await session.isAuthenticated
+        #expect(!isAuthenticated)
+    }
 
     @Test("MockNetworkProvider 기본 동작 검증")
     func testMockNetworkProviderBasicBehavior() async throws {

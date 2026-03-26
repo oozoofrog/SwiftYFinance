@@ -51,11 +51,24 @@ public struct YFClient: Sendable {
     /// - Parameter debugEnabled: 디버깅 로그 활성화 여부 (기본값: false)
     public init(debugEnabled: Bool = false) {
         self.debugEnabled = debugEnabled
-        
+
         // 전역 디버그 설정
         setGlobalDebugEnabled(debugEnabled)
-        
+
         self.session = YFSession(debugEnabled: debugEnabled)
+        self.responseParser = YFResponseParser()
+        self.chartConverter = YFChartConverter()
+        self.dateHelper = YFDateHelper()
+    }
+
+    /// YFClient 초기화 (커스텀 세션 주입)
+    ///
+    /// 테스트에서 MockNetworkProvider를 주입한 YFSession을 사용하여 단위 테스트가 가능합니다.
+    ///
+    /// - Parameter session: 커스텀 YFSession 인스턴스 (예: MockNetworkProvider 기반)
+    public init(session: YFSession) {
+        self.debugEnabled = false
+        self.session = session
         self.responseParser = YFResponseParser()
         self.chartConverter = YFChartConverter()
         self.dateHelper = YFDateHelper()
