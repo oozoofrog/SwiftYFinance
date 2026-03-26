@@ -18,14 +18,18 @@ import os
 /// logger.logRequest(request, for: "quoteSummary")
 /// logger.logResponse(response, data: data, duration: 1.2)
 /// ```
-public final class YFNetworkLogger: @unchecked Sendable {
-    
+/// 네트워크 요청/응답 로깅 및 통계를 관리합니다.
+/// NSLock을 통해 thread-safe하게 통계를 관리합니다.
+/// requestStats는 statsLock으로 보호되므로 안전합니다.
+public final class YFNetworkLogger: Sendable {
+
     // MARK: - Singleton
     public static let shared = YFNetworkLogger()
-    
+
     // MARK: - Properties
     private let logger: Logger
-    private var requestStats: [String: RequestStats] = [:]
+    // NSLock으로 보호되는 가변 상태: thread-safe하므로 nonisolated(unsafe) 사용
+    nonisolated(unsafe) private var requestStats: [String: RequestStats] = [:]
     private let statsLock = NSLock()
     
     // MARK: - Types
