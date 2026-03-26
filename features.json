@@ -78,7 +78,7 @@
         "expect": "YFErrorTests에 isEmpty 검증 어서션이 1개 이상 존재"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 2,
     "scores": null
