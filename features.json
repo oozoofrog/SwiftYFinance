@@ -36,10 +36,16 @@
         "expect": "모든 switch/catch 패턴이 parsingErrorWithMessage / networkErrorWithMessage 없이 exhaustive하게 작성됨"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 1,
-    "scores": null
+    "scores": {
+      "functionality": 9,
+      "codeQuality": 9,
+      "designQuality": 9,
+      "interactionQuality": 9,
+      "weightedAverage": 9.0
+    }
   },
   {
     "id": "F002",
@@ -78,10 +84,16 @@
         "expect": "YFErrorTests에 isEmpty 검증 어서션이 1개 이상 존재"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 2,
-    "scores": null
+    "scores": {
+      "functionality": 9,
+      "codeQuality": 8,
+      "designQuality": 9,
+      "interactionQuality": 8,
+      "weightedAverage": 8.6
+    }
   },
   {
     "id": "F003",
@@ -125,10 +137,16 @@
         "expect": "6 이하 (현재 10개 → 핵심 에러 이벤트만 유지)"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 3,
-    "scores": null
+    "scores": {
+      "functionality": 9,
+      "codeQuality": 9,
+      "designQuality": 9,
+      "interactionQuality": 8,
+      "weightedAverage": 8.9
+    }
   },
   {
     "id": "F004",
@@ -167,10 +185,16 @@
         "expect": "Test run with 0 failures"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 4,
-    "scores": null
+    "scores": {
+      "functionality": 7,
+      "codeQuality": 6,
+      "designQuality": 8,
+      "interactionQuality": 7,
+      "weightedAverage": 7.0
+    }
   },
   {
     "id": "F005",
@@ -209,10 +233,16 @@
         "expect": "Test run with 0 failures"
       }
     ],
-    "status": "built",
+    "status": "partial",
     "reference": null,
     "priority": 5,
-    "scores": null
+    "scores": {
+      "functionality": 5,
+      "codeQuality": 4,
+      "designQuality": 5,
+      "interactionQuality": 6,
+      "weightedAverage": 4.9
+    }
   },
   {
     "id": "F006",
@@ -261,10 +291,16 @@
         "expect": "중복 타입을 typealias로 브리징한 경우 명시적 deprecation 주석(@available(*, deprecated)) 포함"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 6,
-    "scores": null
+    "scores": {
+      "functionality": 8,
+      "codeQuality": 7,
+      "designQuality": 7,
+      "interactionQuality": 7,
+      "weightedAverage": 7.3
+    }
   },
   {
     "id": "F007",
@@ -313,10 +349,16 @@
         "expect": "Test run with 0 failures"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 7,
-    "scores": null
+    "scores": {
+      "functionality": 9,
+      "codeQuality": 9,
+      "designQuality": 9,
+      "interactionQuality": 9,
+      "weightedAverage": 9.0
+    }
   },
   {
     "id": "F008",
@@ -360,10 +402,16 @@
         "expect": "0 — YFServiceCore 파일 내 public 선언 0개"
       }
     ],
-    "status": "built",
+    "status": "partial",
     "reference": null,
     "priority": 8,
-    "scores": null
+    "scores": {
+      "functionality": 7,
+      "codeQuality": 6,
+      "designQuality": 6,
+      "interactionQuality": 7,
+      "weightedAverage": 6.5
+    }
   },
   {
     "id": "F009",
@@ -407,10 +455,16 @@
         "expect": "3 이상 — MockNetworkProvider를 사용하는 테스트 케이스가 최소 3개"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 9,
-    "scores": null
+    "scores": {
+      "functionality": 9,
+      "codeQuality": 9,
+      "designQuality": 9,
+      "interactionQuality": 9,
+      "weightedAverage": 9.0
+    }
   },
   {
     "id": "F010",
@@ -454,10 +508,16 @@
         "expect": "Test run with 0 failures"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 10,
-    "scores": null
+    "scores": {
+      "functionality": 8,
+      "codeQuality": 7,
+      "designQuality": 8,
+      "interactionQuality": 8,
+      "weightedAverage": 7.75
+    }
   },
   {
     "id": "F011",
@@ -496,10 +556,16 @@
         "expect": "Test run with 0 failures"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": "references/swift-concurrency.md",
     "priority": 11,
-    "scores": null
+    "scores": {
+      "functionality": 10,
+      "codeQuality": 10,
+      "designQuality": 9,
+      "interactionQuality": 9,
+      "weightedAverage": 9.65
+    }
   },
   {
     "id": "F012",
@@ -538,10 +604,16 @@
         "expect": "Test run with 0 failures"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 12,
-    "scores": null
+    "scores": {
+      "functionality": 8,
+      "codeQuality": 7,
+      "designQuality": 8,
+      "interactionQuality": 8,
+      "weightedAverage": 7.75
+    }
   },
   {
     "id": "F013",
@@ -580,10 +652,16 @@
         "expect": "recoverabilityLevel, recommendedRecoveryStrategy, recommendedDelaySeconds의 switch가 exhaustive하게 컴파일됨 (빌드 성공으로 간접 검증)"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 13,
-    "scores": null
+    "scores": {
+      "functionality": 9,
+      "codeQuality": 9,
+      "designQuality": 8,
+      "interactionQuality": 8,
+      "weightedAverage": 8.65
+    }
   },
   {
     "id": "F014",
@@ -627,10 +705,16 @@
         "expect": "F002 LocalizedError 구현 검증 어서션이 YFErrorTests 내에 존재"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 14,
-    "scores": null
+    "scores": {
+      "functionality": 9,
+      "codeQuality": 9,
+      "designQuality": 9,
+      "interactionQuality": 9,
+      "weightedAverage": 9.0
+    }
   },
   {
     "id": "F015",
@@ -669,9 +753,15 @@
         "expect": "출력 0줄 — exclude/resources 관련 경고 없음"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 15,
-    "scores": null
+    "scores": {
+      "functionality": 9,
+      "codeQuality": 6,
+      "designQuality": 8,
+      "interactionQuality": 7,
+      "weightedAverage": 7.3
+    }
   }
 ]
