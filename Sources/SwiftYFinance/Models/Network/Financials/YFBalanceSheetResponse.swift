@@ -1,6 +1,8 @@
 import Foundation
 
 // MARK: - Balance Sheet API Response Models
+// Network 파싱 전용: Yahoo Finance API 응답을 Swift 모델로 변환하는 데만 사용됩니다.
+// 도메인 로직에서는 Business 모델(YFBalanceSheet)을 사용하세요.
 
 /// Balance Sheet 응답을 포함하는 QuoteSummary 결과 확장
 struct BalanceSheetQuoteSummaryResult: Decodable {

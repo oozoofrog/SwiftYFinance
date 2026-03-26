@@ -261,7 +261,7 @@
         "expect": "중복 타입을 typealias로 브리징한 경우 명시적 deprecation 주석(@available(*, deprecated)) 포함"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 6,
     "scores": null

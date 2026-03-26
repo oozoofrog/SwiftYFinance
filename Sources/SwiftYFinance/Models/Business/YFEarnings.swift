@@ -1,5 +1,9 @@
 import Foundation
 
+/// 도메인 모델: 실적(EPS) 데이터 컨테이너
+///
+/// Network 파싱 전용 모델과 분리된 독립적인 도메인 비즈니스 모델입니다.
+///
 /// A container for earnings data from Yahoo Finance.
 ///
 /// This structure holds both annual and quarterly earnings reports for a given ticker,
