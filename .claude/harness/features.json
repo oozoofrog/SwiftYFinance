@@ -432,7 +432,7 @@
         "expect": "10 이상 (@Test 10개 이상 = 픽스처 10개 이상 검증)"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 14,
     "scores": null
