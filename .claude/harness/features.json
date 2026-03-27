@@ -336,7 +336,7 @@
         "expect": "Double.nan 처리 테스트 케이스가 명시적으로 존재"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 11,
     "scores": null
