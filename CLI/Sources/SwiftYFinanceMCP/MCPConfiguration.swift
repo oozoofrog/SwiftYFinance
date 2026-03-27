@@ -14,7 +14,7 @@ public struct MCPServerConfiguration: Sendable, Equatable {
 }
 
 /// MCP 설정 파일 병합 유틸리티
-public enum MCPConfigurationFile {
+public nonisolated enum MCPConfigurationFile {
     /// 기존 설정과 새 서버 구성을 병합한 JSON 데이터를 반환합니다.
     public static func mergedJSON(
         existingData: Data?,
@@ -52,7 +52,7 @@ public enum MCPConfigurationFile {
     }
 }
 
-public enum MCPConfigurationError: LocalizedError {
+public nonisolated enum MCPConfigurationError: LocalizedError {
     case invalidRootObject
     case serializationFailed
 

@@ -80,7 +80,7 @@ run_or_dry() {
     if $DRY_RUN; then
         echo -e "${YELLOW}[dry-run] $*${NC}"
     else
-        eval "$@"
+        "$@"
     fi
 }
 
