@@ -199,7 +199,7 @@
         "expect": "1 이상 — 코드 블록(예제) 포함 확인"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 5,
     "scores": null
