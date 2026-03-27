@@ -44,7 +44,7 @@ struct YFLogger: Sendable {
     /// YFLogger 초기화
     /// - Parameter category: 로그 카테고리 식별자
     init(category: String) {
-        self.logger = Logger(subsystem: "com.swiftyfinance", category: category)
+        self.logger = Logger(subsystem: "com.swift-yf-tools", category: category)
     }
 
     // MARK: - 로깅 메서드

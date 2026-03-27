@@ -634,7 +634,7 @@ func fetchAndValidateQuote(symbol: String) async throws -> YFQuote {
 import os.log
 
 struct YFLogger {
-    private static let subsystem = "com.yourapp.swiftyfinance"
+    private static let subsystem = "com.yourapp.swift-yf-tools"
     
     static let network = Logger(subsystem: subsystem, category: "network")
     static let cache = Logger(subsystem: subsystem, category: "cache")

@@ -132,7 +132,7 @@ SwiftYFinance의 핵심 클래스와 인터페이스입니다.
 ```bash
 # CLI 빌드 및 실행
 cd CLI
-swift run swiftyfinance quote AAPL
+swift run swift-yf-tools quote AAPL
 
 # 결과 예시:
 # AAPL: $150.25 (+1.5%) Vol: 65.2M Cap: $2.4T

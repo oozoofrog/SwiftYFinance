@@ -31,10 +31,16 @@
         "expect": "허용 예외: Package.swift의 타겟명(SwiftYFinanceCLI, SwiftYFinanceMCP), Swift 소스 파일 내 타입명, harness-spec.md 내 이전 이름 언급은 제외"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 1,
-    "scores": null
+    "scores": {
+      "functionality": 10,
+      "codeQuality": 9,
+      "designQuality": 9,
+      "interactionQuality": 9,
+      "weightedAverage": 9.4
+    }
   },
   {
     "id": "F002",
@@ -68,10 +74,16 @@
         "expect": "헤더/주석에 'SwiftYFinance' 미포함, 'swift-yf-tools' 또는 'swift-yf-tools Setup' 포함"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 2,
-    "scores": null
+    "scores": {
+      "functionality": 10,
+      "codeQuality": 9,
+      "designQuality": 8,
+      "interactionQuality": 8,
+      "weightedAverage": 9.0
+    }
   },
   {
     "id": "F003",
@@ -120,10 +132,16 @@
         "expect": "0 — 이전 이름 미포함"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 3,
-    "scores": null
+    "scores": {
+      "functionality": 9,
+      "codeQuality": 8,
+      "designQuality": 8,
+      "interactionQuality": 9,
+      "weightedAverage": 8.6
+    }
   },
   {
     "id": "F004",
@@ -157,10 +175,16 @@
         "expect": "0 이상 허용 — 단, 라이브러리 타입명('SwiftYFinance'만) 허용, 'SwiftYFinance CLI'·'SwiftYFinance MCP 서버'는 0건"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 4,
-    "scores": null
+    "scores": {
+      "functionality": 10,
+      "codeQuality": 8,
+      "designQuality": 9,
+      "interactionQuality": 9,
+      "weightedAverage": 9.1
+    }
   },
   {
     "id": "F005",
@@ -199,10 +223,16 @@
         "expect": "1 이상 — 코드 블록(예제) 포함 확인"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 5,
-    "scores": null
+    "scores": {
+      "functionality": 10,
+      "codeQuality": 9,
+      "designQuality": 9,
+      "interactionQuality": 9,
+      "weightedAverage": 9.3
+    }
   },
   {
     "id": "F006",
@@ -236,10 +266,16 @@
         "expect": "0 — 모든 이전 이름 제거 (라이브러리 타입명 포함 여부는 문맥 확인)"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 6,
-    "scores": null
+    "scores": {
+      "functionality": 10,
+      "codeQuality": 9,
+      "designQuality": 9,
+      "interactionQuality": 9,
+      "weightedAverage": 9.3
+    }
   },
   {
     "id": "F007",
@@ -273,10 +309,16 @@
         "expect": "0 — 모든 이전 이름 제거"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 7,
-    "scores": null
+    "scores": {
+      "functionality": 10,
+      "codeQuality": 9,
+      "designQuality": 9,
+      "interactionQuality": 9,
+      "weightedAverage": 9.3
+    }
   },
   {
     "id": "F008",
@@ -305,10 +347,16 @@
         "expect": "1 이상 — 릴리즈 빌드 실행 예시 포함"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 8,
-    "scores": null
+    "scores": {
+      "functionality": 10,
+      "codeQuality": 9,
+      "designQuality": 8,
+      "interactionQuality": 9,
+      "weightedAverage": 9.1
+    }
   },
   {
     "id": "F009",
@@ -342,10 +390,16 @@
         "expect": "헤더(# 또는 첫 단락)에 'SwiftYFinance CLI' 미포함"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 9,
-    "scores": null
+    "scores": {
+      "functionality": 10,
+      "codeQuality": 9,
+      "designQuality": 9,
+      "interactionQuality": 9,
+      "weightedAverage": 9.3
+    }
   },
   {
     "id": "F010",
@@ -378,10 +432,16 @@
         "expect": "FAIL 기준: swift --version이 전제조건으로 명시되지 않은 경우. Agent 섹션이 단순 표(링크 모음)만 있고 실제 명령 단계가 없는 경우."
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 10,
-    "scores": null
+    "scores": {
+      "functionality": 10,
+      "codeQuality": 9,
+      "designQuality": 9,
+      "interactionQuality": 10,
+      "weightedAverage": 9.5
+    }
   },
   {
     "id": "F011",
@@ -405,10 +465,16 @@
         "expect": "줄 번호와 함께 출력 — 맥락이 단순 주석이 아닌 출력 가능한 도움말임을 확인"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 11,
-    "scores": null
+    "scores": {
+      "functionality": 8,
+      "codeQuality": 8,
+      "designQuality": 8,
+      "interactionQuality": 8,
+      "weightedAverage": 8.0
+    }
   },
   {
     "id": "F012",
@@ -451,9 +517,15 @@
         "expect": "허용 예외 목록: (1) Package.swift의 타겟명 SwiftYFinanceCLI, SwiftYFinanceMCP, (2) Swift 소스 코드(.swift) 내 타입명, (3) harness-spec.md 내 이전 이름 언급(맥락 설명용)"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 12,
-    "scores": null
+    "scores": {
+      "functionality": 9,
+      "codeQuality": 7,
+      "designQuality": 8,
+      "interactionQuality": 8,
+      "weightedAverage": 8.1
+    }
   }
 ]

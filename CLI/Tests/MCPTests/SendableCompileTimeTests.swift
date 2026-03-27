@@ -136,8 +136,16 @@ struct SendableCompileTimeTests {
 
     @Test("CLI 소스에 @unchecked Sendable 선언 없음")
     func noUncheckedSendableInSources() throws {
-        // 파일 시스템에서 @unchecked Sendable 검색
-        let sourcesPath = "/Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/CLI/Sources/SwiftYFinanceMCP"
+        // 현재 테스트 파일 위치를 기준으로 CLI/Sources/SwiftYFinanceMCP 경로를 계산
+        let testFileURL = URL(fileURLWithPath: #filePath)
+        let sourcesURL = testFileURL
+            .deletingLastPathComponent() // MCPTests
+            .deletingLastPathComponent() // Tests
+            .deletingLastPathComponent() // CLI
+            .appendingPathComponent("Sources")
+            .appendingPathComponent("SwiftYFinanceMCP")
+        let sourcesPath = sourcesURL.path
+
         let fm = FileManager.default
         guard let enumerator = fm.enumerator(atPath: sourcesPath) else {
             Issue.record("소스 디렉토리를 열 수 없습니다: \(sourcesPath)")

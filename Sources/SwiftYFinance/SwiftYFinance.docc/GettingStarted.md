@@ -54,7 +54,7 @@ cd CLI
 swift build -c release
 
 # 기본 사용법 - Apple 주식 시세 조회
-swift run swiftyfinance quote AAPL
+swift run swift-yf-tools quote AAPL
 
 # 결과 예시:
 # AAPL: $150.25 (+2.15, +1.45%) 
@@ -65,22 +65,22 @@ swift run swiftyfinance quote AAPL
 
 ```bash
 # 1. 실시간 시세
-swift run swiftyfinance quote AAPL GOOGL MSFT
+swift run swift-yf-tools quote AAPL GOOGL MSFT
 
 # 2. 과거 데이터
-swift run swiftyfinance history AAPL --period 1mo
+swift run swift-yf-tools history AAPL --period 1mo
 
 # 3. 종목 검색
-swift run swiftyfinance search Apple --limit 5
+swift run swift-yf-tools search Apple --limit 5
 
 # 4. 재무제표
-swift run swiftyfinance fundamentals AAPL
+swift run swift-yf-tools fundamentals AAPL
 
 # 5. 뉴스
-swift run swiftyfinance news AAPL --limit 3
+swift run swift-yf-tools news AAPL --limit 3
 
 # 6. JSON 형식 출력 (스크립팅용)
-swift run swiftyfinance quote AAPL --json
+swift run swift-yf-tools quote AAPL --json
 ```
 
 #### CLI 장점
