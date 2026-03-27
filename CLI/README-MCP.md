@@ -17,11 +17,11 @@ Claude Desktop, Cursor 등 MCP 클라이언트와 연동하여 AI 어시스턴�
 cd CLI
 
 # MCP 서버 빌드
-swift build --target swiftyfinance-mcp
+swift build --target swift-yf-tools
 
 # 빌드된 바이너리 경로
-.build/debug/swiftyfinance-mcp   # 디버그
-.build/release/swiftyfinance-mcp # 릴리즈 (swift build -c release)
+.build/debug/swift-yf-tools   # 디버그
+.build/release/swift-yf-tools # 릴리즈 (swift build -c release)
 ```
 
 ## Claude Desktop 설정
@@ -32,7 +32,7 @@ swift build --target swiftyfinance-mcp
 {
   "mcpServers": {
     "swiftyfinance": {
-      "command": "/절대경로/SwiftYFinance/CLI/.build/debug/swiftyfinance-mcp",
+      "command": "/절대경로/SwiftYFinance/CLI/.build/debug/swift-yf-tools",
       "args": []
     }
   }
@@ -45,7 +45,7 @@ swift build --target swiftyfinance-mcp
 {
   "mcpServers": {
     "swiftyfinance": {
-      "command": "/Users/사용자이름/develop/SwiftYFinance/CLI/.build/release/swiftyfinance-mcp",
+      "command": "/Users/사용자이름/develop/SwiftYFinance/CLI/.build/release/swift-yf-tools",
       "args": []
     }
   }
@@ -62,7 +62,7 @@ swift build --target swiftyfinance-mcp
 {
   "mcpServers": {
     "swiftyfinance": {
-      "command": "/절대경로/SwiftYFinance/CLI/.build/debug/swiftyfinance-mcp",
+      "command": "/절대경로/SwiftYFinance/CLI/.build/debug/swift-yf-tools",
       "args": []
     }
   }
@@ -258,15 +258,15 @@ Yahoo Finance WebSocket을 통해 실시간 가격을 1회 수신합니다.
 ```bash
 # tools/list — tool 목록 확인
 echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' \
-  | .build/debug/swiftyfinance-mcp
+  | .build/debug/swift-yf-tools
 
 # quote tool 호출
 echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"quote","arguments":{"symbol":"AAPL"}}}' \
-  | .build/debug/swiftyfinance-mcp
+  | .build/debug/swift-yf-tools
 
 # search tool 호출
 echo '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"search","arguments":{"query":"Apple"}}}' \
-  | .build/debug/swiftyfinance-mcp
+  | .build/debug/swift-yf-tools
 ```
 
 ## 주의사항

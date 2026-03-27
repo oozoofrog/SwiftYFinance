@@ -14,7 +14,7 @@ let package = Package(
             targets: ["SwiftYFinanceCLI"]
         ),
         .executable(
-            name: "swiftyfinance-mcp",
+            name: "swift-yf-tools",
             targets: ["SwiftYFinanceMCP"]
         )
     ],

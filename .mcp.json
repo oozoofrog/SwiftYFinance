@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "yahoo-finance": {
+      "command": "/Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/CLI/.build/release/swift-yf-tools",
+      "args": []
+    }
+  }
+}

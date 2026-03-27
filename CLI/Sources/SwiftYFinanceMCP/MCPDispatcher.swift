@@ -60,7 +60,7 @@ actor MCPDispatcher {
             "protocolVersion": .string("2024-11-05"),
             "capabilities": .object(["tools": .object([:])]),
             "serverInfo": .object([
-                "name": .string("swiftyfinance-mcp"),
+                "name": .string("swift-yf-tools"),
                 "version": .string("1.0.0")
             ])
         ])
