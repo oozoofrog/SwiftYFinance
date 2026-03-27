@@ -16,42 +16,47 @@ struct ScreeningCommand: AsyncParsableCommand {
     
     @Flag(name: .shortAndLong, help: "Enable debug output")
     var debug = false
-    
+
     @Flag(name: .shortAndLong, help: "Output raw JSON response")
     var json = false
-    
+
+    /// 이모지 없이 ASCII 대체 문자로 출력 (CI/파이프라인 환경)
+    @Flag(name: .customLong("no-emoji"), help: "이모지 없이 ASCII 대체 문자로 출력합니다")
+    var noEmoji = false
+
     func run() async throws {
         let client = YFClient(debugEnabled: debug)
-        
+        let style = OutputStyle(noEmoji: noEmoji)
+
         // 스크리너 타입을 YFPredefinedScreener로 변환
         guard let predefinedScreener = parsePredefinedScreener(screenerType.lowercased()) else {
             if json {
                 printJSONError("Invalid screener type", error: YFError.invalidRequest)
             } else {
-                print("❌ Invalid screener type: \(screenerType)")
+                print("\(style.error) Invalid screener type: \(screenerType)")
                 print("")
                 print("Available screener types:")
-                print("  • day_gainers")
-                print("  • day_losers")
-                print("  • most_actives")
-                print("  • aggressive_small_caps")
-                print("  • growth_technology_stocks")
-                print("  • undervalued_growth_stocks")
-                print("  • undervalued_large_caps")
-                print("  • small_cap_gainers")
-                print("  • most_shorted_stocks")
+                print("  * day_gainers")
+                print("  * day_losers")
+                print("  * most_actives")
+                print("  * aggressive_small_caps")
+                print("  * growth_technology_stocks")
+                print("  * undervalued_growth_stocks")
+                print("  * undervalued_large_caps")
+                print("  * small_cap_gainers")
+                print("  * most_shorted_stocks")
             }
             throw ExitCode.failure
         }
-        
+
         let actualLimit = min(limit, 250)
-        
+
         if debug && !json {
-            print("🔍 Debug mode enabled")
-            print("📊 Screening with: \(screenerType)")
-            print("🔢 Limit: \(actualLimit)")
+            print("\(style.search) Debug mode enabled")
+            print("\(style.chart) Screening with: \(screenerType)")
+            print("[CNT] Limit: \(actualLimit)")
         }
-        
+
         do {
             if json {
                 // Raw JSON 출력 (CLI용)
@@ -60,7 +65,7 @@ struct ScreeningCommand: AsyncParsableCommand {
             } else {
                 // 파싱된 결과 출력
                 let results = try await client.screener.screenPredefined(predefinedScreener, limit: actualLimit)
-                printScreeningResults(results, screenerType: screenerType)
+                printScreeningResults(results, screenerType: screenerType, style: style)
             }
         } catch {
             if json {
@@ -97,41 +102,41 @@ struct ScreeningCommand: AsyncParsableCommand {
         }
     }
     
-    private func printScreeningResults(_ results: [YFScreenResult], screenerType: String) {
-        print("📊 Stock Screening Results: \(screenerType)")
-        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    private func printScreeningResults(_ results: [YFScreenResult], screenerType: String, style: OutputStyle) {
+        print("\(style.chart) Stock Screening Results: \(screenerType)")
+        print(style.separator)
         print("")
-        
+
         if results.isEmpty {
             print("No stocks found for this screening criteria")
             return
         }
-        
+
         // 헤더 출력
         print(String(format: "%-6s %-25s %10s %10s %8s", "Symbol", "Company", "Price", "Change%", "Volume"))
         print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        
+
         for result in results {
             let symbol = String((result.symbol ?? "").prefix(6))
             let company = String((result.shortName ?? result.longName ?? "").prefix(25))
             let price = String(format: "$%.2f", result.regularMarketPrice ?? 0)
             let change = String(format: "%.2f%%", result.regularMarketChangePercent ?? 0)
             let volume = formatVolume(Int(result.regularMarketVolume ?? 0))
-            
-            print(String(format: "%-6s %-25s %10s %10s %8s", 
+
+            print(String(format: "%-6s %-25s %10s %10s %8s",
                          symbol, company, price, change, volume))
         }
-        
+
         print("")
         print("Found \(results.count) stock\(results.count == 1 ? "" : "s")")
-        
+
         // 추가 통계 정보
         if !results.isEmpty {
             let avgPrice = results.compactMap { $0.regularMarketPrice }.reduce(0, +) / Double(results.count)
             let avgChange = results.compactMap { $0.regularMarketChangePercent }.reduce(0, +) / Double(results.count)
-            
+
             print("")
-            print("📈 Summary:")
+            print("\(style.up) Summary:")
             print("   Average Price: $\(String(format: "%.2f", avgPrice))")
             print("   Average Change: \(String(format: "%.2f", avgChange))%")
         }

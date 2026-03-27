@@ -22,20 +22,25 @@ struct CustomScreenerCommand: AsyncParsableCommand {
     
     @Flag(name: .shortAndLong, help: "Enable debug output")
     var debug = false
-    
+
     @Flag(name: .shortAndLong, help: "Output raw JSON response")
     var json = false
-    
+
+    /// 이모지 없이 ASCII 대체 문자로 출력 (CI/파이프라인 환경)
+    @Flag(name: .customLong("no-emoji"), help: "이모지 없이 ASCII 대체 문자로 출력합니다")
+    var noEmoji = false
+
     func run() async throws {
         let client = YFClient(debugEnabled: debug)
-        
+        let style = OutputStyle(noEmoji: noEmoji)
+
         if debug && !json {
-            print("🔍 Debug mode enabled")
-            print("📊 Performing custom stock screening")
-            if let marketCap = marketCap { print("💰 Market Cap Range: \(marketCap)") }
-            if let peRatio = peRatio { print("📈 P/E Ratio Range: \(peRatio)") }
-            if let returns = returns { print("💵 Returns Range: \(returns)%") }
-            print("🔢 Limit: \(limit)")
+            print("\(style.search) Debug mode enabled")
+            print("\(style.chart) Performing custom stock screening")
+            if let marketCap = marketCap { print("[CAP] Market Cap Range: \(marketCap)") }
+            if let peRatio = peRatio { print("\(style.up) P/E Ratio Range: \(peRatio)") }
+            if let returns = returns { print("[RET] Returns Range: \(returns)%") }
+            print("[CNT] Limit: \(limit)")
         }
         
         do {
@@ -44,7 +49,7 @@ struct CustomScreenerCommand: AsyncParsableCommand {
                 print(formatJSONOutput(rawData))
             } else {
                 let screeningResults = try await performCustomScreening(client: client)
-                printScreeningResults(screeningResults)
+                printScreeningResults(screeningResults, style: style)
             }
         } catch {
             if json {
@@ -231,69 +236,69 @@ struct CustomScreenerCommand: AsyncParsableCommand {
         return (min: minValue, max: maxValue)
     }
     
-    private func printScreeningResults(_ results: [YFCustomScreenerResult]) {
+    private func printScreeningResults(_ results: [YFCustomScreenerResult], style: OutputStyle) {
         guard !results.isEmpty else {
-            print("❌ No stocks found matching the specified criteria")
+            print("\(style.error) No stocks found matching the specified criteria")
             return
         }
-        
-        print("📊 Custom Screening Results")
-        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
+        print("\(style.chart) Custom Screening Results")
+        print(style.separator)
         print("")
-        
+
         for (index, stock) in results.enumerated() {
             let symbol = stock.symbol ?? "N/A"
             let name = stock.shortName ?? stock.longName ?? "Unknown Company"
-            
+
             print("[\(index + 1)] \(symbol) - \(name)")
-            
+
             if let price = stock.regularMarketPrice {
                 let change = stock.regularMarketChange ?? 0
                 let changePercent = stock.regularMarketChangePercent ?? 0
-                let changeSymbol = change >= 0 ? "🟢" : "🔴"
+                let changeSymbol = style.changeIcon(change: change)
                 let changeSign = change >= 0 ? "+" : ""
-                
+
                 print("    Price: $\(formatPrice(price)) \(changeSymbol) \(changeSign)$\(formatPrice(change)) (\(changeSign)\(formatPercent(changePercent))%)")
             }
-            
+
             if let marketCap = stock.marketCap {
                 print("    Market Cap: $\(formatLargeNumber(marketCap))")
             }
-            
+
             if let pe = stock.trailingPE {
                 print("    P/E Ratio: \(formatPrice(pe))")
             }
-            
+
             if let volume = stock.regularMarketVolume {
                 print("    Volume: \(formatVolume(volume))")
             }
-            
+
             if let sector = stock.sector {
                 print("    Sector: \(sector)")
             }
-            
+
             if let industry = stock.industry {
                 print("    Industry: \(industry)")
             }
-            
+
             if let exchange = stock.exchange {
                 print("    Exchange: \(exchange)")
             }
-            
+
             print("")
         }
-        
+
         // 필터 요약 출력
         var filterSummary: [String] = []
         if let marketCap = marketCap { filterSummary.append("Market Cap: \(marketCap)") }
         if let peRatio = peRatio { filterSummary.append("P/E Ratio: \(peRatio)") }
         if let returns = returns { filterSummary.append("Returns: \(returns)%") }
-        
+
         if !filterSummary.isEmpty {
-            print("🔍 Applied Filters: \(filterSummary.joined(separator: ", "))")
+            print("\(style.search) Applied Filters: \(filterSummary.joined(separator: ", "))")
         }
-        
-        print("📈 Found \(results.count) stocks (limit: \(limit))")
-        print("🕒 Retrieved at: \(formatTime(Date()))")
+
+        print("\(style.up) Found \(results.count) stocks (limit: \(limit))")
+        print("\(style.clock) Retrieved at: \(formatTime(Date()))")
     }
 }
