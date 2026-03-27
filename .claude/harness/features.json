@@ -458,7 +458,7 @@
         "expect": "단일 심볼 정상 출력 (하위 호환)"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 12,
     "scores": null
