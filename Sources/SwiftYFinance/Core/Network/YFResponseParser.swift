@@ -41,6 +41,9 @@ public struct YFResponseParser: Sendable {
     
     /// JSON 데이터를 지정된 타입으로 파싱합니다
     ///
+    /// CPU-bound JSON 디코딩 작업으로, `@concurrent` 속성에 의해 항상 concurrent thread pool에서 실행됩니다.
+    /// 라이브러리 소비자가 MainActor에서 호출해도 자동으로 백그라운드에서 처리됩니다.
+    ///
     /// - Parameters:
     ///   - data: 파싱할 JSON 데이터
     ///   - type: 디코딩할 타입
@@ -55,7 +58,7 @@ public struct YFResponseParser: Sendable {
     /// let jsonData = Data(...) // API 응답 데이터
     ///
     /// do {
-    ///     let quote = try parser.parse(jsonData, type: YFQuote.self)
+    ///     let quote = try await parser.parse(jsonData, type: YFQuote.self)
     ///     print("현재 가격: \(quote.marketData.regularMarketPrice)")
     /// } catch {
     ///     print("파싱 실패: \(error)")
@@ -63,7 +66,8 @@ public struct YFResponseParser: Sendable {
     /// ```
     ///
     /// - Important: 파싱하려는 타입은 반드시 `Decodable` 프로토콜을 준수해야 합니다.
-    public func parse<T: Decodable>(_ data: Data, type: T.Type) throws -> T {
+    @concurrent
+    public func parse<T: Decodable>(_ data: Data, type: T.Type) async throws -> T {
         do {
             return try decoder.decode(type, from: data)
         } catch {
