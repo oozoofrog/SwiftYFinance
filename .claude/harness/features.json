@@ -469,7 +469,7 @@
         "expect": "Test run with 0 failures"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 15,
     "scores": null
