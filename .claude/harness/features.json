@@ -400,7 +400,7 @@
         "expect": "Swift Testing의 timeLimit 또는 동등한 타임아웃 선언 존재"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 13,
     "scores": null
