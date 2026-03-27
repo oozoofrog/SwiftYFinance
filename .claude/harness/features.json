@@ -368,7 +368,7 @@
         "expect": "유효하지 않은 UTF-8 시퀀스 Data 레벨 injection 테스트 존재"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 12,
     "scores": null
