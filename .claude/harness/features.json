@@ -122,7 +122,7 @@
         "expect": "NSNumber Bool 분기 처리 라인 존재 (NSNumber(bool)과 NSNumber(int) 구분 로직)"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 4,
     "scores": null
