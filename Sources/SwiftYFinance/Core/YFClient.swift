@@ -27,7 +27,13 @@ import Foundation
 /// // 종목 검색
 /// let results = try await client.search.find(companyName: "Apple")
 /// ```
-public struct YFClient: Sendable {
+/// nonisolated: 라이브러리 진입점 struct — actor isolation 불필요
+/// Swift 6.2에서 nonisolated struct는 Sendable을 자동으로 충족하므로 명시적 ': Sendable' 유지 여부 검토:
+/// - YFClient는 내부적으로 YFSession(actor), YFResponseParser(nonisolated struct),
+///   YFChartConverter, YFDateHelper를 저장 프로퍼티로 가짐
+/// - actor(YFSession)는 항상 Sendable이므로 YFClient 전체 Sendable 조건 충족
+/// - 명시적 ': Sendable' 유지 — 공개 API이므로 소비자에게 Sendable 명시가 유용함
+public nonisolated struct YFClient: Sendable {
     /// 네트워크 세션 관리자
     public let session: YFSession
     
