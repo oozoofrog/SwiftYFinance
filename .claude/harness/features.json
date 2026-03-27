@@ -384,7 +384,7 @@
         "expect": "True (--no-emoji 없을 때는 이모지 출력됨)"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 10,
     "scores": null
