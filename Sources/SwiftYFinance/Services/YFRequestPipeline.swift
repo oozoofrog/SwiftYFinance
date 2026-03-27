@@ -114,7 +114,8 @@ nonisolated struct YFRequestPipeline: Sendable {
         }
 
         logAPIResponse(data, serviceName: serviceName)
-        return try JSONDecoder().decode(type, from: data)
+        // YFResponseParser.parse()를 @concurrent await로 호출 — CPU-bound 파싱을 concurrent thread pool에서 실행
+        return try await client.responseParser.parse(data, type: type)
     }
 
     /// 공개 API용 Raw JSON 메서드 (인증 불필요)

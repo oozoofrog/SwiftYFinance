@@ -29,8 +29,8 @@ public struct YFMetricsLoader: Sendable {
         do {
             return try loadMetricsFromBundle()
         } catch {
-            // 런타임 에러 발생 시 로그 출력 후 nil 반환
-            print("⚠️ Failed to load FundamentalsMetrics.json: \(error)")
+            // 런타임 에러 발생 시 로그 기록 후 nil 반환
+            YFLogger.parser.error("Failed to load FundamentalsMetrics.json: \(error.localizedDescription)")
             return nil
         }
     }()

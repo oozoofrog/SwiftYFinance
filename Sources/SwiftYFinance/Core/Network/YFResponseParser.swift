@@ -73,24 +73,7 @@ public nonisolated struct YFResponseParser: Sendable {
         do {
             return try decoder.decode(type, from: data)
         } catch {
-            print("❌ [DEBUG] JSON 파싱 실패:")
-            print("   - 파싱 대상 타입: \(type)")
-            print("   - 파싱 에러: \(error)")
-            if let decodingError = error as? DecodingError {
-                print("   - DecodingError 상세: \(decodingError.localizedDescription)")
-                switch decodingError {
-                case .keyNotFound(let key, let context):
-                    print("   - 누락된 키: \(key.stringValue), 경로: \(context.codingPath)")
-                case .typeMismatch(let type, let context):
-                    print("   - 타입 불일치: 예상 \(type), 경로: \(context.codingPath)")
-                case .valueNotFound(let type, let context):
-                    print("   - 값 없음: 예상 \(type), 경로: \(context.codingPath)")
-                case .dataCorrupted(let context):
-                    print("   - 데이터 손상: \(context.debugDescription), 경로: \(context.codingPath)")
-                @unknown default:
-                    print("   - 알 수 없는 DecodingError")
-                }
-            }
+            YFLogger.parser.error("JSON 파싱 실패 (\(T.self)): \(error.localizedDescription)")
             throw YFError.parsingError("JSON 파싱 실패: \(error.localizedDescription)")
         }
     }
