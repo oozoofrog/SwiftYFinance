@@ -1,10 +1,10 @@
 #!/bin/bash
-# SwiftYFinance CLI Performance Benchmark
+# swift-yf-tools Performance Benchmark
 # 모든 명령어의 성능을 측정하고 비교합니다.
 
 set -e
 
-echo "🚀 SwiftYFinance CLI Performance Benchmark"
+echo "swift-yf-tools Performance Benchmark"
 echo "=========================================="
 
 # Ensure release build
@@ -45,24 +45,24 @@ run_benchmark() {
 # Core Commands Benchmarks
 echo -e "${BLUE}📊 Core Commands Performance${NC}"
 echo "=================================="
-run_benchmark "Quote Command (AAPL)" ".build/release/swiftyfinance quote AAPL --json > /dev/null"
-run_benchmark "QuoteSummary Essential (AAPL)" ".build/release/swiftyfinance quotesummary AAPL --type essential --json > /dev/null"
-run_benchmark "History 1mo (AAPL)" ".build/release/swiftyfinance history AAPL --period 1mo --json > /dev/null"
-run_benchmark "Search Apple" ".build/release/swiftyfinance search 'Apple' --limit 5 --json > /dev/null"
+run_benchmark "Quote Command (AAPL)" ".build/release/swift-yf-tools quote AAPL --json > /dev/null"
+run_benchmark "QuoteSummary Essential (AAPL)" ".build/release/swift-yf-tools quotesummary AAPL --type essential --json > /dev/null"
+run_benchmark "History 1mo (AAPL)" ".build/release/swift-yf-tools history AAPL --period 1mo --json > /dev/null"
+run_benchmark "Search Apple" ".build/release/swift-yf-tools search 'Apple' --limit 5 --json > /dev/null"
 
 # Advanced Commands Benchmarks  
 echo -e "${BLUE}⚡ Advanced Commands Performance${NC}"
 echo "===================================="
-run_benchmark "Fundamentals (AAPL)" ".build/release/swiftyfinance fundamentals AAPL --json > /dev/null"
-run_benchmark "Screening Day Gainers" ".build/release/swiftyfinance screening day_gainers --limit 10 --json > /dev/null"
-run_benchmark "Options Chain (AAPL)" ".build/release/swiftyfinance options AAPL --json > /dev/null"
-run_benchmark "News (AAPL)" ".build/release/swiftyfinance news AAPL --json > /dev/null"
+run_benchmark "Fundamentals (AAPL)" ".build/release/swift-yf-tools fundamentals AAPL --json > /dev/null"
+run_benchmark "Screening Day Gainers" ".build/release/swift-yf-tools screening day_gainers --limit 10 --json > /dev/null"
+run_benchmark "Options Chain (AAPL)" ".build/release/swift-yf-tools options AAPL --json > /dev/null"
+run_benchmark "News (AAPL)" ".build/release/swift-yf-tools news AAPL --json > /dev/null"
 
 # New Commands Benchmarks
 echo -e "${BLUE}🆕 New Commands Performance${NC}"
 echo "============================="
-run_benchmark "Domain Sector" ".build/release/swiftyfinance domain --type sector --json > /dev/null"
-run_benchmark "Custom Screening" ".build/release/swiftyfinance custom-screening --market-cap '1B:10B' --json > /dev/null"
+run_benchmark "Domain Sector" ".build/release/swift-yf-tools domain --type sector --json > /dev/null"
+run_benchmark "Custom Screening" ".build/release/swift-yf-tools custom-screening --market-cap '1B:10B' --json > /dev/null"
 
 echo -e "${GREEN}✅ Performance benchmark completed!${NC}"
 echo

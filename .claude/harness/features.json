@@ -451,7 +451,7 @@
         "expect": "허용 예외 목록: (1) Package.swift의 타겟명 SwiftYFinanceCLI, SwiftYFinanceMCP, (2) Swift 소스 코드(.swift) 내 타입명, (3) harness-spec.md 내 이전 이름 언급(맥락 설명용)"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 12,
     "scores": null
