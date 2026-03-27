@@ -68,7 +68,7 @@
         "expect": "JSONValueCodableTests 또는 동등한 테스트 파일 경로 1개 이상"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 2,
     "scores": null
