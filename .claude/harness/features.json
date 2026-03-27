@@ -421,7 +421,7 @@
         "expect": "기본 interval(1d) 적용되어 정상 출력 (--interval 미지정 시)"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 11,
     "scores": null
