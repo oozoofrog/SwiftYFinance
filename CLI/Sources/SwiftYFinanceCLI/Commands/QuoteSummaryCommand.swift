@@ -103,34 +103,34 @@ struct QuoteSummaryCommand: AsyncParsableCommand {
             print("❌ No data available for \(symbol)")
             return
         }
-        
-        // Basic company info
-        let symbol = result.price?.symbol ?? self.symbol.uppercased()
-        let shortName = result.price?.shortName ?? "Unknown Company"
-        
-        print("🏢 \(symbol) - \(shortName)")
+
+        // Basic company info — YFQuoteResult.price는 YFQuote 타입 (모듈형 구조체)
+        let symbolStr = result.price?.basicInfo.symbol ?? self.symbol.uppercased()
+        let shortName = result.price?.basicInfo.shortName ?? "Unknown Company"
+
+        print("🏢 \(symbolStr) - \(shortName)")
         print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        
+
         // Show basic price info if available
         if let price = result.price {
-            let currentPrice = price.regularMarketPrice ?? 0
-            let previousClose = price.regularMarketPreviousClose ?? 0
+            let currentPrice = price.marketData.regularMarketPrice ?? 0
+            let previousClose = price.marketData.regularMarketPreviousClose ?? 0
             let change = currentPrice - previousClose
             let changePercent = previousClose > 0 ? (change / previousClose) * 100 : 0
             let changeSymbol = change >= 0 ? "🟢" : "🔴"
             let changeSign = change >= 0 ? "+" : ""
-            
+
             print("Current Price:    $\(formatPrice(currentPrice))")
             print("Change:           \(changeSymbol) \(changeSign)$\(formatPrice(change)) (\(changeSign)\(formatPercent(changePercent))%)")
             print("Previous Close:   $\(formatPrice(previousClose))")
             print("")
-            print("Open:             $\(formatPrice(price.regularMarketOpen ?? 0))")
-            print("High:             $\(formatPrice(price.regularMarketDayHigh ?? 0))")
-            print("Low:              $\(formatPrice(price.regularMarketDayLow ?? 0))")
-            print("Volume:           \(formatVolume(price.regularMarketVolume ?? 0))")
-            print("Market Cap:       $\(formatLargeNumber(Double(price.marketCap ?? 0)))")
+            print("Open:             $\(formatPrice(price.marketData.regularMarketOpen ?? 0))")
+            print("High:             $\(formatPrice(price.marketData.regularMarketDayHigh ?? 0))")
+            print("Low:              $\(formatPrice(price.marketData.regularMarketDayLow ?? 0))")
+            print("Volume:           \(formatVolume(price.volumeInfo.regularMarketVolume ?? 0))")
+            print("Market Cap:       $\(formatLargeNumber(price.volumeInfo.marketCap ?? 0))")
         }
-        
+
         print("")
         print("📊 Quote Summary Data Type: \(type)")
         print("🕒 Retrieved at: \(formatTime(Date()))")

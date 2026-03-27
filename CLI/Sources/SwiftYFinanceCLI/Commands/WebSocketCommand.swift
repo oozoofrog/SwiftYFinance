@@ -65,16 +65,18 @@ struct WebSocketCommand: AsyncParsableCommand {
     private func streamJSONOutput(webSocketClient: YFWebSocketClient, duration: Int) async throws {
         let startTime = Date()
         let endTime = startTime.addingTimeInterval(TimeInterval(duration))
-        
+
         print("{")
         print("  \"stream_start\": \"\(ISO8601DateFormatter().string(from: startTime))\",")
         print("  \"duration_seconds\": \(duration),")
         print("  \"symbols\": [\(symbols.map { "\"\($0.uppercased())\"" }.joined(separator: ", "))],")
         print("  \"messages\": [")
-        
+
         var isFirstMessage = true
-        
-        for await message in webSocketClient.messageStream {
+
+        // actor-isolated messageStream은 streams() 메서드를 통해 접근
+        let (messageStream, _) = await webSocketClient.streams()
+        for await message in messageStream {
             let currentTime = Date()
             if currentTime > endTime {
                 break
@@ -120,16 +122,18 @@ struct WebSocketCommand: AsyncParsableCommand {
     private func streamFormattedOutput(webSocketClient: YFWebSocketClient, duration: Int) async throws {
         let startTime = Date()
         let endTime = startTime.addingTimeInterval(TimeInterval(duration))
-        
+
         var messageCount = 0
         var lastPrices: [String: Double] = [:]
-        
+
         print("📡 Real-time Data Stream")
         print("⏱️ Streaming for \(duration) seconds...")
         print("🛑 Press Ctrl+C to stop early")
         print("")
-        
-        for await message in webSocketClient.messageStream {
+
+        // actor-isolated messageStream은 streams() 메서드를 통해 접근
+        let (messageStream, _) = await webSocketClient.streams()
+        for await message in messageStream {
             let currentTime = Date()
             if currentTime > endTime {
                 break
