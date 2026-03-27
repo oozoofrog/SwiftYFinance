@@ -12,6 +12,10 @@ let package = Package(
         .executable(
             name: "swiftyfinance",
             targets: ["SwiftYFinanceCLI"]
+        ),
+        .executable(
+            name: "swiftyfinance-mcp",
+            targets: ["SwiftYFinanceMCP"]
         )
     ],
     dependencies: [
@@ -31,6 +35,21 @@ let package = Package(
                 .swiftLanguageMode(.v6),
                 // NonisolatedNonsendingByDefault: Swift 6.2 Approachable Concurrency 핵심 기능
                 // nonisolated async 함수가 기본적으로 호출자의 actor 컨텍스트에서 실행되도록 설정
+                .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
+            ]
+        ),
+        // MCP 서버 타겟 — Yahoo Finance 데이터를 JSON-RPC 2.0 stdio 프로토콜로 제공
+        // 외부 MCP SDK 없이 순수 Swift 표준 라이브러리만으로 구현
+        .executableTarget(
+            name: "SwiftYFinanceMCP",
+            dependencies: [
+                .product(name: "SwiftYFinance", package: "SwiftYFinance")
+            ],
+            path: "Sources/SwiftYFinanceMCP",
+            swiftSettings: [
+                // Swift 6 엄격 동시성 모드 — SwiftYFinanceCLI와 동일한 설정
+                .swiftLanguageMode(.v6),
+                // NonisolatedNonsendingByDefault: Swift 6.2 Approachable Concurrency 핵심 기능
                 .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
             ]
         ),

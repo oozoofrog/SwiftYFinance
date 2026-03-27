@@ -68,7 +68,7 @@
         "expect": "2 이상 (SwiftYFinanceCLI와 SwiftYFinanceMCP 타겟 모두 swiftSettings 적용)"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 2,
     "scores": null
@@ -110,7 +110,7 @@
         "expect": "1 (응답이 정확히 한 줄)"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 3,
     "scores": null
@@ -147,7 +147,7 @@
         "expect": "['symbol'] 또는 ['symbol'] 포함 리스트 (required 필드 존재)"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 4,
     "scores": null
@@ -184,7 +184,7 @@
         "expect": "error 또는 result (어느 쪽이든 JSON-RPC 형식 유지, 프로세스 종료 없음)"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": "references/swift-concurrency.md",
     "priority": 5,
     "scores": null
@@ -226,7 +226,7 @@
         "expect": "chart tool 핸들러에서 interval/period 파라미터 추출 코드 존재"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 6,
     "scores": null
@@ -268,7 +268,7 @@
         "expect": "valid (재무제표 JSON)"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 7,
     "scores": null
@@ -300,7 +300,7 @@
         "expect": "result 또는 -32603 (어느 쪽이든 JSON-RPC 형식 유지, 프로세스 hang 없음)"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 8,
     "scores": null
@@ -342,7 +342,7 @@
         "expect": "True (error 객체에 code/message 모두 존재)"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 9,
     "scores": null
