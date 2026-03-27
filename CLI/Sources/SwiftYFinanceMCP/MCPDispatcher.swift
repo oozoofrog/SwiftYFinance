@@ -5,9 +5,15 @@
 ///
 /// ## 직렬화 전략
 /// - Encodable 모델 (YFHistoricalData, YFSearchResult, YFCustomScreenerResult, YFDomainResult 등):
-///   JSONEncoder로 직렬화
+///   JSONEncoder로 직렬화 → 문자열 → JSONValue.string으로 래핑
 /// - Decodable-only 모델 (YFQuote, YFNewsArticle, YFOptionsChainResult 등):
 ///   `fetchRawJSON` 메서드로 Data를 직접 수신 → UTF-8 문자열로 변환
+///
+/// ## JSONValue 마이그레이션
+/// - params: [String: JSONValue] 사용
+/// - arguments: [String: JSONValue] 사용
+/// - MCPResponse.success(result: JSONValue) 사용
+/// - @unchecked Sendable 완전 제거
 
 import Foundation
 import SwiftYFinance
@@ -50,27 +56,27 @@ actor MCPDispatcher {
 
     /// initialize 핸들러 — MCP 서버 정보 반환
     private func handleInitialize(id: MCPRequestId) -> MCPResponse {
-        let result: [String: Any] = [
-            "protocolVersion": "2024-11-05",
-            "capabilities": ["tools": [String: Any]()],
-            "serverInfo": [
-                "name": "swiftyfinance-mcp",
-                "version": "1.0.0"
-            ]
-        ]
+        let result: JSONValue = .object([
+            "protocolVersion": .string("2024-11-05"),
+            "capabilities": .object(["tools": .object([:])]),
+            "serverInfo": .object([
+                "name": .string("swiftyfinance-mcp"),
+                "version": .string("1.0.0")
+            ])
+        ])
         return MCPResponse.success(id: id, result: result)
     }
 
     /// tools/list 핸들러 — 12개 tool 목록 반환
     private func handleToolsList(id: MCPRequestId) -> MCPResponse {
-        let tools = MCPToolDefinition.allTools.map { $0.toDictionary() }
-        let result: [String: Any] = ["tools": tools]
+        let tools = MCPToolDefinition.allTools.map { $0.toJSONValue() }
+        let result: JSONValue = .object(["tools": .array(tools)])
         return MCPResponse.success(id: id, result: result)
     }
 
     /// tools/call 핸들러 — tool 이름으로 분기
-    private func handleToolsCall(id: MCPRequestId, params: [String: Any]) async -> MCPResponse {
-        guard let toolName = params["name"] as? String else {
+    private func handleToolsCall(id: MCPRequestId, params: [String: JSONValue]) async -> MCPResponse {
+        guard let toolName = params["name"]?.stringValue, !toolName.isEmpty else {
             return MCPResponse.error(
                 id: id,
                 code: MCPErrorCode.invalidParams,
@@ -78,14 +84,20 @@ actor MCPDispatcher {
             )
         }
 
-        let arguments = params["arguments"] as? [String: Any] ?? [:]
+        // arguments 파라미터 추출 — [String: JSONValue] 또는 빈 딕셔너리
+        let arguments: [String: JSONValue]
+        if let argsValue = params["arguments"], case .object(let argsDict) = argsValue {
+            arguments = argsDict
+        } else {
+            arguments = [:]
+        }
 
         do {
             let resultText = try await callTool(name: toolName, arguments: arguments)
-            let content: [[String: Any]] = [
-                ["type": "text", "text": resultText]
-            ]
-            let result: [String: Any] = ["content": content]
+            let content: JSONValue = .array([
+                .object(["type": .string("text"), "text": .string(resultText)])
+            ])
+            let result: JSONValue = .object(["content": content])
             return MCPResponse.success(id: id, result: result)
 
         } catch MCPToolError.unknownTool(let name) {
@@ -120,7 +132,7 @@ actor MCPDispatcher {
     // MARK: - Tool Router
 
     /// tool 이름으로 실제 서비스를 호출합니다.
-    private func callTool(name: String, arguments: [String: Any]) async throws -> String {
+    private func callTool(name: String, arguments: [String: JSONValue]) async throws -> String {
         switch name {
         case "quote":             return try await callQuote(arguments: arguments)
         case "multi-quote":       return try await callMultiQuote(arguments: arguments)
@@ -142,8 +154,8 @@ actor MCPDispatcher {
     // MARK: - Tool Implementations
 
     /// quote tool — 단일 종목 실시간 시세 (fetchRawJSON 사용 — YFQuote는 Encodable 미지원)
-    private func callQuote(arguments: [String: Any]) async throws -> String {
-        guard let symbol = arguments["symbol"] as? String, !symbol.isEmpty else {
+    private func callQuote(arguments: [String: JSONValue]) async throws -> String {
+        guard let symbol = arguments["symbol"]?.stringValue, !symbol.isEmpty else {
             throw MCPToolError.missingParam("symbol")
         }
         let ticker = YFTicker(symbol: symbol.uppercased())
@@ -152,46 +164,44 @@ actor MCPDispatcher {
     }
 
     /// multi-quote tool — 복수 종목 배치 조회
-    /// YFQuoteResponse는 Encodable 미지원이므로 fetch(symbols:) 결과를 딕셔너리로 변환합니다.
-    private func callMultiQuote(arguments: [String: Any]) async throws -> String {
-        guard let rawSymbols = arguments["symbols"] as? [Any], !rawSymbols.isEmpty else {
+    /// YFQuoteResponse는 Encodable 미지원이므로 fetch(symbols:) 결과를 JSONValue로 변환합니다.
+    private func callMultiQuote(arguments: [String: JSONValue]) async throws -> String {
+        guard let symbolsArray = arguments["symbols"]?.arrayValue, !symbolsArray.isEmpty else {
             throw MCPToolError.missingParam("symbols")
         }
-        let symbols = rawSymbols.compactMap { $0 as? String }.map { $0.uppercased() }
+        let symbols = symbolsArray.compactMap { $0.stringValue }.map { $0.uppercased() }
         guard !symbols.isEmpty else {
             throw MCPToolError.invalidParam("symbols must be an array of strings")
         }
         let response = try await client.quote.fetch(symbols: symbols)
-        // YFQuoteResponse → 딕셔너리 배열 변환
-        let items: [[String: Any]] = (response.result ?? []).map { quoteData($0) }
-        let data = try JSONSerialization.data(withJSONObject: items)
+        // YFQuoteResponse → JSONValue 배열 변환
+        let items: [JSONValue] = (response.result ?? []).map { quoteData($0) }
+        let data = try JSONSerialization.data(withJSONObject: JSONValue.array(items).toJSONObject())
         return String(data: data, encoding: .utf8) ?? "[]"
     }
 
     /// chart tool — 과거 가격 데이터 (YFHistoricalData는 Codable)
-    private func callChart(arguments: [String: Any]) async throws -> String {
-        guard let symbol = arguments["symbol"] as? String, !symbol.isEmpty else {
+    private func callChart(arguments: [String: JSONValue]) async throws -> String {
+        guard let symbol = arguments["symbol"]?.stringValue, !symbol.isEmpty else {
             throw MCPToolError.missingParam("symbol")
         }
         let ticker = YFTicker(symbol: symbol.uppercased())
 
         // period 파라미터 파싱 (기본값: 1mo)
-        let periodStr = arguments["period"] as? String ?? "1mo"
+        let periodStr = arguments["period"]?.stringValue ?? "1mo"
         let period = parseYFPeriod(periodStr) ?? .oneMonth
 
         // interval 파라미터 파싱 (기본값: 1d)
-        let intervalStr = arguments["interval"] as? String ?? "1d"
+        let intervalStr = arguments["interval"]?.stringValue ?? "1d"
         let interval = parseYFInterval(intervalStr) ?? .oneDay
 
-        // fetchRawJSON 사용 — YFHistoricalData가 Codable이지만
-        // chart API 원시 응답을 그대로 반환하는 것이 더 정보가 풍부함
         let data = try await client.chart.fetchRawJSON(ticker: ticker, period: period, interval: interval)
         return dataToJSONString(data)
     }
 
     /// search tool — 종목 검색 (YFSearchResult는 Codable)
-    private func callSearch(arguments: [String: Any]) async throws -> String {
-        guard let query = arguments["query"] as? String, !query.isEmpty else {
+    private func callSearch(arguments: [String: JSONValue]) async throws -> String {
+        guard let query = arguments["query"]?.stringValue, !query.isEmpty else {
             throw MCPToolError.missingParam("query")
         }
         let results = try await client.search.find(companyName: query)
@@ -202,11 +212,17 @@ actor MCPDispatcher {
     ///
     /// Yahoo Finance 뉴스 API 원시 응답은 `{news: [...], quotes: [...], ...}` 형태의 dict이므로
     /// `news` 키의 배열만 추출하여 반환합니다.
-    private func callNews(arguments: [String: Any]) async throws -> String {
-        guard let query = arguments["query"] as? String, !query.isEmpty else {
+    private func callNews(arguments: [String: JSONValue]) async throws -> String {
+        guard let query = arguments["query"]?.stringValue, !query.isEmpty else {
             throw MCPToolError.missingParam("query")
         }
-        let count = arguments["count"] as? Int ?? 10
+        // count 파라미터 — .int 또는 .number에서 추출
+        let count: Int
+        if let countValue = arguments["count"] {
+            count = countValue.intValue ?? Int(countValue.doubleValue ?? 10.0)
+        } else {
+            count = 10
+        }
         let ticker = YFTicker(symbol: query)
         let data = try await client.news.fetchRawJSON(ticker: ticker, count: count)
 
@@ -216,13 +232,12 @@ actor MCPDispatcher {
            let newsData = try? JSONSerialization.data(withJSONObject: newsArray) {
             return String(data: newsData, encoding: .utf8) ?? "[]"
         }
-        // 파싱 실패 시 빈 배열 반환 — MCP 클라이언트가 기대하는 배열 형식 유지
         return "[]"
     }
 
     /// options tool — 옵션 체인 (fetchRawJSON 사용 — YFOptionsChainResult는 Encodable 미지원)
-    private func callOptions(arguments: [String: Any]) async throws -> String {
-        guard let symbol = arguments["symbol"] as? String, !symbol.isEmpty else {
+    private func callOptions(arguments: [String: JSONValue]) async throws -> String {
+        guard let symbol = arguments["symbol"]?.stringValue, !symbol.isEmpty else {
             throw MCPToolError.missingParam("symbol")
         }
         let ticker = YFTicker(symbol: symbol.uppercased())
@@ -231,21 +246,32 @@ actor MCPDispatcher {
     }
 
     /// screening tool — 사전 정의 스크리너 (fetchRawJSON 사용)
-    private func callScreening(arguments: [String: Any]) async throws -> String {
-        let screenerStr = arguments["screener"] as? String ?? "dayGainers"
-        let limit = arguments["limit"] as? Int ?? 25
+    private func callScreening(arguments: [String: JSONValue]) async throws -> String {
+        let screenerStr = arguments["screener"]?.stringValue ?? "dayGainers"
+        let limit: Int
+        if let limitValue = arguments["limit"] {
+            limit = limitValue.intValue ?? Int(limitValue.doubleValue ?? 25.0)
+        } else {
+            limit = 25
+        }
         let screener = parseYFPredefinedScreener(screenerStr) ?? .dayGainers
         let data = try await client.screener.fetchRawJSON(predefined: screener, limit: limit)
         return dataToJSONString(data)
     }
 
     /// customScreener tool — 맞춤 스크리닝 (YFCustomScreenerResult는 Codable)
-    private func callCustomScreener(arguments: [String: Any]) async throws -> String {
-        let limit = arguments["limit"] as? Int ?? 25
-        let minMarketCap = arguments["minMarketCap"] as? Double
-        let maxMarketCap = arguments["maxMarketCap"] as? Double
-        let minPERatio = arguments["minPERatio"] as? Double
-        let maxPERatio = arguments["maxPERatio"] as? Double
+    private func callCustomScreener(arguments: [String: JSONValue]) async throws -> String {
+        let limit: Int
+        if let limitValue = arguments["limit"] {
+            limit = limitValue.intValue ?? Int(limitValue.doubleValue ?? 25.0)
+        } else {
+            limit = 25
+        }
+        // Double 파라미터 추출 — .number 또는 .int case 모두 처리
+        let minMarketCap = arguments["minMarketCap"]?.doubleValue ?? arguments["minMarketCap"].flatMap { $0.intValue.map(Double.init) }
+        let maxMarketCap = arguments["maxMarketCap"]?.doubleValue ?? arguments["maxMarketCap"].flatMap { $0.intValue.map(Double.init) }
+        let minPERatio = arguments["minPERatio"]?.doubleValue ?? arguments["minPERatio"].flatMap { $0.intValue.map(Double.init) }
+        let maxPERatio = arguments["maxPERatio"]?.doubleValue ?? arguments["maxPERatio"].flatMap { $0.intValue.map(Double.init) }
 
         let results: [YFCustomScreenerResult]
         if let minPE = minPERatio, let maxPE = maxPERatio {
@@ -272,13 +298,12 @@ actor MCPDispatcher {
     }
 
     /// quoteSummary tool — 종합 기업 정보 (fetchRawJSON 사용 — YFQuoteSummary는 Encodable 미지원)
-    private func callQuoteSummary(arguments: [String: Any]) async throws -> String {
-        guard let symbol = arguments["symbol"] as? String, !symbol.isEmpty else {
+    private func callQuoteSummary(arguments: [String: JSONValue]) async throws -> String {
+        guard let symbol = arguments["symbol"]?.stringValue, !symbol.isEmpty else {
             throw MCPToolError.missingParam("symbol")
         }
         let ticker = YFTicker(symbol: symbol.uppercased())
-        // type 파라미터로 적절한 rawJSON 메서드 선택
-        let typeStr = arguments["type"] as? String ?? "essential"
+        let typeStr = arguments["type"]?.stringValue ?? "essential"
         let data: Data
 
         switch typeStr.lowercased() {
@@ -303,9 +328,9 @@ actor MCPDispatcher {
     }
 
     /// domain tool — 섹터/산업/마켓 도메인 (YFDomainSectorResponse/YFDomainResult는 Codable)
-    private func callDomain(arguments: [String: Any]) async throws -> String {
-        let domainType = arguments["domainType"] as? String ?? "sector"
-        let value = arguments["value"] as? String ?? "technology"
+    private func callDomain(arguments: [String: JSONValue]) async throws -> String {
+        let domainType = arguments["domainType"]?.stringValue ?? "sector"
+        let value = arguments["value"]?.stringValue ?? "technology"
 
         switch domainType.lowercased() {
         case "market":
@@ -323,8 +348,8 @@ actor MCPDispatcher {
     }
 
     /// fundamentals tool — 재무제표 시계열 (fetchRawJSON 사용 — Encodable 미지원)
-    private func callFundamentals(arguments: [String: Any]) async throws -> String {
-        guard let symbol = arguments["symbol"] as? String, !symbol.isEmpty else {
+    private func callFundamentals(arguments: [String: JSONValue]) async throws -> String {
+        guard let symbol = arguments["symbol"]?.stringValue, !symbol.isEmpty else {
             throw MCPToolError.missingParam("symbol")
         }
         let ticker = YFTicker(symbol: symbol.uppercased())
@@ -333,15 +358,20 @@ actor MCPDispatcher {
     }
 
     /// websocket-snapshot tool — WebSocket 1회성 스냅샷
-    private func callWebSocketSnapshot(arguments: [String: Any]) async throws -> String {
-        guard let rawSymbols = arguments["symbols"] as? [Any], !rawSymbols.isEmpty else {
+    private func callWebSocketSnapshot(arguments: [String: JSONValue]) async throws -> String {
+        guard let symbolsArray = arguments["symbols"]?.arrayValue, !symbolsArray.isEmpty else {
             throw MCPToolError.missingParam("symbols")
         }
-        let symbols = rawSymbols.compactMap { $0 as? String }.map { $0.uppercased() }
+        let symbols = symbolsArray.compactMap { $0.stringValue }.map { $0.uppercased() }
         guard !symbols.isEmpty else {
             throw MCPToolError.invalidParam("symbols must be an array of strings")
         }
-        let timeoutSeconds = arguments["timeout_seconds"] as? Int ?? 10
+        let timeoutSeconds: Int
+        if let timeoutValue = arguments["timeout_seconds"] {
+            timeoutSeconds = timeoutValue.intValue ?? Int(timeoutValue.doubleValue ?? 10.0)
+        } else {
+            timeoutSeconds = 10
+        }
 
         // 타임아웃 경쟁
         return try await withThrowingTaskGroup(of: String.self) { group in
@@ -368,23 +398,24 @@ actor MCPDispatcher {
 
         let (messageStream, _) = await wsClient.streams()
 
-        var collected: [[String: Any]] = []
+        // JSONValue 딕셔너리로 수집
+        var collected: [JSONValue] = []
         var remaining = Set(symbols)
 
         for await message in messageStream {
             guard !remaining.isEmpty else { break }
             if let sym = message.symbol, remaining.contains(sym) {
                 remaining.remove(sym)
-                var dict: [String: Any] = [:]
-                if let s = message.symbol { dict["symbol"] = s }
-                if let p = message.price { dict["price"] = p }
-                if let c = message.change { dict["change"] = c }
-                if let cp = message.changePercent { dict["changePercent"] = cp }
-                if let v = message.volume { dict["volume"] = v }
-                if let ms = message.marketState { dict["marketState"] = ms }
-                if let dh = message.dayHigh { dict["dayHigh"] = dh }
-                if let dl = message.dayLow { dict["dayLow"] = dl }
-                collected.append(dict)
+                var dict: [String: JSONValue] = [:]
+                if let s = message.symbol { dict["symbol"] = .string(s) }
+                if let p = message.price { dict["price"] = .number(Double(p)) }
+                if let c = message.change { dict["change"] = .number(Double(c)) }
+                if let cp = message.changePercent { dict["changePercent"] = .number(Double(cp)) }
+                if let v = message.volume { dict["volume"] = .int(Int(v)) }
+                if let ms = message.marketState { dict["marketState"] = .string(ms) }
+                if let dh = message.dayHigh { dict["dayHigh"] = .number(Double(dh)) }
+                if let dl = message.dayLow { dict["dayLow"] = .number(Double(dl)) }
+                collected.append(.object(dict))
             }
             if remaining.isEmpty { break }
         }
@@ -395,7 +426,8 @@ actor MCPDispatcher {
             throw YFError.noData
         }
 
-        let data = try JSONSerialization.data(withJSONObject: collected)
+        let jsonValue = JSONValue.array(collected)
+        let data = try JSONSerialization.data(withJSONObject: jsonValue.toJSONObject())
         return String(data: data, encoding: .utf8) ?? "[]"
     }
 
@@ -414,22 +446,22 @@ actor MCPDispatcher {
         return String(data: data, encoding: .utf8) ?? "null"
     }
 
-    /// YFQuote를 딕셔너리로 변환 (multi-quote에서 사용)
-    private func quoteData(_ quote: YFQuote) -> [String: Any] {
-        var dict: [String: Any] = [:]
-        if let v = quote.basicInfo.symbol { dict["symbol"] = v }
-        if let v = quote.basicInfo.shortName { dict["shortName"] = v }
-        if let v = quote.basicInfo.longName { dict["longName"] = v }
-        if let v = quote.marketData.regularMarketPrice { dict["regularMarketPrice"] = v }
-        if let v = quote.marketData.regularMarketChange { dict["regularMarketChange"] = v }
-        if let v = quote.marketData.regularMarketChangePercent { dict["regularMarketChangePercent"] = v }
-        if let v = quote.marketData.regularMarketOpen { dict["regularMarketOpen"] = v }
-        if let v = quote.marketData.regularMarketDayHigh { dict["regularMarketDayHigh"] = v }
-        if let v = quote.marketData.regularMarketDayLow { dict["regularMarketDayLow"] = v }
-        if let v = quote.marketData.regularMarketPreviousClose { dict["regularMarketPreviousClose"] = v }
-        if let v = quote.volumeInfo.regularMarketVolume { dict["regularMarketVolume"] = v }
-        if let v = quote.volumeInfo.marketCap { dict["marketCap"] = v }
-        return dict
+    /// YFQuote를 JSONValue로 변환 (multi-quote에서 사용)
+    private func quoteData(_ quote: YFQuote) -> JSONValue {
+        var dict: [String: JSONValue] = [:]
+        if let v = quote.basicInfo.symbol { dict["symbol"] = .string(v) }
+        if let v = quote.basicInfo.shortName { dict["shortName"] = .string(v) }
+        if let v = quote.basicInfo.longName { dict["longName"] = .string(v) }
+        if let v = quote.marketData.regularMarketPrice { dict["regularMarketPrice"] = .number(Double(v)) }
+        if let v = quote.marketData.regularMarketChange { dict["regularMarketChange"] = .number(Double(v)) }
+        if let v = quote.marketData.regularMarketChangePercent { dict["regularMarketChangePercent"] = .number(Double(v)) }
+        if let v = quote.marketData.regularMarketOpen { dict["regularMarketOpen"] = .number(Double(v)) }
+        if let v = quote.marketData.regularMarketDayHigh { dict["regularMarketDayHigh"] = .number(Double(v)) }
+        if let v = quote.marketData.regularMarketDayLow { dict["regularMarketDayLow"] = .number(Double(v)) }
+        if let v = quote.marketData.regularMarketPreviousClose { dict["regularMarketPreviousClose"] = .number(Double(v)) }
+        if let v = quote.volumeInfo.regularMarketVolume { dict["regularMarketVolume"] = .int(Int(v)) }
+        if let v = quote.volumeInfo.marketCap { dict["marketCap"] = .int(Int(v)) }
+        return .object(dict)
     }
 }
 

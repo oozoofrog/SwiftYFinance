@@ -110,9 +110,10 @@ struct MCPRequestDecodeTests {
         """.data(using: .utf8)!
 
         let request = try MCPRequest.decode(from: json)
-        #expect(request.params["name"] as? String == "quote")
-        let args = request.params["arguments"] as? [String: Any]
-        #expect(args?["symbol"] as? String == "AAPL")
+        // JSONValue API로 params 값 접근
+        #expect(request.params["name"]?.stringValue == "quote")
+        let args = request.params["arguments"]?.objectValue
+        #expect(args?["symbol"]?.stringValue == "AAPL")
     }
 }
 
@@ -132,8 +133,10 @@ struct ToolsListTests {
         for tool in MCPToolDefinition.allTools {
             #expect(!tool.name.isEmpty, "tool 이름이 비어있습니다")
             #expect(!tool.description.isEmpty, "tool \(tool.name)의 description이 비어있습니다")
+            // JSONValue — objectValue가 nil이 아니고 비어있지 않아야 함
             let schema = tool.inputSchema
-            #expect(!schema.isEmpty, "tool \(tool.name)의 inputSchema가 비어있습니다")
+            let schemaIsNonEmpty = schema.objectValue.map { !$0.isEmpty } ?? false
+            #expect(schemaIsNonEmpty, "tool \(tool.name)의 inputSchema가 비어있습니다")
         }
     }
 
@@ -151,21 +154,22 @@ struct ToolsListTests {
     @Test("quote tool의 required 파라미터에 symbol 포함")
     func quoteTooHasRequiredSymbol() {
         let quoteTool = MCPToolDefinition.allTools.first { $0.name == "quote" }
-        let required = quoteTool?.inputSchema["required"] as? [String]
+        // JSONValue API로 required 배열 접근
+        let required = quoteTool?.inputSchema["required"]?.arrayValue?.compactMap { $0.stringValue }
         #expect(required?.contains("symbol") == true)
     }
 
     @Test("options tool의 required 파라미터에 symbol 포함")
     func optionsToolHasRequiredSymbol() {
         let optionsTool = MCPToolDefinition.allTools.first { $0.name == "options" }
-        let required = optionsTool?.inputSchema["required"] as? [String]
+        let required = optionsTool?.inputSchema["required"]?.arrayValue?.compactMap { $0.stringValue }
         #expect(required?.contains("symbol") == true)
     }
 
     @Test("multi-quote tool의 required 파라미터에 symbols 포함")
     func multiQuoteToolHasRequiredSymbols() {
         let tool = MCPToolDefinition.allTools.first { $0.name == "multi-quote" }
-        let required = tool?.inputSchema["required"] as? [String]
+        let required = tool?.inputSchema["required"]?.arrayValue?.compactMap { $0.stringValue }
         #expect(required?.contains("symbols") == true)
     }
 
@@ -230,7 +234,7 @@ struct ErrorCodeTests {
     func successResponseHasRequiredFields() {
         let response = MCPResponse.success(
             id: .int(42),
-            result: ["tools": []]
+            result: .object(["tools": .array([])])
         )
         let jsonStr = response.jsonString()
         #expect(jsonStr.contains("\"jsonrpc\""))
@@ -243,7 +247,7 @@ struct ErrorCodeTests {
     func responseIsSingleLine() {
         let response = MCPResponse.success(
             id: .int(1),
-            result: ["key": "value"]
+            result: .object(["key": .string("value")])
         )
         let jsonStr = response.jsonString()
         let lineCount = jsonStr.components(separatedBy: "\n").count

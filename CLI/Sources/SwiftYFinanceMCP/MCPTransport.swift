@@ -93,45 +93,45 @@ enum MCPDecodeError: Error {
 
 /// JSON-RPC 2.0 요청 구조체
 ///
-/// @unchecked Sendable 안전성 근거:
-/// - `params: [String: Any]`는 `JSONSerialization.jsonObject`가 반환하는 Foundation 타입
-///   (NSString, NSNumber, NSArray, NSDictionary)으로만 구성되며, 이들은 불변(immutable)
-/// - MCPRequest는 생성 직후 MCPDispatcher.dispatch()로 전달되어 한 번만 읽힘
-/// - 생성과 소비가 동일한 서버 루프 내에서 순차적으로 발생하므로 동시 접근 불가
-struct MCPRequest: @unchecked Sendable {
+/// `params: [String: JSONValue]` — @unchecked Sendable 없이 완전한 Sendable 충족.
+/// JSONValue는 nonisolated enum으로 Sendable이므로 MCPRequest도 컴파일 타임에 Sendable 검증 통과.
+nonisolated struct MCPRequest: Sendable {
     /// JSON-RPC 버전 ("2.0")
     let jsonrpc: String
     /// 요청 ID (notification은 nil)
     let id: MCPRequestId?
     /// 메서드 이름
     let method: String
-    /// 파라미터 딕셔너리
-    let params: [String: Any]
+    /// 파라미터 딕셔너리 — [String: JSONValue]로 타입 안전성 보장
+    let params: [String: JSONValue]
 
     /// notification 여부 (id 없음)
     var isNotification: Bool { id == nil }
 
     /// Data에서 MCPRequest를 디코딩합니다.
+    ///
+    /// JSONSerialization으로 원시 파싱 후 JSONValue.from(jsonObject:)로 변환합니다.
+    /// 이를 통해 NSNumber Bool/Int/Double 구분이 정확하게 이루어집니다.
     static func decode(from data: Data) throws -> MCPRequest {
-        guard let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+        guard let rawObj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw MCPDecodeError.invalidJSON(
                 NSError(domain: "MCPDecode", code: -1, userInfo: [NSLocalizedDescriptionKey: "Not a JSON object"])
             )
         }
 
         // jsonrpc 필드 검증
-        guard let jsonrpc = obj["jsonrpc"] as? String else {
+        guard let jsonrpc = rawObj["jsonrpc"] as? String else {
             throw MCPDecodeError.invalidRequest("Missing 'jsonrpc' field")
         }
 
         // method 필드 검증
-        guard let method = obj["method"] as? String else {
+        guard let method = rawObj["method"] as? String else {
             throw MCPDecodeError.invalidRequest("Missing 'method' field")
         }
 
         // id 파싱 (optional — notification은 id 없음)
         let requestId: MCPRequestId?
-        if let rawId = obj["id"] {
+        if let rawId = rawObj["id"] {
             if rawId is NSNull {
                 requestId = .null
             } else if let intId = rawId as? Int {
@@ -145,8 +145,13 @@ struct MCPRequest: @unchecked Sendable {
             requestId = nil
         }
 
-        // params 파싱 (optional, 기본값 빈 딕셔너리)
-        let params = obj["params"] as? [String: Any] ?? [:]
+        // params 파싱 — [String: Any] → [String: JSONValue] 변환
+        var params: [String: JSONValue] = [:]
+        if let rawParams = rawObj["params"] as? [String: Any] {
+            for (key, value) in rawParams {
+                params[key] = (try? JSONValue.from(jsonObject: value)) ?? .null
+            }
+        }
 
         return MCPRequest(
             jsonrpc: jsonrpc,
@@ -161,22 +166,20 @@ struct MCPRequest: @unchecked Sendable {
 
 /// JSON-RPC 2.0 응답 구조체
 ///
-/// @unchecked Sendable 안전성 근거:
-/// - `body`의 `Any`는 JSONSerialization 호환 타입(NSString, NSNumber 등 불변 Foundation 타입)
-/// - MCPResponse는 생성 즉시 `jsonString()`으로 직렬화되어 stdout에 출력됨 — 공유/저장 없음
-/// - 생성과 직렬화가 동일한 서버 루프 내에서 순차적으로 발생
-struct MCPResponse: @unchecked Sendable {
+/// `ResponseBody.result(JSONValue)` — @unchecked Sendable 없이 완전한 Sendable 충족.
+/// JSONValue는 Sendable이므로 MCPResponse도 컴파일 타임 검증 통과.
+nonisolated struct MCPResponse: Sendable {
     let id: MCPRequestId
     /// result 또는 error 중 하나
     private let body: ResponseBody
 
-    private enum ResponseBody {
-        case result(Any)
+    private enum ResponseBody: Sendable {
+        case result(JSONValue)
         case error(code: Int, message: String, data: String?)
     }
 
     /// 성공 응답 생성
-    static func success(id: MCPRequestId, result: Any) -> MCPResponse {
+    static func success(id: MCPRequestId, result: JSONValue) -> MCPResponse {
         MCPResponse(id: id, body: .result(result))
     }
 
@@ -187,7 +190,8 @@ struct MCPResponse: @unchecked Sendable {
 
     /// JSON 문자열로 직렬화 (단일 줄)
     ///
-    /// JSONSerialization을 사용하여 제어 문자, 유니코드 등을 안전하게 이스케이프합니다.
+    /// JSONValue.toJSONObject()를 경유하여 JSONSerialization으로 직렬화합니다.
+    /// 제어 문자, 유니코드 등이 JSONSerialization에 의해 안전하게 이스케이프됩니다.
     func jsonString() -> String {
         var dict: [String: Any] = ["jsonrpc": "2.0"]
 
@@ -200,7 +204,7 @@ struct MCPResponse: @unchecked Sendable {
 
         switch body {
         case .result(let value):
-            dict["result"] = value
+            dict["result"] = value.toJSONObject()
         case .error(let code, let message, let data):
             var errorObj: [String: Any] = ["code": code, "message": message]
             if let dataStr = data {

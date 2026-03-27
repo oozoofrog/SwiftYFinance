@@ -154,7 +154,7 @@
         "expect": "NO_ERRORS 또는 MCPTransport 관련 에러/경고 없음"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 5,
     "scores": null
@@ -186,7 +186,7 @@
         "expect": "Test run with 0 failures"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 6,
     "scores": null
@@ -218,7 +218,7 @@
         "expect": "Test run with 0 failures"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 7,
     "scores": null
@@ -245,7 +245,7 @@
         "expect": "Test run with 0 failures"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 8,
     "scores": null
@@ -277,7 +277,7 @@
         "expect": "CLEAN — 테스트 코드에서 as? 캐스팅으로 params 값 접근하는 코드가 JSONValue API로 교체되었어야 함"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 9,
     "scores": null
