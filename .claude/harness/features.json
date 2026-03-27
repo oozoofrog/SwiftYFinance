@@ -542,7 +542,7 @@
         "expect": "True (한국어 텍스트 존재)"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 14,
     "scores": null
