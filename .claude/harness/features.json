@@ -31,10 +31,16 @@
         "expect": "0 (빌드 에러 없음)"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": "references/swift-concurrency.md",
     "priority": 1,
-    "scores": null
+    "scores": {
+      "functionality": 9,
+      "code_quality": 8,
+      "ui_quality": null,
+      "interaction_quality": null,
+      "weighted_average": 8.7
+    }
   },
   {
     "id": "F002",
@@ -59,7 +65,7 @@
       },
       {
         "action": "run_command",
-        "command": "cd /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/CLI && swift build --target swiftyfinance-mcp 2>&1 | tail -3",
+        "command": "cd /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/CLI && swift build --target SwiftYFinanceMCP 2>&1 | tail -3",
         "expect": "Build complete!"
       },
       {
@@ -68,10 +74,16 @@
         "expect": "2 이상 (SwiftYFinanceCLI와 SwiftYFinanceMCP 타겟 모두 swiftSettings 적용)"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 2,
-    "scores": null
+    "scores": {
+      "functionality": 9,
+      "code_quality": 8,
+      "ui_quality": null,
+      "interaction_quality": null,
+      "weighted_average": 8.6
+    }
   },
   {
     "id": "F003",
@@ -110,10 +122,16 @@
         "expect": "1 (응답이 정확히 한 줄)"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 3,
-    "scores": null
+    "scores": {
+      "functionality": 9,
+      "code_quality": 7,
+      "ui_quality": null,
+      "interaction_quality": null,
+      "weighted_average": 8.2
+    }
   },
   {
     "id": "F004",
@@ -147,10 +165,16 @@
         "expect": "['symbol'] 또는 ['symbol'] 포함 리스트 (required 필드 존재)"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 4,
-    "scores": null
+    "scores": {
+      "functionality": 10,
+      "code_quality": 8,
+      "ui_quality": null,
+      "interaction_quality": null,
+      "weighted_average": 9.2
+    }
   },
   {
     "id": "F005",
@@ -184,10 +208,16 @@
         "expect": "error 또는 result (어느 쪽이든 JSON-RPC 형식 유지, 프로세스 종료 없음)"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": "references/swift-concurrency.md",
     "priority": 5,
-    "scores": null
+    "scores": {
+      "functionality": 9,
+      "code_quality": 8,
+      "ui_quality": null,
+      "interaction_quality": null,
+      "weighted_average": 8.6
+    }
   },
   {
     "id": "F006",
@@ -229,7 +259,13 @@
     "status": "built",
     "reference": null,
     "priority": 6,
-    "scores": null
+    "scores": {
+      "functionality": 7,
+      "code_quality": 7,
+      "ui_quality": null,
+      "interaction_quality": null,
+      "weighted_average": 7.0
+    }
   },
   {
     "id": "F007",
@@ -268,10 +304,16 @@
         "expect": "valid (재무제표 JSON)"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 7,
-    "scores": null
+    "scores": {
+      "functionality": 9,
+      "code_quality": 8,
+      "ui_quality": null,
+      "interaction_quality": null,
+      "weighted_average": 8.6
+    }
   },
   {
     "id": "F008",
@@ -300,10 +342,16 @@
         "expect": "result 또는 -32603 (어느 쪽이든 JSON-RPC 형식 유지, 프로세스 hang 없음)"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 8,
-    "scores": null
+    "scores": {
+      "functionality": 8,
+      "code_quality": 8,
+      "ui_quality": null,
+      "interaction_quality": null,
+      "weighted_average": 8.0
+    }
   },
   {
     "id": "F009",
@@ -342,10 +390,16 @@
         "expect": "True (error 객체에 code/message 모두 존재)"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 9,
-    "scores": null
+    "scores": {
+      "functionality": 10,
+      "code_quality": 9,
+      "ui_quality": null,
+      "interaction_quality": null,
+      "weighted_average": 9.6
+    }
   },
   {
     "id": "F010",
@@ -387,7 +441,13 @@
     "status": "built",
     "reference": null,
     "priority": 10,
-    "scores": null
+    "scores": {
+      "functionality": 7,
+      "code_quality": 7,
+      "ui_quality": 7,
+      "interaction_quality": null,
+      "weighted_average": 7.0
+    }
   },
   {
     "id": "F011",
@@ -421,10 +481,16 @@
         "expect": "기본 interval(1d) 적용되어 정상 출력 (--interval 미지정 시)"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 11,
-    "scores": null
+    "scores": {
+      "functionality": 10,
+      "code_quality": 8,
+      "ui_quality": 9,
+      "interaction_quality": null,
+      "weighted_average": 9.0
+    }
   },
   {
     "id": "F012",
@@ -458,10 +524,16 @@
         "expect": "단일 심볼 정상 출력 (하위 호환)"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 12,
-    "scores": null
+    "scores": {
+      "functionality": 10,
+      "code_quality": 8,
+      "ui_quality": 9,
+      "interaction_quality": null,
+      "weighted_average": 9.0
+    }
   },
   {
     "id": "F013",
@@ -500,10 +572,16 @@
         "expect": "0 (실패 없음)"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 13,
-    "scores": null
+    "scores": {
+      "functionality": 10,
+      "code_quality": 9,
+      "ui_quality": null,
+      "interaction_quality": null,
+      "weighted_average": 9.6
+    }
   },
   {
     "id": "F014",
@@ -542,9 +620,15 @@
         "expect": "True (한국어 텍스트 존재)"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": null,
     "priority": 14,
-    "scores": null
+    "scores": {
+      "functionality": 9,
+      "code_quality": 8,
+      "ui_quality": null,
+      "interaction_quality": null,
+      "weighted_average": 8.6
+    }
   }
 ]

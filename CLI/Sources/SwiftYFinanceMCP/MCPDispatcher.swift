@@ -198,7 +198,10 @@ actor MCPDispatcher {
         return try encodeJSON(results)
     }
 
-    /// news tool — 뉴스 조회 (fetchRawJSON 사용 — YFNewsArticle은 Encodable 미지원)
+    /// news tool — 뉴스 조회 (원시 응답에서 news 배열만 추출)
+    ///
+    /// Yahoo Finance 뉴스 API 원시 응답은 `{news: [...], quotes: [...], ...}` 형태의 dict이므로
+    /// `news` 키의 배열만 추출하여 반환합니다.
     private func callNews(arguments: [String: Any]) async throws -> String {
         guard let query = arguments["query"] as? String, !query.isEmpty else {
             throw MCPToolError.missingParam("query")
@@ -206,6 +209,14 @@ actor MCPDispatcher {
         let count = arguments["count"] as? Int ?? 10
         let ticker = YFTicker(symbol: query)
         let data = try await client.news.fetchRawJSON(ticker: ticker, count: count)
+
+        // 원시 응답에서 news 배열만 추출하여 반환
+        if let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let newsArray = obj["news"],
+           let newsData = try? JSONSerialization.data(withJSONObject: newsArray) {
+            return String(data: newsData, encoding: .utf8) ?? "[]"
+        }
+        // 파싱 실패 시 원시 데이터 반환 (폴백)
         return dataToJSONString(data)
     }
 
