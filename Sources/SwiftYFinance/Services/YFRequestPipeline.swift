@@ -10,7 +10,9 @@ import Foundation
 /// let pipeline = YFRequestPipeline(client: client)
 /// let result: YFQuote = try await pipeline.fetch(url: url, type: YFQuote.self, serviceName: "Quote")
 /// ```
-struct YFRequestPipeline: Sendable {
+/// nonisolated: 순수 요청 파이프라인 struct — actor isolation 불필요
+/// 라이브러리 소비자의 모든 isolation 컨텍스트에서 안전하게 사용 가능
+nonisolated struct YFRequestPipeline: Sendable {
 
     /// YFClient 참조
     let client: YFClient
@@ -70,7 +72,7 @@ struct YFRequestPipeline: Sendable {
         do {
             let (data, _) = try await core.authenticatedRequest(url: url)
             logAPIResponse(data, serviceName: serviceName)
-            return try core.parseJSON(data: data, type: type)
+            return try await core.parseJSON(data: data, type: type)
         } catch {
             YFLogger.service.error("[\(serviceName)] fetch 실패: \(error.localizedDescription)")
             throw error
@@ -112,7 +114,8 @@ struct YFRequestPipeline: Sendable {
         }
 
         logAPIResponse(data, serviceName: serviceName)
-        return try JSONDecoder().decode(type, from: data)
+        // YFResponseParser.parse()를 @concurrent await로 호출 — CPU-bound 파싱을 concurrent thread pool에서 실행
+        return try await client.responseParser.parse(data, type: type)
     }
 
     /// 공개 API용 Raw JSON 메서드 (인증 불필요)
@@ -152,7 +155,7 @@ struct YFRequestPipeline: Sendable {
         do {
             let (data, _) = try await core.authenticatedPostRequest(url: url, requestBody: requestBody)
             logAPIResponse(data, serviceName: serviceName)
-            return try core.parseJSON(data: data, type: type)
+            return try await core.parseJSON(data: data, type: type)
         } catch {
             YFLogger.service.error("[\(serviceName)] post 실패: \(error.localizedDescription)")
             throw error

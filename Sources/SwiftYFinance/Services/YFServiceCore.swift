@@ -4,7 +4,9 @@ import Foundation
 ///
 /// Sendable 프로토콜을 준수하며 @unchecked 없이도 thread-safe합니다.
 /// 모든 서비스 구현체에서 composition으로 사용됩니다.
-struct YFServiceCore: Sendable {
+/// nonisolated: 순수 데이터 처리 struct — actor isolation 불필요
+/// parseJSON에 @concurrent 적용으로 CPU-bound 파싱은 concurrent thread pool에서 실행
+nonisolated struct YFServiceCore: Sendable {
 
     /// YFClient 참조 (struct이므로 값 타입)
     let client: YFClient
@@ -135,12 +137,16 @@ struct YFServiceCore: Sendable {
 
     /// JSON 응답을 파싱합니다
     ///
+    /// CPU-bound JSON 디코딩 작업으로, `@concurrent` 속성에 의해 항상 concurrent thread pool에서 실행됩니다.
+    /// 호출자(예: MainActor)를 블로킹하지 않고 백그라운드에서 안전하게 처리됩니다.
+    ///
     /// - Parameters:
     ///   - data: 파싱할 JSON 데이터
     ///   - type: 디코딩할 타입
     /// - Returns: 디코딩된 객체
     /// - Throws: 파싱 실패 시 YFError.parsingError
-    func parseJSON<T: Decodable>(data: Data, type: T.Type) throws -> T {
+    @concurrent
+    func parseJSON<T: Decodable>(data: Data, type: T.Type) async throws -> T {
         do {
             let decoder = JSONDecoder()
             return try decoder.decode(type, from: data)

@@ -7,7 +7,7 @@ import Foundation
  
  종목이 거래되는 거래소와 통화 관련 정보를 포함합니다.
  */
-public struct YFQuoteExchangeInfo: Decodable, Sendable {
+public struct YFQuoteExchangeInfo: Decodable {
     /// 거래소 코드
     public let exchange: String?
     

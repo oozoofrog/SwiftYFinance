@@ -1,6 +1,8 @@
 import Foundation
 
 // MARK: - Fundamentals Timeseries API Response Models
+// Sendable 유지 근거: withTaskGroup 등 Sendable 컨텍스트에서 cross-task 전달이 필요하며,
+// 테스트 코드 및 라이브러리 소비자가 concurrent 환경에서 직접 사용하므로 명시가 필요합니다.
 
 /// Fundamentals Timeseries API 응답 구조
 public struct FundamentalsTimeseriesResponse: Decodable, Sendable {

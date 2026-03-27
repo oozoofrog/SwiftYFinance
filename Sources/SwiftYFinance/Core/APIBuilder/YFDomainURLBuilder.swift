@@ -26,7 +26,8 @@ extension YFAPIURLBuilder {
     ///     .market(.us)
     ///     .build()
     /// ```
-    struct DomainBuilder: Sendable {
+    /// nonisolated: 순수 값 타입 빌더 — actor isolation 불필요
+    nonisolated struct DomainBuilder: Sendable {
         private let session: YFSession
         private let baseURL = "https://query1.finance.yahoo.com/v1/finance"
         private var domainType: YFDomainType?

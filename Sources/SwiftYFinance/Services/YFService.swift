@@ -4,6 +4,12 @@ import Foundation
 ///
 /// 내부 구현 책임은 `YFRequestPipeline`으로 분산됩니다.
 /// Sendable 프로토콜을 준수하여 concurrent 환경에서 안전하게 사용할 수 있습니다.
+///
+/// ## Swift 6.2 Concurrency 설계
+/// 이 프로토콜을 준수하는 모든 struct는 `nonisolated`로 선언됩니다.
+/// `nonisolated struct`는 Sendable을 자동으로 충족하며,
+/// 라이브러리 소비자의 어떤 actor isolation 컨텍스트에서도 안전하게 사용 가능합니다.
+/// 프로토콜 자체에는 nonisolated를 적용하지 않으며, 채택 타입 수준에서 명시합니다.
 public protocol YFService: Sendable {
     /// YFClient 참조
     var client: YFClient { get }

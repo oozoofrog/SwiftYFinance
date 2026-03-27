@@ -5,7 +5,8 @@ import Foundation
 extension YFAPIURLBuilder {
 
     /// News API 전용 빌더 (내부 구현 타입 - Search API 기반)
-    struct NewsBuilder: Sendable {
+    /// nonisolated: 순수 값 타입 빌더 — actor isolation 불필요
+    nonisolated struct NewsBuilder: Sendable {
         private let session: YFSession
         private let baseURL = "https://query2.finance.yahoo.com/v1/finance/search"
         private var parameters: [String: String] = [:]

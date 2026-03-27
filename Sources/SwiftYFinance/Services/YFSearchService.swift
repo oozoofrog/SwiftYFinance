@@ -6,7 +6,8 @@ import Foundation
 /// 검색 결과는 캐시되어 성능을 최적화합니다.
 /// Sendable 프로토콜을 준수하여 concurrent 환경에서 안전하게 사용할 수 있습니다.
 /// Protocol + Struct 설계로 @unchecked 없이도 완전한 thread safety를 보장합니다.
-public struct YFSearchService: YFService {
+/// nonisolated: 순수 데이터 서비스 — actor isolation 불필요, 라이브러리 소비자의 모든 컨텍스트에서 안전
+public nonisolated struct YFSearchService: YFService {
     
     /// YFClient 참조
     public let client: YFClient

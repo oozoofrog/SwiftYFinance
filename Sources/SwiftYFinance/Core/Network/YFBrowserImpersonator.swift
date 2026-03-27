@@ -22,7 +22,10 @@ import os
 /// ```
 ///
 /// - SeeAlso: curl_cffi-reference/curl_cffi/requests/impersonate.py
-public final class YFBrowserImpersonator: Sendable {
+/// nonisolated: actor isolation 불필요 — 내부 가변 상태는 OSAllocatedUnfairLock으로 thread-safe 보장
+/// OSAllocatedUnfairLock은 Sendable이므로 nonisolated final class의 Sendable 조건 충족
+/// 명시적 ': Sendable' 유지 — 공개 API로 소비자에게 Sendable 보장을 명시적으로 표현
+public nonisolated final class YFBrowserImpersonator: Sendable {
     
     // MARK: - Chrome 136 User-Agent (curl_cffi DEFAULT_CHROME = "chrome136")
     

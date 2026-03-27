@@ -22,7 +22,9 @@ import Foundation
 ///
 /// ### 에러 타입
 /// - ``YFErrorResponse``
-public struct YFResponseParser: Sendable {
+/// nonisolated: 순수 파싱 struct — actor isolation 불필요
+/// parse 함수에 @concurrent 적용으로 CPU-bound JSON 파싱은 concurrent thread pool에서 실행
+public nonisolated struct YFResponseParser: Sendable {
     /// JSON 디코더 인스턴스
     private let decoder: JSONDecoder
     
@@ -41,6 +43,9 @@ public struct YFResponseParser: Sendable {
     
     /// JSON 데이터를 지정된 타입으로 파싱합니다
     ///
+    /// CPU-bound JSON 디코딩 작업으로, `@concurrent` 속성에 의해 항상 concurrent thread pool에서 실행됩니다.
+    /// 라이브러리 소비자가 MainActor에서 호출해도 자동으로 백그라운드에서 처리됩니다.
+    ///
     /// - Parameters:
     ///   - data: 파싱할 JSON 데이터
     ///   - type: 디코딩할 타입
@@ -55,7 +60,7 @@ public struct YFResponseParser: Sendable {
     /// let jsonData = Data(...) // API 응답 데이터
     ///
     /// do {
-    ///     let quote = try parser.parse(jsonData, type: YFQuote.self)
+    ///     let quote = try await parser.parse(jsonData, type: YFQuote.self)
     ///     print("현재 가격: \(quote.marketData.regularMarketPrice)")
     /// } catch {
     ///     print("파싱 실패: \(error)")
@@ -63,28 +68,12 @@ public struct YFResponseParser: Sendable {
     /// ```
     ///
     /// - Important: 파싱하려는 타입은 반드시 `Decodable` 프로토콜을 준수해야 합니다.
-    public func parse<T: Decodable>(_ data: Data, type: T.Type) throws -> T {
+    @concurrent
+    public func parse<T: Decodable>(_ data: Data, type: T.Type) async throws -> T {
         do {
             return try decoder.decode(type, from: data)
         } catch {
-            print("❌ [DEBUG] JSON 파싱 실패:")
-            print("   - 파싱 대상 타입: \(type)")
-            print("   - 파싱 에러: \(error)")
-            if let decodingError = error as? DecodingError {
-                print("   - DecodingError 상세: \(decodingError.localizedDescription)")
-                switch decodingError {
-                case .keyNotFound(let key, let context):
-                    print("   - 누락된 키: \(key.stringValue), 경로: \(context.codingPath)")
-                case .typeMismatch(let type, let context):
-                    print("   - 타입 불일치: 예상 \(type), 경로: \(context.codingPath)")
-                case .valueNotFound(let type, let context):
-                    print("   - 값 없음: 예상 \(type), 경로: \(context.codingPath)")
-                case .dataCorrupted(let context):
-                    print("   - 데이터 손상: \(context.debugDescription), 경로: \(context.codingPath)")
-                @unknown default:
-                    print("   - 알 수 없는 DecodingError")
-                }
-            }
+            YFLogger.parser.error("JSON 파싱 실패 (\(T.self)): \(error.localizedDescription)")
             throw YFError.parsingError("JSON 파싱 실패: \(error.localizedDescription)")
         }
     }

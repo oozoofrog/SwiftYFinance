@@ -276,8 +276,8 @@ public actor YFWebSocketClient {
                 throw YFError.webSocketError(.messageDecodingFailed("Invalid message format"))
             }
 
-            // 메시지 디코딩
-            let decodedMessage = messageDecoder.decode(encodedMessage)
+            // 메시지 디코딩 (async — @concurrent parseProtobufData 호출 체인)
+            let decodedMessage = await messageDecoder.decode(encodedMessage)
             messageContinuation?.yield(decodedMessage)
 
         } catch {
@@ -326,14 +326,18 @@ public actor YFWebSocketClient {
 private final class YFLiveMessageDecoder: Sendable {
 
     /// Base64로 인코딩된 메시지 디코딩
+    ///
+    /// Protocol Buffers 파싱을 포함하므로 async로 선언합니다.
+    /// 내부적으로 `@concurrent` parseProtobufData를 await 호출합니다.
+    ///
     /// - Parameter base64Message: Base64 인코딩된 메시지
     /// - Returns: 파싱된 라이브 스트림 메시지
-    func decode(_ base64Message: String) -> YFLiveStreamMessage {
+    func decode(_ base64Message: String) async -> YFLiveStreamMessage {
         guard let decodedData = Data(base64Encoded: base64Message) else {
             return YFLiveStreamMessage(raw: ["base64_data": base64Message], error: "Failed to decode base64 message")
         }
 
-        let parsedData = parseProtobufData(decodedData)
+        let parsedData = await parseProtobufData(decodedData)
 
         return YFLiveStreamMessage(
             symbol: parsedData["symbol"] as? String,
@@ -351,7 +355,11 @@ private final class YFLiveMessageDecoder: Sendable {
     }
 
     /// Protocol Buffers 데이터의 기본적인 파싱
-    private func parseProtobufData(_ data: Data) -> [String: Sendable] {
+    ///
+    /// 실시간 스트리밍 경로의 CPU-bound 작업으로, `@concurrent` 속성에 의해
+    /// 항상 concurrent thread pool에서 실행됩니다.
+    @concurrent
+    func parseProtobufData(_ data: Data) async -> [String: Sendable] {
         var result: [String: Sendable] = [:]
         var offset = 0
 

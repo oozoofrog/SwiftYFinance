@@ -7,7 +7,7 @@ import Foundation
  
  실시간 가격, 등락률, 시고저 등 핵심 시세 데이터를 포함합니다.
  */
-public struct YFQuoteMarketData: Decodable, Sendable {
+public struct YFQuoteMarketData: Decodable {
     /// 현재가 (정규 시장)
     public let regularMarketPrice: Double?
     

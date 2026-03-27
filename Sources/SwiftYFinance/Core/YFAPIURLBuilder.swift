@@ -19,7 +19,9 @@ import Foundation
 ///     .interval(.oneDay)
 ///     .build()
 /// ```
-struct YFAPIURLBuilder: Sendable {
+/// nonisolated: 순수 URL 구성 타입으로 어떠한 actor isolation도 가정하지 않음
+/// 라이브러리 소비자의 모든 isolation 컨텍스트에서 안전하게 사용 가능
+nonisolated struct YFAPIURLBuilder: Sendable {
     
     // MARK: - Static Factory Methods
     

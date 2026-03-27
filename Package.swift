@@ -1,4 +1,4 @@
-// swift-tools-version: 6.1
+// swift-tools-version: 6.2
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -30,11 +30,22 @@ let package = Package(
                 .process("Protobuf/PricingData.proto"),
                 .process("Resources"),
                 .process("Models/Network/Quote/Documentation")
+            ],
+            swiftSettings: [
+                // Swift 6 엄격 동시성 모드 — Sendable, actor isolation 컴파일 타임 검증
+                .swiftLanguageMode(.v6),
+                // NonisolatedNonsendingByDefault: Swift 6.2 Approachable Concurrency 핵심 기능
+                // nonisolated async 함수가 기본적으로 호출자의 actor 컨텍스트에서 실행되도록 설정
+                // 라이브러리에서 defaultIsolation: MainActor 없이 안전한 concurrency 제공
+                .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
             ]
         ),
         .testTarget(
             name: "SwiftYFinanceTests",
-            dependencies: ["SwiftYFinance"]
+            dependencies: ["SwiftYFinance"],
+            swiftSettings: [
+                .swiftLanguageMode(.v6),
+            ]
         ),
     ]
 )

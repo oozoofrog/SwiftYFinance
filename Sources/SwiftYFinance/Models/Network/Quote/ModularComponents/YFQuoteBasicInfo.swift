@@ -7,7 +7,7 @@ import Foundation
  
  종목의 식별 정보와 회사명 등 변하지 않는 기본 정보를 포함합니다.
  */
-public struct YFQuoteBasicInfo: Decodable, Sendable {
+public struct YFQuoteBasicInfo: Decodable {
     /// 종목 심볼
     public let symbol: String?
     

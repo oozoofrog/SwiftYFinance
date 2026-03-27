@@ -16,7 +16,8 @@ extension YFAPIURLBuilder {
     ///     .modules([.summaryDetail, .financialData, .defaultKeyStatistics])
     ///     .build()
     /// ```
-    struct QuoteSummaryBuilder: Sendable {
+    /// nonisolated: 순수 값 타입 빌더 — actor isolation 불필요
+    nonisolated struct QuoteSummaryBuilder: Sendable {
         private let session: YFSession
         private let baseURL = "https://query2.finance.yahoo.com/v10/finance/quoteSummary"
         private var symbol: String = ""

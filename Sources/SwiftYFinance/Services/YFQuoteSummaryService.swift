@@ -7,7 +7,8 @@ import Foundation
 /// 기본 Quote API와 달리 상세한 재무제표, 분석 데이터, ESG 점수 등을 포함합니다.
 /// Sendable 프로토콜을 준수하여 concurrent 환경에서 안전하게 사용할 수 있습니다.
 /// Protocol + Struct 설계로 @unchecked 없이도 완전한 thread safety를 보장합니다.
-public struct YFQuoteSummaryService: YFService {
+/// nonisolated: 순수 데이터 서비스 — actor isolation 불필요, 라이브러리 소비자의 모든 컨텍스트에서 안전
+public nonisolated struct YFQuoteSummaryService: YFService {
     
     /// YFClient 참조
     public let client: YFClient

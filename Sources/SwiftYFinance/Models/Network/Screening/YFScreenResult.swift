@@ -3,18 +3,18 @@ import Foundation
 // MARK: - Yahoo Finance Screener Models
 
 /// Yahoo Finance Screener API 응답 구조
-public struct YFScreenerResponse: Decodable, Sendable {
+public struct YFScreenerResponse: Decodable {
     public let finance: YFScreenerFinance?
 }
 
 /// Finance wrapper
-public struct YFScreenerFinance: Decodable, Sendable {
+public struct YFScreenerFinance: Decodable {
     public let result: [YFScreenerResult]?
     public let error: String?
 }
 
 /// Screener result container
-public struct YFScreenerResult: Decodable, Sendable {
+public struct YFScreenerResult: Decodable {
     public let id: String?
     public let title: String?
     public let description: String?
@@ -28,7 +28,7 @@ public struct YFScreenerResult: Decodable, Sendable {
 }
 
 /// Criteria meta
-public struct YFScreenerCriteriaMeta: Decodable, Sendable {
+public struct YFScreenerCriteriaMeta: Decodable {
     public let size: Int?
     public let offset: Int?
     public let sortField: String?
@@ -39,7 +39,7 @@ public struct YFScreenerCriteriaMeta: Decodable, Sendable {
 }
 
 /// Criteria
-public struct YFScreenerCriteria: Decodable, Sendable {
+public struct YFScreenerCriteria: Decodable {
     public let field: String?
     public let operators: [String]?
     public let values: [Double]?
@@ -48,7 +48,7 @@ public struct YFScreenerCriteria: Decodable, Sendable {
 }
 
 /// 스크리닝 결과 항목 - 모든 Yahoo Finance 필드 노출
-public struct YFScreenResult: Decodable, Sendable {
+public struct YFScreenResult: Decodable {
     public let language: String?
     public let region: String?
     public let quoteType: String?
@@ -162,14 +162,14 @@ public struct YFScreenResult: Decodable, Sendable {
 }
 
 /// Corporate action
-public struct YFCorporateAction: Decodable, Sendable {
+public struct YFCorporateAction: Decodable {
     public let message: String?
     public let header: String?
     public let meta: YFCorporateActionMeta?
 }
 
 /// Corporate action meta
-public struct YFCorporateActionMeta: Decodable, Sendable {
+public struct YFCorporateActionMeta: Decodable {
     public let amount: String?
     public let eventType: String?
     public let dateEpochMs: Int?

@@ -5,7 +5,8 @@ import Foundation
 extension YFAPIURLBuilder {
 
     /// Options API 전용 빌더 (내부 구현 타입)
-    struct OptionsBuilder: Sendable {
+    /// nonisolated: 순수 값 타입 빌더 — actor isolation 불필요
+    nonisolated struct OptionsBuilder: Sendable {
         private let session: YFSession
         private let baseURL = "https://query2.finance.yahoo.com/v7/finance/options"
         private var symbol: String = ""

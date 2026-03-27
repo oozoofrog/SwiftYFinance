@@ -7,7 +7,7 @@ import Foundation
  
  데이터의 업데이트 시간과 출처 정보를 포함합니다.
  */
-public struct YFQuoteMetadata: Decodable, Sendable {
+public struct YFQuoteMetadata: Decodable {
     /// 정규 시장 마지막 업데이트 시간
     public let regularMarketTime: Int?
     

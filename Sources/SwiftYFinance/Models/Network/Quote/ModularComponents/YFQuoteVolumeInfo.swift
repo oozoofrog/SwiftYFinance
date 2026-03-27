@@ -7,7 +7,7 @@ import Foundation
  
  거래량, 시가총액, 시장 상태 등의 정보를 포함합니다.
  */
-public struct YFQuoteVolumeInfo: Decodable, Sendable {
+public struct YFQuoteVolumeInfo: Decodable {
     /// 거래량 (정규 시장)
     public let regularMarketVolume: Int?
     
