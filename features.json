@@ -53,7 +53,7 @@
         "expect": "0 — 빌드 에러 없음"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": "references/swift-concurrency.md",
     "priority": 2,
     "scores": null
