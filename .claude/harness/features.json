@@ -236,7 +236,7 @@
         "expect": "0 — 모든 이전 이름 제거 (라이브러리 타입명 포함 여부는 문맥 확인)"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 6,
     "scores": null
