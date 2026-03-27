@@ -93,8 +93,11 @@ enum MCPDecodeError: Error {
 
 /// JSON-RPC 2.0 요청 구조체
 ///
-/// `params`의 `[String: Any]`는 JSON 딕셔너리이므로 @unchecked Sendable로 표시합니다.
-/// JSON 파싱 직후 한 번만 읽히며 공유 상태가 없습니다.
+/// @unchecked Sendable 안전성 근거:
+/// - `params: [String: Any]`는 `JSONSerialization.jsonObject`가 반환하는 Foundation 타입
+///   (NSString, NSNumber, NSArray, NSDictionary)으로만 구성되며, 이들은 불변(immutable)
+/// - MCPRequest는 생성 직후 MCPDispatcher.dispatch()로 전달되어 한 번만 읽힘
+/// - 생성과 소비가 동일한 서버 루프 내에서 순차적으로 발생하므로 동시 접근 불가
 struct MCPRequest: @unchecked Sendable {
     /// JSON-RPC 버전 ("2.0")
     let jsonrpc: String
@@ -158,7 +161,10 @@ struct MCPRequest: @unchecked Sendable {
 
 /// JSON-RPC 2.0 응답 구조체
 ///
-/// `body`의 `Any`는 JSON 직렬화 직전까지만 사용되므로 @unchecked Sendable로 표시합니다.
+/// @unchecked Sendable 안전성 근거:
+/// - `body`의 `Any`는 JSONSerialization 호환 타입(NSString, NSNumber 등 불변 Foundation 타입)
+/// - MCPResponse는 생성 즉시 `jsonString()`으로 직렬화되어 stdout에 출력됨 — 공유/저장 없음
+/// - 생성과 직렬화가 동일한 서버 루프 내에서 순차적으로 발생
 struct MCPResponse: @unchecked Sendable {
     let id: MCPRequestId
     /// result 또는 error 중 하나
@@ -180,32 +186,35 @@ struct MCPResponse: @unchecked Sendable {
     }
 
     /// JSON 문자열로 직렬화 (단일 줄)
+    ///
+    /// JSONSerialization을 사용하여 제어 문자, 유니코드 등을 안전하게 이스케이프합니다.
     func jsonString() -> String {
-        let idStr = id.jsonLiteral
+        var dict: [String: Any] = ["jsonrpc": "2.0"]
+
+        // id 직렬화
+        switch id {
+        case .string(let s): dict["id"] = s
+        case .int(let i): dict["id"] = i
+        case .null: dict["id"] = NSNull()
+        }
+
         switch body {
         case .result(let value):
-            if let jsonData = try? JSONSerialization.data(withJSONObject: value),
-               let jsonStr = String(data: jsonData, encoding: .utf8) {
-                return "{\"jsonrpc\":\"2.0\",\"id\":\(idStr),\"result\":\(jsonStr)}"
-            } else {
-                return "{\"jsonrpc\":\"2.0\",\"id\":\(idStr),\"result\":null}"
-            }
+            dict["result"] = value
         case .error(let code, let message, let data):
-            let msgEscaped = message
-                .replacingOccurrences(of: "\\", with: "\\\\")
-                .replacingOccurrences(of: "\"", with: "\\\"")
-                .replacingOccurrences(of: "\n", with: "\\n")
-            var errorObj = "{\"code\":\(code),\"message\":\"\(msgEscaped)\""
+            var errorObj: [String: Any] = ["code": code, "message": message]
             if let dataStr = data {
-                let dataEscaped = dataStr
-                    .replacingOccurrences(of: "\\", with: "\\\\")
-                    .replacingOccurrences(of: "\"", with: "\\\"")
-                    .replacingOccurrences(of: "\n", with: "\\n")
-                errorObj += ",\"data\":\"\(dataEscaped)\""
+                errorObj["data"] = dataStr
             }
-            errorObj += "}"
-            return "{\"jsonrpc\":\"2.0\",\"id\":\(idStr),\"error\":\(errorObj)}"
+            dict["error"] = errorObj
         }
+
+        if let jsonData = try? JSONSerialization.data(withJSONObject: dict),
+           let jsonStr = String(data: jsonData, encoding: .utf8) {
+            return jsonStr
+        }
+        // 폴백 — 직렬화 실패 시 최소한의 에러 응답
+        return "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32603,\"message\":\"Internal serialization error\"}}"
     }
 }
 

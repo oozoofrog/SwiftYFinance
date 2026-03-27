@@ -164,7 +164,7 @@ struct WebSocketCommand: AsyncParsableCommand {
             if let prev = previousPrice {
                 priceChangeIcon = style.trendIcon(current: price, previous: prev)
             } else {
-                priceChangeIcon = style.noEmoji ? "[NEW]" : "[NEW]"
+                priceChangeIcon = style.noEmoji ? "[NEW]" : "🆕"
             }
 
             // 실시간 데이터 출력
@@ -201,13 +201,13 @@ struct WebSocketCommand: AsyncParsableCommand {
         case "REGULAR":
             return style.greenCircle
         case "PRE":
-            return style.noEmoji ? "[PRE]" : "[PRE]"
+            return style.noEmoji ? "[PRE]" : "🌅"
         case "POST":
-            return style.noEmoji ? "[POST]" : "[POST]"
+            return style.noEmoji ? "[POST]" : "🌙"
         case "CLOSED":
             return style.redCircle
         default:
-            return style.noEmoji ? "[--]" : "[--]"
+            return style.noEmoji ? "[--]" : "⚪"
         }
     }
 }

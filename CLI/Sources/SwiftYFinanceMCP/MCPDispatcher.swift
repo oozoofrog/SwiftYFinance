@@ -216,8 +216,8 @@ actor MCPDispatcher {
            let newsData = try? JSONSerialization.data(withJSONObject: newsArray) {
             return String(data: newsData, encoding: .utf8) ?? "[]"
         }
-        // 파싱 실패 시 원시 데이터 반환 (폴백)
-        return dataToJSONString(data)
+        // 파싱 실패 시 빈 배열 반환 — MCP 클라이언트가 기대하는 배열 형식 유지
+        return "[]"
     }
 
     /// options tool — 옵션 체인 (fetchRawJSON 사용 — YFOptionsChainResult는 Encodable 미지원)
@@ -352,7 +352,9 @@ actor MCPDispatcher {
                 try await Task.sleep(nanoseconds: UInt64(timeoutSeconds) * 1_000_000_000)
                 throw YFError.networkError("WebSocket snapshot timeout after \(timeoutSeconds) seconds")
             }
-            let result = try await group.next()!
+            guard let result = try await group.next() else {
+                throw YFError.networkError("WebSocket snapshot failed: no result")
+            }
             group.cancelAll()
             return result
         }
