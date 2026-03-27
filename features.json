@@ -373,7 +373,7 @@
         "expect": "MockNetworkProvider가 @testable import SwiftYFinance를 사용하며 최신 서명과 호환됨"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": "references/swift-concurrency.md",
     "priority": 12,
     "scores": null
