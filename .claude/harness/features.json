@@ -95,7 +95,7 @@
         "expect": "2 이상 (String 키 subscript + Int 인덱스 subscript)"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 3,
     "scores": null
