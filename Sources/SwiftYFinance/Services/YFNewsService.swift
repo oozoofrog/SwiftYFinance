@@ -9,16 +9,11 @@ public struct YFNewsService: YFService {
     
     /// YFClient 참조
     public let client: YFClient
-    
-    
-    /// 공통 기능을 제공하는 서비스 코어
-    private let core: YFServiceCore
-    
+
     /// YFNewsService 초기화
     /// - Parameter client: YFClient 인스턴스
     public init(client: YFClient) {
         self.client = client
-        self.core = YFServiceCore(client: client)
     }
     
     // MARK: - Public Methods

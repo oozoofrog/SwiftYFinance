@@ -31,33 +31,26 @@ extension YFSession {
     private func performAuthenticationWithRetry() async throws {
         // 1차 시도: 현재 전략으로 인증
         let currentStrategy = await sessionState.cookieStrategy
-        DebugPrint("🔄 [DEBUG] 1차 인증 시도 - \(currentStrategy) 전략")
         let success = await attemptAuthenticationWithCurrentStrategy()
-        
+
         if success {
-            DebugPrint("✅ [DEBUG] 1차 인증 성공 - \(currentStrategy) 전략")
             await sessionState.setAuthenticated(true)
             return
         }
-        
-        DebugPrint("❌ [DEBUG] 1차 인증 실패 - \(currentStrategy) 전략")
-        
+
         // 1차 실패 시 전략 전환 후 재시도
         await sessionState.toggleCookieStrategy()
         let newStrategy = await sessionState.cookieStrategy
-        DebugPrint("🔄 [DEBUG] 전략 전환: \(currentStrategy) → \(newStrategy)")
-        
+        YFLogger.auth.info("인증 전략 전환: \(String(describing: currentStrategy)) → \(String(describing: newStrategy))")
+
         let retrySuccess = await attemptAuthenticationWithCurrentStrategy()
-        
+
         if retrySuccess {
-            DebugPrint("✅ [DEBUG] 2차 인증 성공 - \(newStrategy) 전략")
             await sessionState.setAuthenticated(true)
             return
         }
-        
-        DebugPrint("❌ [DEBUG] 2차 인증 실패 - \(newStrategy) 전략")
-        
-        // 두 전략 모두 실패 시 예외 발생
+
+        YFLogger.auth.error("모든 인증 전략 실패 (\(String(describing: currentStrategy)), \(String(describing: newStrategy)))")
         throw YFError.apiError("Failed to authenticate with both basic and csrf strategies")
     }
     
@@ -113,29 +106,22 @@ extension YFSession {
                 request.setValue(value, forHTTPHeaderField: key)
             }
             
-            DebugPrint("🌐 [DEBUG] Basic 쿠키 요청: \(url)")
-            
-            let (_, response) = try await urlSession.data(for: request)
-            
-            guard let httpResponse = response as? HTTPURLResponse else {
-                DebugPrint("❌ [DEBUG] Basic 쿠키: 응답이 HTTPURLResponse가 아님")
+            let (_, response) = try await networkProvider.data(for: request)
+
+            guard let _ = response as? HTTPURLResponse else {
                 return false
             }
-            
-            DebugPrint("📊 [DEBUG] Basic 쿠키 응답: \(httpResponse.statusCode)")
-            
+
             // Python 구현과 동일: HTTP 상태 코드와 관계없이 성공으로 처리
             // DNSError만 실패로 처리하고 나머지는 쿠키 설정으로 간주
-            DebugPrint("✅ [DEBUG] Basic 쿠키 결과: true (Python 호환)")
             return true
-            
+
         } catch let error as URLError where error.code == .cannotFindHost {
             // DNS 에러만 실패로 처리 (Python의 DNSError와 동일)
-            DebugPrint("❌ [DEBUG] Basic 쿠키 DNS 에러: \(error)")
+            YFLogger.auth.error("Basic 쿠키 DNS 오류: \(error.localizedDescription)")
             return false
         } catch {
             // 기타 네트워크 에러는 성공으로 처리 (Python 구현과 동일)
-            DebugPrint("⚠️ [DEBUG] Basic 쿠키 기타 에러, 계속 진행: \(error)")
             return true
         }
     }
@@ -152,8 +138,8 @@ extension YFSession {
                 request.setValue(value, forHTTPHeaderField: key)
             }
             
-            let (data, response) = try await urlSession.data(for: request)
-            
+            let (data, response) = try await networkProvider.data(for: request)
+
             guard let httpResponse = response as? HTTPURLResponse,
                   httpResponse.statusCode == 200 else {
                 return nil
@@ -196,18 +182,18 @@ extension YFSession {
             postRequest.httpBody = try encodeFormData(postData)
             postRequest.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
             
-            let (_, response) = try await urlSession.data(for: postRequest)
-            
+            let (_, response) = try await networkProvider.data(for: postRequest)
+
             guard let httpResponse = response as? HTTPURLResponse,
                   (200...299).contains(httpResponse.statusCode) else {
                 return false
             }
-            
+
             // GET 요청으로 동의 복사
             let getURL = URL(string: "https://guce.yahoo.com/copyConsent?sessionId=\(sessionId)")!
             let getRequest = URLRequest(url: getURL, timeoutInterval: timeout)
-            
-            let (_, getResponse) = try await urlSession.data(for: getRequest)
+
+            let (_, getResponse) = try await networkProvider.data(for: getRequest)
             
             guard let getHttpResponse = getResponse as? HTTPURLResponse,
                   (200...299).contains(getHttpResponse.statusCode) else {
@@ -236,43 +222,36 @@ extension YFSession {
                 request.setValue(value, forHTTPHeaderField: key)
             }
             
-            DebugPrint("🔑 [DEBUG] Crumb 토큰 요청 (\(strategy)): \(url)")
-            
-            let (data, response) = try await urlSession.data(for: request)
-            
+            let (data, response) = try await networkProvider.data(for: request)
+
             guard let httpResponse = response as? HTTPURLResponse else {
-                DebugPrint("❌ [DEBUG] Crumb: 응답이 HTTPURLResponse가 아님")
                 return false
             }
-            
-            DebugPrint("📊 [DEBUG] Crumb 응답 상태: \(httpResponse.statusCode)")
-            
+
             // Rate limiting 체크 (Python yfinance와 동일)
             if httpResponse.statusCode == 429 {
-                DebugPrint("⚠️ [DEBUG] Crumb: Rate limited (429)")
-                return false  // 429 에러 시 false 반환하여 전략 전환 유도
-            }
-            
-            guard httpResponse.statusCode == 200 else {
-                DebugPrint("❌ [DEBUG] Crumb: 상태 코드 \(httpResponse.statusCode)")
+                YFLogger.auth.warning("Crumb 요청 rate limited (429)")
                 return false
             }
-            
+
+            guard httpResponse.statusCode == 200 else {
+                YFLogger.auth.error("Crumb 요청 실패: HTTP \(httpResponse.statusCode)")
+                return false
+            }
+
             let crumb = String(data: data, encoding: .utf8) ?? ""
-            DebugPrint("🔑 [DEBUG] Crumb 데이터: '\(crumb.prefix(20))...' (길이: \(crumb.count))")
-            
+
             // 유효한 crumb인지 확인 (Python yfinance와 동일)
             if crumb.isEmpty || crumb.contains("<html>") || crumb.contains("Too Many Requests") {
-                DebugPrint("❌ [DEBUG] Crumb: 유효하지 않은 토큰 (empty: \(crumb.isEmpty), html: \(crumb.contains("<html>")), too many: \(crumb.contains("Too Many Requests")))")
+                YFLogger.auth.error("Crumb 유효하지 않음 (empty=\(crumb.isEmpty))")
                 return false
             }
-            
+
             await sessionState.setCrumbToken(crumb)
-            DebugPrint("✅ [DEBUG] Crumb 토큰 저장 완료")
             return true
-            
+
         } catch {
-            DebugPrint("❌ [DEBUG] Crumb 에러: \(error)")
+            YFLogger.auth.error("Crumb 요청 오류: \(error.localizedDescription)")
             return false
         }
     }
@@ -370,79 +349,39 @@ extension YFSession {
     
     /// 인증이 포함된 요청 수행 (재시도 로직 포함)
     private func performRequestWithAuth(url: URL, method: HTTPMethod, body: Data?) async throws -> (Data, URLResponse) {
-        DebugPrint("🚀 [Session] performRequestWithAuth() 시작")
-        DebugPrint("🌐 [Session] 요청 URL: \(url)")
-        DebugPrint("🔧 [Session] HTTP 메서드: \(method.rawValue)")
-        
         // 인증되지 않았다면 먼저 인증 시도
         let authenticated = await sessionState.isAuthenticated
-        DebugPrint("🔐 [Session] 현재 인증 상태: \(authenticated)")
-        
         if !authenticated {
-            DebugPrint("🔑 [Session] 인증 필요, authenticateCSRF() 호출...")
             try await authenticateCSRF()
-            DebugPrint("✅ [Session] 인증 완료")
-        } else {
-            DebugPrint("✅ [Session] 이미 인증됨, 스킵")
         }
-        
+
         // crumb이 필요한 URL에 자동 추가
-        DebugPrint("🍪 [Session] crumb 추가 중...")
         let urlWithCrumb = await addCrumbIfNeeded(to: url)
-        if urlWithCrumb != url {
-            DebugPrint("🍪 [Session] crumb 추가됨")
-        } else {
-            DebugPrint("🍪 [Session] crumb 불필요하거나 이미 존재")
-        }
-        DebugPrint("🌐 [Session] 최종 요청 URL: \(urlWithCrumb)")
-        
+
         // 첫 번째 요청 시도
-        DebugPrint("📡 [Session] 1차 HTTP 요청 시작...")
         do {
             let result = try await executeHTTPRequest(url: urlWithCrumb, method: method, body: body)
-            DebugPrint("✅ [Session] 1차 HTTP 요청 완료")
-            
-            // 응답 상태 확인
-            if let httpResponse = result.1 as? HTTPURLResponse {
-                DebugPrint("🔍 [Session] 1차 응답 상태: \(httpResponse.statusCode)")
-                if httpResponse.statusCode >= 400 {
-                    // 실패 시 전략 전환 후 재시도 (Python yfinance와 동일)
-                    DebugPrint("❌ [Session] 1차 실패 (\(httpResponse.statusCode)), 전략 전환 후 재시도")
-                    
-                    DebugPrint("🔄 [Session] 쿠키 전략 전환 중...")
-                    await sessionState.toggleCookieStrategy()
-                    DebugPrint("🔑 [Session] 재인증 수행 중...")
-                    try await authenticateCSRF()
-                    DebugPrint("✅ [Session] 재인증 완료")
-                    
-                    DebugPrint("🍪 [Session] 새로운 crumb로 URL 재구성 중...")
-                    let urlWithNewCrumb = await addCrumbIfNeeded(to: url)
-                    DebugPrint("🌐 [Session] 재시도 URL: \(urlWithNewCrumb)")
-                    
-                    DebugPrint("📡 [Session] 2차 HTTP 요청 시작...")
-                    let retryResult = try await executeHTTPRequest(url: urlWithNewCrumb, method: method, body: body)
-                    DebugPrint("✅ [Session] 2차 HTTP 요청 완료")
-                    
-                    if let retryHttpResponse = retryResult.1 as? HTTPURLResponse {
-                        DebugPrint("🔍 [Session] 2차 응답 상태: \(retryHttpResponse.statusCode)")
-                        if retryHttpResponse.statusCode >= 400 {
-                            DebugPrint("❌ [Session] 2차도 실패 (\(retryHttpResponse.statusCode))")
-                        } else {
-                            DebugPrint("✅ [Session] 2차 성공")
-                        }
-                    }
-                    
-                    return retryResult
-                } else {
-                    DebugPrint("✅ [Session] 1차 성공 (\(httpResponse.statusCode))")
+
+            if let httpResponse = result.1 as? HTTPURLResponse, httpResponse.statusCode >= 400 {
+                // 실패 시 전략 전환 후 재시도 (Python yfinance와 동일)
+                YFLogger.auth.warning("HTTP \(httpResponse.statusCode) 실패, 전략 전환 후 재시도")
+                await sessionState.toggleCookieStrategy()
+                try await authenticateCSRF()
+
+                let urlWithNewCrumb = await addCrumbIfNeeded(to: url)
+                let retryResult = try await executeHTTPRequest(url: urlWithNewCrumb, method: method, body: body)
+
+                if let retryHttpResponse = retryResult.1 as? HTTPURLResponse,
+                   retryHttpResponse.statusCode >= 400 {
+                    YFLogger.auth.error("재시도도 실패: HTTP \(retryHttpResponse.statusCode)")
                 }
-            } else {
-                DebugPrint("⚠️ [Session] HTTP 응답이 아닌 응답 타입")
+
+                return retryResult
             }
-            
+
             return result
         } catch {
-            DebugPrint("❌ [Session] HTTP 요청 중 예외 발생: \(error)")
+            YFLogger.network.error("HTTP 요청 오류: \(error.localizedDescription)")
             throw error
         }
     }
@@ -463,7 +402,7 @@ extension YFSession {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         }
         
-        return try await urlSession.data(for: request)
+        return try await networkProvider.data(for: request)
     }
 }
 

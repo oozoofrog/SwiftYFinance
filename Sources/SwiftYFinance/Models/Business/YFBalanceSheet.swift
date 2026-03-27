@@ -1,5 +1,10 @@
 import Foundation
 
+/// 도메인 모델: 대차대조표 데이터 컨테이너
+///
+/// Yahoo Finance API 응답을 파싱한 후 도메인 로직에서 사용하는 비즈니스 모델입니다.
+/// Network 모델(`YFBalanceSheetResponse`)과 분리되어 독립적인 도메인 역할을 담당합니다.
+///
 /// A container for balance sheet data from Yahoo Finance.
 ///
 /// This structure holds both annual and quarterly balance sheet reports for a given ticker.

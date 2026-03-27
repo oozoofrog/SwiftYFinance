@@ -14,16 +14,11 @@ public struct YFFundamentalsTimeseriesService: YFService {
     
     /// YFClient 참조
     public let client: YFClient
-    
-    
-    /// 공통 로직을 처리하는 핵심 구조체 (Composition 패턴)
-    private let core: YFServiceCore
-    
+
     /// YFFundamentalsTimeseriesService 초기화
     /// - Parameter client: YFClient 인스턴스
     public init(client: YFClient) {
         self.client = client
-        self.core = YFServiceCore(client: client)
     }
     
     /// 모든 재무제표 데이터 조회 (통합 API 호출)

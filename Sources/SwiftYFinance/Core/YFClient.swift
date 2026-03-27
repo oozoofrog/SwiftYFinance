@@ -51,18 +51,36 @@ public struct YFClient: Sendable {
     /// - Parameter debugEnabled: 디버깅 로그 활성화 여부 (기본값: false)
     public init(debugEnabled: Bool = false) {
         self.debugEnabled = debugEnabled
-        
+
         // 전역 디버그 설정
         setGlobalDebugEnabled(debugEnabled)
-        
+
         self.session = YFSession(debugEnabled: debugEnabled)
+        self.responseParser = YFResponseParser()
+        self.chartConverter = YFChartConverter()
+        self.dateHelper = YFDateHelper()
+    }
+
+    /// YFClient 초기화 (커스텀 세션 주입)
+    ///
+    /// 테스트에서 MockNetworkProvider를 주입한 YFSession을 사용하여 단위 테스트가 가능합니다.
+    ///
+    /// - Parameter session: 커스텀 YFSession 인스턴스 (예: MockNetworkProvider 기반)
+    public init(session: YFSession) {
+        self.debugEnabled = false
+        self.session = session
         self.responseParser = YFResponseParser()
         self.chartConverter = YFChartConverter()
         self.dateHelper = YFDateHelper()
     }
     
     // MARK: - Services
-    
+    //
+    // 설계 노트: YFClient는 struct이므로 서비스 인스턴스를 stored property로 저장하면
+    // 자기 참조(self) 순환 의존성이 발생합니다. 각 서비스 구조체는 경량 struct이므로
+    // computed property로 생성하는 비용이 미미합니다.
+    // 각 서비스는 내부적으로 YFServiceCore를 init 시 1회 생성하여 재사용합니다.
+
     /// 시세 조회 서비스
     public var quote: YFQuoteService {
         YFQuoteService(client: self)

@@ -268,7 +268,7 @@ struct YFQuoteSummaryServiceTests {
             }
         } catch {
             // Yahoo Finance는 잘못된 심볼에 대해 HTTP 404나 네트워크 에러를 발생시킬 수 있음
-            if case YFError.networkErrorWithMessage(let message) = error {
+            if case YFError.networkError(let message) = error, let message {
                 #expect(message.contains("404"), "잘못된 심볼에 대해서는 404 에러가 발생해야 함")
             } else if case YFError.httpError(let statusCode) = error {
                 #expect(statusCode == 404, "잘못된 심볼에 대해서는 404 상태코드가 반환되어야 함")

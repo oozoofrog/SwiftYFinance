@@ -1,3 +1,5 @@
+import Foundation
+
 /// SwiftYFinance 라이브러리의 에러 타입
 ///
 /// Yahoo Finance API 통신 및 데이터 처리 중 발생할 수 있는
@@ -42,25 +44,17 @@ public enum YFError: Error, Equatable {
     
     /// API 응답 파싱 오류
     ///
-    /// Yahoo Finance API 응답을 Swift 모델로 변환 중 오류
-    case parsingError
-    
+    /// Yahoo Finance API 응답을 Swift 모델로 변환 중 오류.
+    /// 기존 `parsingError`와 `parsingErrorWithMessage(_:)`를 통합한 케이스입니다.
+    /// - Parameter message: 파싱 오류 상세 메시지 (nil이면 상세 메시지 없음)
+    case parsingError(String?)
+
     /// 네트워크 통신 오류
-    /// 
-    /// Yahoo Finance API와의 통신 중 발생하는 오류
-    case networkError
-    
-    /// API 응답 파싱 오류 (상세 메시지 포함)
     ///
-    /// Yahoo Finance API 응답을 Swift 모델로 변환 중 오류
-    /// - Parameter message: 파싱 오류 상세 메시지
-    case parsingErrorWithMessage(String)
-    
-    /// 네트워크 통신 오류 (상세 메시지 포함)
-    /// 
-    /// Yahoo Finance API와의 통신 중 발생하는 오류
-    /// - Parameter message: 네트워크 오류 상세 메시지
-    case networkErrorWithMessage(String)
+    /// Yahoo Finance API와의 통신 중 발생하는 오류.
+    /// 기존 `networkError`와 `networkErrorWithMessage(_:)`를 통합한 케이스입니다.
+    /// - Parameter message: 네트워크 오류 상세 메시지 (nil이면 상세 메시지 없음)
+    case networkError(String?)
     
     /// API 서버 오류
     ///
@@ -89,6 +83,115 @@ public enum YFError: Error, Equatable {
     /// Yahoo Finance WebSocket 연결 및 스트리밍 중 발생하는 오류
     /// - Parameter error: WebSocket 세부 오류 타입
     case webSocketError(YFWebSocketError)
+}
+
+// MARK: - LocalizedError
+
+/// YFError의 LocalizedError 준수 구현
+///
+/// 각 에러 케이스에 대해 사용자 친화적인 한국어/영어 혼합 메시지를 제공합니다.
+extension YFError: LocalizedError {
+
+    /// 사용자에게 표시할 에러 설명
+    ///
+    /// 각 케이스별 한국어/영어 혼합 메시지를 반환합니다.
+    /// `error.localizedDescription`에서 사용됩니다.
+    public var errorDescription: String? {
+        switch self {
+        case .invalidDateRange:
+            return "유효하지 않은 날짜 범위입니다. 시작일은 종료일보다 이전이어야 합니다."
+        case .invalidRequest:
+            return "유효하지 않은 요청입니다. URL 구성이나 요청 파라미터를 확인해 주세요."
+        case .invalidURL:
+            return "유효하지 않은 URL입니다. URL 구성에 실패했습니다."
+        case .invalidParameter(let message):
+            return "유효하지 않은 파라미터입니다: \(message)"
+        case .parsingError(let message):
+            if let message {
+                return "API 응답 파싱에 실패했습니다: \(message)"
+            }
+            return "API 응답 파싱에 실패했습니다."
+        case .networkError(let message):
+            if let message {
+                return "네트워크 통신 오류가 발생했습니다: \(message)"
+            }
+            return "네트워크 통신 오류가 발생했습니다."
+        case .apiError(let message):
+            return "Yahoo Finance API 오류가 발생했습니다: \(message)"
+        case .invalidResponse:
+            return "예상하지 못한 형식의 HTTP 응답을 받았습니다."
+        case .httpError(let statusCode):
+            return "HTTP 오류가 발생했습니다. 상태 코드: \(statusCode)"
+        case .noData:
+            return "API 응답에 예상된 데이터가 없습니다."
+        case .webSocketError(let wsError):
+            return "WebSocket 오류가 발생했습니다: \(wsError.localizedDescription)"
+        }
+    }
+
+    /// 에러 실패 원인 설명
+    ///
+    /// 에러가 발생한 근본 원인을 제공합니다.
+    public var failureReason: String? {
+        switch self {
+        case .invalidDateRange:
+            return "시작일이 종료일보다 늦거나 미래 날짜입니다."
+        case .invalidRequest:
+            return "URL 구성이나 요청 파라미터가 잘못되었습니다."
+        case .invalidURL:
+            return "URL을 파싱하거나 구성하는 데 실패했습니다."
+        case .invalidParameter:
+            return "API 호출에 필요한 파라미터가 올바르지 않습니다."
+        case .parsingError:
+            return "JSON 데이터를 Swift 모델로 변환하는 데 실패했습니다."
+        case .networkError:
+            return "Yahoo Finance 서버와의 네트워크 통신에 실패했습니다."
+        case .apiError:
+            return "Yahoo Finance API 서버가 오류 응답을 반환했습니다."
+        case .invalidResponse:
+            return "HTTP 응답이 예상된 형식이 아닙니다."
+        case .httpError(let statusCode):
+            return "HTTP 상태 코드 \(statusCode)로 요청이 실패했습니다."
+        case .noData:
+            return "API 응답에 데이터가 포함되어 있지 않습니다."
+        case .webSocketError:
+            return "WebSocket 연결 또는 메시지 처리 중 오류가 발생했습니다."
+        }
+    }
+
+    /// 에러 복구 방법 제안
+    ///
+    /// 사용자가 에러를 해결할 수 있는 방법을 안내합니다.
+    public var recoverySuggestion: String? {
+        switch self {
+        case .invalidDateRange:
+            return "날짜 범위를 확인하고, 시작일이 종료일보다 이전인지 확인해 주세요."
+        case .invalidRequest:
+            return "요청 파라미터와 URL을 다시 확인해 주세요."
+        case .invalidURL:
+            return "올바른 형식의 URL을 입력해 주세요."
+        case .invalidParameter:
+            return "파라미터 값을 확인하고 올바른 형식으로 다시 시도해 주세요."
+        case .parsingError:
+            return "Yahoo Finance API 응답 형식이 변경되었을 수 있습니다. 라이브러리 업데이트를 확인해 주세요."
+        case .networkError:
+            return "인터넷 연결 상태를 확인하고 다시 시도해 주세요."
+        case .apiError:
+            return "잠시 후 다시 시도하거나, API 요청 파라미터를 확인해 주세요."
+        case .invalidResponse:
+            return "잠시 후 다시 시도해 주세요. 문제가 지속되면 라이브러리 이슈를 등록해 주세요."
+        case .httpError(let statusCode) where statusCode == 429:
+            return "요청 한도를 초과했습니다. 잠시 후 다시 시도해 주세요."
+        case .httpError(let statusCode) where statusCode >= 500:
+            return "Yahoo Finance 서버에 일시적인 문제가 있습니다. 잠시 후 다시 시도해 주세요."
+        case .httpError:
+            return "요청을 확인하고 다시 시도해 주세요."
+        case .noData:
+            return "요청한 심볼이나 데이터가 Yahoo Finance에 존재하는지 확인해 주세요."
+        case .webSocketError:
+            return "네트워크 연결을 확인하고 WebSocket 연결을 다시 시도해 주세요."
+        }
+    }
 }
 
 /// Yahoo Finance WebSocket 관련 에러 타입
@@ -146,15 +249,10 @@ public enum YFWebSocketError: Error, Equatable {
     
     /// 연결 타임아웃
     ///
-    /// WebSocket 연결 시도 시간 초과
+    /// WebSocket 연결 시도 시간 초과.
+    /// 기존 `timeout`과 `connectionTimeout`을 통합한 케이스입니다.
     /// - Parameter message: 타임아웃 상세 메시지
     case timeout(String)
-    
-    /// 연결 타임아웃
-    ///
-    /// WebSocket 연결 시도 시간 초과 (구체적인 타임아웃)
-    /// - Parameter message: 연결 타임아웃 상세 메시지
-    case connectionTimeout(String)
     
     /// 예기치 않은 연결 끊김
     ///
@@ -219,7 +317,7 @@ extension YFWebSocketError {
     /// - Returns: 복구 가능성 수준
     public var recoverabilityLevel: RecoverabilityLevel {
         switch self {
-        case .connectionTimeout, .timeout:
+        case .timeout:
             return .delayedRetry
         case .connectionFailed, .unexpectedDisconnection:
             return .immediateRetry
@@ -243,7 +341,7 @@ extension YFWebSocketError {
     /// - Returns: 권장 복구 전략
     public var recommendedRecoveryStrategy: RecoveryStrategy {
         switch self {
-        case .connectionTimeout, .timeout:
+        case .timeout:
             return .exponentialBackoffReconnect
         case .connectionFailed:
             return .networkCheckReconnect

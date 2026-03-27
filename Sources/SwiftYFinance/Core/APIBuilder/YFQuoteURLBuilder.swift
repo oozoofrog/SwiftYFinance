@@ -4,8 +4,8 @@ import Foundation
 
 extension YFAPIURLBuilder {
     
-    /// Quote API 전용 빌더
-    public struct QuoteBuilder: Sendable {
+    /// Quote API 전용 빌더 (내부 구현 타입)
+    struct QuoteBuilder: Sendable {
         private let session: YFSession
         private let baseURL = "https://query1.finance.yahoo.com/v7/finance/quote"
         private var parameters: [String: String] = [:]
@@ -22,7 +22,7 @@ extension YFAPIURLBuilder {
         /// 심볼 설정
         /// - Parameter symbol: 조회할 종목 심볼
         /// - Returns: 새로운 빌더 인스턴스
-        public func symbol(_ symbol: String) -> QuoteBuilder {
+        func symbol(_ symbol: String) -> QuoteBuilder {
             var newParams = parameters
             newParams["symbols"] = symbol
             return QuoteBuilder(session: session, parameters: newParams)
@@ -31,7 +31,7 @@ extension YFAPIURLBuilder {
         /// 여러 심볼 설정
         /// - Parameter symbols: 조회할 종목 심볼들
         /// - Returns: 새로운 빌더 인스턴스
-        public func symbols(_ symbols: [String]) -> QuoteBuilder {
+        func symbols(_ symbols: [String]) -> QuoteBuilder {
             var newParams = parameters
             newParams["symbols"] = symbols.joined(separator: ",")
             return QuoteBuilder(session: session, parameters: newParams)
@@ -42,7 +42,7 @@ extension YFAPIURLBuilder {
         ///   - key: 파라미터 키
         ///   - value: 파라미터 값
         /// - Returns: 새로운 빌더 인스턴스
-        public func parameter(_ key: String, _ value: String) -> QuoteBuilder {
+        func parameter(_ key: String, _ value: String) -> QuoteBuilder {
             var newParams = parameters
             newParams[key] = value
             return QuoteBuilder(session: session, parameters: newParams)
@@ -51,7 +51,7 @@ extension YFAPIURLBuilder {
         /// URL 구성 (인증 포함)
         /// - Returns: 구성된 URL
         /// - Throws: URL 구성 실패 시
-        public func build() async throws -> URL {
+        func build() async throws -> URL {
             return try await YFAPIURLBuilder.buildURL(baseURL: baseURL, parameters: parameters, session: session)
         }
         
@@ -62,7 +62,7 @@ extension YFAPIURLBuilder {
         ///
         /// - Returns: 구성된 URL (인증 없음)
         /// - Throws: URL 구성 실패 시
-        public func buildPublic() throws -> URL {
+        func buildPublic() throws -> URL {
             guard var urlComponents = URLComponents(string: baseURL) else {
                 throw YFError.invalidURL
             }

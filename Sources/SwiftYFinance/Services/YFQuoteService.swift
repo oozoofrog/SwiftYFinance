@@ -10,16 +10,11 @@ public struct YFQuoteService: YFService {
     
     /// YFClient 참조
     public let client: YFClient
-    
-    
-    /// 공통 로직을 처리하는 핵심 구조체
-    private let core: YFServiceCore
-    
+
     /// YFQuoteService 초기화
     /// - Parameter client: YFClient 인스턴스
     public init(client: YFClient) {
         self.client = client
-        self.core = YFServiceCore(client: client)
     }
     
     /// 주식 시세 조회 (인증 필요)
@@ -31,26 +26,13 @@ public struct YFQuoteService: YFService {
     /// - Returns: 주식 시세 데이터
     /// - Throws: API 호출 중 발생하는 에러
     public func fetch(ticker: YFTicker) async throws -> YFQuote {
-        DebugPrint("🚀 [QuoteService] fetch() 시작 - 심볼: \(ticker.symbol)")
-        
-        do {
-            // URL 구성
-            let requestURL = try await buildQuoteURL(tickers: [ticker])
-            
-            // 인증이 필요한 API 호출 (공통 메서드 사용)
-            let quoteResponse = try await performFetch(url: requestURL, type: YFQuoteResponse.self, serviceName: "Quote")
-            
-            // quoteResponse 구조에서 result 데이터 추출  
-            guard let result = quoteResponse.result?.first else {
-                throw YFError.invalidResponse
-            }
-            
-            DebugPrint("✅ [QuoteService] fetch() 완료")
-            return result
-        } catch {
-            DebugPrint("❌ [QuoteService] fetch() 실패: \(error)")
-            throw error
+        let requestURL = try await buildQuoteURL(tickers: [ticker])
+        let quoteResponse = try await performFetch(url: requestURL, type: YFQuoteResponse.self, serviceName: "Quote")
+
+        guard let result = quoteResponse.result?.first else {
+            throw YFError.invalidResponse
         }
+        return result
     }
 
     /// 여러 심볼의 실시간 주식 시세 조회
@@ -73,21 +55,8 @@ public struct YFQuoteService: YFService {
     /// }
     /// ```
     public func fetch(symbols: [String]) async throws -> YFQuoteResponse {
-        DebugPrint("🚀 [QuoteService] fetch() 시작 - 심볼: \(symbols)")
-
-        do {
-            // URL 구성
-            let requestURL = try await buildQuoteURL(tickers: symbols.map(YFTicker.init))
-
-            // 인증이 필요한 API 호출 (공통 메서드 사용)
-            let quoteResponse = try await performFetch(url: requestURL, type: YFQuoteResponse.self, serviceName: "Quote")
-
-            DebugPrint("✅ [QuoteService] fetch() 완료")
-            return quoteResponse
-        } catch {
-            DebugPrint("❌ [QuoteService] fetch() 실패: \(error)")
-            throw error
-        }
+        let requestURL = try await buildQuoteURL(tickers: symbols.map(YFTicker.init))
+        return try await performFetch(url: requestURL, type: YFQuoteResponse.self, serviceName: "Quote")
     }
 
     /// 주식 시세 원본 JSON 조회 (인증 필요)
@@ -99,9 +68,6 @@ public struct YFQuoteService: YFService {
     /// - Returns: 원본 JSON 응답 데이터
     /// - Throws: API 호출 중 발생하는 에러
     public func fetchRawJSON(ticker: YFTicker) async throws -> Data {
-        DebugPrint("🚀 [QuoteService] fetchRawJSON() 시작 - 심볼: \(ticker.symbol)")
-        
-        // URL 구성
         let requestURL = try await buildQuoteURL(tickers: [ticker])
 
         // 인증이 필요한 Raw JSON 호출 (공통 메서드 사용)

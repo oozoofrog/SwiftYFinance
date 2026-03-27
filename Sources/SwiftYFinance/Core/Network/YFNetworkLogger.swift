@@ -2,9 +2,9 @@ import Foundation
 import os
 
 /// 네트워크 요청/응답 로깅 시스템
-/// 
+///
 /// Yahoo Finance API 통신의 디버깅 및 모니터링을 위한 로깅 시스템입니다.
-/// Phase 4.5.3 네트워크 계층 최적화의 일환으로 구현되었습니다.
+/// actor 기반으로 Swift 6.1 strict concurrency를 완전 지원합니다.
 ///
 /// ## 기능
 /// - **요청/응답 로깅**: 모든 HTTP 통신 기록
@@ -15,56 +15,56 @@ import os
 /// ## 사용 예시
 /// ```swift
 /// let logger = YFNetworkLogger.shared
-/// logger.logRequest(request, for: "quoteSummary")
-/// logger.logResponse(response, data: data, duration: 1.2)
+/// await logger.logRequest(request, for: "quoteSummary")
+/// await logger.logResponse(response, data: data, duration: 1.2, for: "quoteSummary")
 /// ```
-public final class YFNetworkLogger: @unchecked Sendable {
-    
+public actor YFNetworkLogger {
+
     // MARK: - Singleton
     public static let shared = YFNetworkLogger()
-    
+
     // MARK: - Properties
     private let logger: Logger
+    // actor isolation이 requestStats의 동시 접근을 자동으로 보호합니다.
     private var requestStats: [String: RequestStats] = [:]
-    private let statsLock = NSLock()
-    
+
     // MARK: - Types
-    
+
     /// 요청 통계 정보
-    public struct RequestStats {
-        var totalRequests: Int = 0
-        var successRequests: Int = 0
-        var errorRequests: Int = 0
-        var totalDuration: TimeInterval = 0
-        var errorTypes: [String: Int] = [:]
-        
-        var successRate: Double {
+    public struct RequestStats: Sendable {
+        public var totalRequests: Int = 0
+        public var successRequests: Int = 0
+        public var errorRequests: Int = 0
+        public var totalDuration: TimeInterval = 0
+        public var errorTypes: [String: Int] = [:]
+
+        public var successRate: Double {
             guard totalRequests > 0 else { return 0.0 }
             return Double(successRequests) / Double(totalRequests)
         }
-        
-        var averageDuration: TimeInterval {
+
+        public var averageDuration: TimeInterval {
             guard totalRequests > 0 else { return 0.0 }
             return totalDuration / Double(totalRequests)
         }
     }
-    
+
     /// 로그 레벨
-    public enum LogLevel {
+    public enum LogLevel: Sendable {
         case debug    // 상세 디버깅 정보
         case info     // 일반 정보
         case warning  // 경고
         case error    // 에러
     }
-    
+
     // MARK: - Initialization
-    
+
     private init() {
         self.logger = Logger(subsystem: "com.swiftyfinance", category: "NetworkLogger")
     }
-    
+
     // MARK: - Public Methods
-    
+
     /// HTTP 요청 로깅
     /// - Parameters:
     ///   - request: URLRequest 객체
@@ -72,9 +72,9 @@ public final class YFNetworkLogger: @unchecked Sendable {
     public func logRequest(_ request: URLRequest, for endpoint: String) {
         let method = request.httpMethod ?? "GET"
         let url = request.url?.absoluteString ?? "unknown"
-        
+
         logger.info("🌐 [REQUEST] \(endpoint) \(method) \(url)")
-        
+
         // 헤더 로깅 (디버그 모드)
         #if DEBUG
         if let headers = request.allHTTPHeaderFields {
@@ -85,11 +85,11 @@ public final class YFNetworkLogger: @unchecked Sendable {
             }
         }
         #endif
-        
+
         // 통계 업데이트
-        updateRequestStats(for: endpoint, increment: \.totalRequests)
+        incrementStat(for: endpoint, keyPath: \.totalRequests)
     }
-    
+
     /// HTTP 응답 로깅
     /// - Parameters:
     ///   - response: HTTPURLResponse 객체
@@ -100,9 +100,9 @@ public final class YFNetworkLogger: @unchecked Sendable {
         let statusCode = response?.statusCode ?? 0
         let dataSize = data?.count ?? 0
         let statusIcon = getStatusIcon(for: statusCode)
-        
+
         logger.info("\(statusIcon) [RESPONSE] \(endpoint) \(statusCode) (\(dataSize) bytes) in \(String(format: "%.3f", duration))s")
-        
+
         // 응답 헤더 로깅 (디버그 모드)
         #if DEBUG
         if let headers = response?.allHeaderFields {
@@ -111,18 +111,18 @@ public final class YFNetworkLogger: @unchecked Sendable {
             }
         }
         #endif
-        
+
         // 통계 업데이트
-        updateRequestStats(for: endpoint, duration: duration)
-        
+        addDuration(duration, for: endpoint)
+
         if statusCode >= 200 && statusCode < 300 {
-            updateRequestStats(for: endpoint, increment: \.successRequests)
+            incrementStat(for: endpoint, keyPath: \.successRequests)
         } else {
-            updateRequestStats(for: endpoint, increment: \.errorRequests)
-            logError(statusCode: statusCode, for: endpoint)
+            incrementStat(for: endpoint, keyPath: \.errorRequests)
+            logHTTPError(statusCode: statusCode, for: endpoint)
         }
     }
-    
+
     /// 네트워크 에러 로깅
     /// - Parameters:
     ///   - error: 에러 객체
@@ -130,63 +130,55 @@ public final class YFNetworkLogger: @unchecked Sendable {
     public func logError(_ error: Error, for endpoint: String) {
         let errorDescription = error.localizedDescription
         let errorType = String(describing: type(of: error))
-        
+
         logger.error("❌ [ERROR] \(endpoint) \(errorType): \(errorDescription)")
-        
+
         // 에러 타입별 통계 업데이트
-        updateErrorStats(for: endpoint, errorType: errorType)
-        updateRequestStats(for: endpoint, increment: \.errorRequests)
+        addErrorType(errorType, for: endpoint)
+        incrementStat(for: endpoint, keyPath: \.errorRequests)
     }
-    
+
     /// 특정 엔드포인트의 통계 반환
     /// - Parameter endpoint: API 엔드포인트 식별자
     /// - Returns: 요청 통계 정보
     public func getStats(for endpoint: String) -> RequestStats? {
-        statsLock.lock()
-        defer { statsLock.unlock() }
         return requestStats[endpoint]
     }
-    
+
     /// 모든 엔드포인트 통계 반환
     /// - Returns: 전체 요청 통계 정보
     public func getAllStats() -> [String: RequestStats] {
-        statsLock.lock()
-        defer { statsLock.unlock() }
         return requestStats
     }
-    
+
     /// 통계 초기화
     public func resetStats() {
-        statsLock.lock()
-        defer { statsLock.unlock() }
         requestStats.removeAll()
         logger.info("📊 [STATS] Statistics reset")
     }
-    
+
     /// 통계 요약 출력
     public func printStatsSummary() {
-        statsLock.lock()
         let stats = requestStats
-        statsLock.unlock()
-        
+
         logger.info("📊 === Network Statistics Summary ===")
-        
+
         for (endpoint, stat) in stats {
             logger.info("🎯 \(endpoint):")
             logger.info("   Total: \(stat.totalRequests), Success: \(stat.successRequests), Error: \(stat.errorRequests)")
             logger.info("   Success Rate: \(String(format: "%.1f", stat.successRate * 100))%")
             logger.info("   Avg Duration: \(String(format: "%.3f", stat.averageDuration))s")
-            
+
             if !stat.errorTypes.isEmpty {
                 logger.info("   Error Types: \(stat.errorTypes)")
             }
         }
-        
+
         logger.info("📊 ===================================")
     }
-    
+
     // MARK: - Private Methods
-    
+
     /// 상태 코드에 따른 아이콘 반환
     private func getStatusIcon(for statusCode: Int) -> String {
         switch statusCode {
@@ -197,58 +189,47 @@ public final class YFNetworkLogger: @unchecked Sendable {
         default: return "❓"
         }
     }
-    
+
     /// 민감한 정보 마스킹
     private func maskSensitiveValue(key: String, value: String) -> String {
         let sensitiveKeys = ["Authorization", "Cookie", "crumb", "csrf"]
-        
+
         if sensitiveKeys.contains(where: { key.localizedCaseInsensitiveContains($0) }) {
             return "***MASKED***"
         }
-        
+
         return value
     }
-    
-    /// 요청 통계 업데이트
-    private func updateRequestStats(for endpoint: String, increment keyPath: WritableKeyPath<RequestStats, Int>) {
-        statsLock.lock()
-        defer { statsLock.unlock() }
-        
+
+    /// 카운터 증가 (actor 내부에서 호출)
+    private func incrementStat(for endpoint: String, keyPath: WritableKeyPath<RequestStats, Int>) {
         if requestStats[endpoint] == nil {
             requestStats[endpoint] = RequestStats()
         }
-        
         requestStats[endpoint]![keyPath: keyPath] += 1
     }
-    
-    /// 요청 통계 업데이트 (duration)
-    private func updateRequestStats(for endpoint: String, duration: TimeInterval) {
-        statsLock.lock()
-        defer { statsLock.unlock() }
-        
+
+    /// duration 합산 (actor 내부에서 호출)
+    private func addDuration(_ duration: TimeInterval, for endpoint: String) {
         if requestStats[endpoint] == nil {
             requestStats[endpoint] = RequestStats()
         }
-        
         requestStats[endpoint]!.totalDuration += duration
+        requestStats[endpoint]!.totalRequests += 1
     }
-    
-    /// 에러 통계 업데이트
-    private func updateErrorStats(for endpoint: String, errorType: String) {
-        statsLock.lock()
-        defer { statsLock.unlock() }
-        
+
+    /// 에러 타입 추가 (actor 내부에서 호출)
+    private func addErrorType(_ errorType: String, for endpoint: String) {
         if requestStats[endpoint] == nil {
             requestStats[endpoint] = RequestStats()
         }
-        
         requestStats[endpoint]!.errorTypes[errorType, default: 0] += 1
     }
-    
+
     /// HTTP 상태 코드 에러 로깅
-    private func logError(statusCode: Int, for endpoint: String) {
+    private func logHTTPError(statusCode: Int, for endpoint: String) {
         let errorMessage: String
-        
+
         switch statusCode {
         case 401:
             errorMessage = "Unauthorized - Authentication failed"
@@ -263,8 +244,8 @@ public final class YFNetworkLogger: @unchecked Sendable {
         default:
             errorMessage = "HTTP Error \(statusCode)"
         }
-        
+
         logger.error("⚠️ [HTTP_ERROR] \(endpoint) \(statusCode): \(errorMessage)")
-        updateErrorStats(for: endpoint, errorType: "HTTP_\(statusCode)")
+        addErrorType("HTTP_\(statusCode)", for: endpoint)
     }
 }
