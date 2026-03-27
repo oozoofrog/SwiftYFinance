@@ -1,0 +1,418 @@
+[
+  {
+    "id": "F001",
+    "category": "config",
+    "description": "Package.swift의 swift-tools-version을 6.1에서 6.2로 업그레이드한다. SwiftSettings에 ApproachableConcurrency 관련 upcoming feature 플래그를 추가한다. 라이브러리 타겟에 defaultIsolation은 적용하지 않는다.",
+    "verification": "Package.swift 첫 줄이 정확히 '// swift-tools-version: 6.2'이다. swift build가 에러 없이 통과한다. Package.swift에 'defaultIsolation'이 포함되지 않는다.",
+    "verification_steps": [
+      {
+        "action": "grep",
+        "command": "grep -n 'swift-tools-version' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Package.swift",
+        "expect": "첫 줄에 'swift-tools-version: 6.2'가 정확히 표기됨 (6.1 아님)"
+      },
+      {
+        "action": "grep",
+        "command": "grep -n 'defaultIsolation' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Package.swift",
+        "expect": "출력 없음 — defaultIsolation이 Package.swift에 존재하지 않아야 함"
+      },
+      {
+        "action": "run",
+        "command": "cd /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance && swift build 2>&1 | tail -5",
+        "expect": "Build complete! 포함, error: 없음"
+      }
+    ],
+    "status": "built",
+    "reference": "references/swift-concurrency.md",
+    "priority": 1,
+    "scores": null
+  },
+  {
+    "id": "F002",
+    "category": "config",
+    "description": "Package.swift SwiftSettings에 Swift 6.2 concurrency 기능을 활성화한다. `.enableUpcomingFeature(\"InferSendableFromCaptures\")` 등 라이브러리에 적합한 setting을 추가한다. swiftLanguageMode는 .v6으로 명시한다.",
+    "verification": "Package.swift 타겟에 swiftSettings 블록이 존재한다. swiftLanguageMode(.v6)가 포함된다. swift build 출력에 에러가 없다. concurrency 관련 error: 가 0건이다.",
+    "verification_steps": [
+      {
+        "action": "grep",
+        "command": "grep -n 'swiftSettings\\|swiftLanguageMode\\|enableUpcomingFeature' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Package.swift",
+        "expect": "swiftSettings 블록, swiftLanguageMode(.v6) 또는 .swiftLanguageMode(.v6) 포함"
+      },
+      {
+        "action": "grep",
+        "command": "grep -n 'InferSendableFromCaptures\\|ApproachableConcurrency\\|enableUpcomingFeature' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Package.swift",
+        "expect": "ApproachableConcurrency 관련 upcoming feature 플래그 1개 이상 포함"
+      },
+      {
+        "action": "grep",
+        "command": "grep -n 'defaultIsolation' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Package.swift",
+        "expect": "출력 없음 — 라이브러리에 defaultIsolation 금지"
+      },
+      {
+        "action": "run",
+        "command": "cd /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance && swift build 2>&1 | grep -E '^.*error:' | grep -v '^$' | wc -l | tr -d ' '",
+        "expect": "0 — 빌드 에러 없음"
+      }
+    ],
+    "status": "pending",
+    "reference": "references/swift-concurrency.md",
+    "priority": 2,
+    "scores": null
+  },
+  {
+    "id": "F003",
+    "category": "logic",
+    "description": "YFServiceCore의 parseJSON<T>(data:type:) 함수에 @concurrent 속성을 적용한다. JSON 디코딩은 CPU-bound 작업이므로 호출자의 actor(예: MainActor)를 블로킹하지 않고 concurrent thread pool에서 실행되어야 한다. 함수 시그니처를 async로 변경한다.",
+    "verification": "YFServiceCore.parseJSON이 @concurrent async func으로 선언된다. 함수 시그니처에 throws가 유지된다. YFRequestPipeline에서 parseJSON 호출부에 await가 추가된다. swift build가 통과한다.",
+    "verification_steps": [
+      {
+        "action": "grep",
+        "command": "grep -n '@concurrent' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Services/YFServiceCore.swift",
+        "expect": "@concurrent가 parseJSON 선언 직전 줄 또는 같은 줄에 포함됨"
+      },
+      {
+        "action": "grep",
+        "command": "grep -n 'func parseJSON' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Services/YFServiceCore.swift",
+        "expect": "func parseJSON 시그니처에 async가 포함됨 (예: async throws ->)"
+      },
+      {
+        "action": "grep",
+        "command": "grep -n 'await.*parseJSON\\|parseJSON.*await' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Services/YFRequestPipeline.swift",
+        "expect": "YFRequestPipeline에서 parseJSON 호출 시 await 사용"
+      },
+      {
+        "action": "run",
+        "command": "cd /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance && swift build 2>&1 | grep -E '^.*error:' | grep -v '^$' | wc -l | tr -d ' '",
+        "expect": "0"
+      }
+    ],
+    "status": "pending",
+    "reference": "references/swift-concurrency.md",
+    "priority": 3,
+    "scores": null
+  },
+  {
+    "id": "F004",
+    "category": "logic",
+    "description": "YFResponseParser의 parse<T>(_:type:) 함수에 @concurrent를 적용한다. 이 파서는 public API이므로 소비자가 MainActor에서 호출할 때도 자동으로 백그라운드에서 실행된다. 함수를 async로 변경하고 호출부를 await로 갱신한다.",
+    "verification": "YFResponseParser.parse가 @concurrent async func으로 선언된다. YFRequestPipeline 또는 YFServiceCore에서 parse(_:type:) 호출부에 await가 추가된다. swift build 통과.",
+    "verification_steps": [
+      {
+        "action": "grep",
+        "command": "grep -n '@concurrent' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Core/Network/YFResponseParser.swift",
+        "expect": "@concurrent가 parse 함수 선언 근처에 포함됨"
+      },
+      {
+        "action": "grep",
+        "command": "grep -n 'func parse' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Core/Network/YFResponseParser.swift",
+        "expect": "func parse 시그니처에 async 포함 (예: async throws ->)"
+      },
+      {
+        "action": "grep",
+        "command": "grep -rn 'await.*\\.parse(' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Services/ /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Core/",
+        "expect": "responseParser.parse 또는 YFResponseParser().parse 호출부에 await 포함"
+      },
+      {
+        "action": "run",
+        "command": "cd /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance && swift build 2>&1 | grep -E '^.*error:' | grep -v '^$' | wc -l | tr -d ' '",
+        "expect": "0"
+      }
+    ],
+    "status": "pending",
+    "reference": "references/swift-concurrency.md",
+    "priority": 4,
+    "scores": null
+  },
+  {
+    "id": "F005",
+    "category": "logic",
+    "description": "YFWebSocketClient 내 YFLiveMessageDecoder.parseProtobufData(_:) 함수에 @concurrent를 적용한다. Protocol Buffers 파싱은 실시간 스트리밍 경로의 CPU-bound 작업이다. decode(_:) 함수도 async로 변경하여 호출 체인을 정비한다.",
+    "verification": "YFLiveMessageDecoder.parseProtobufData가 @concurrent async func으로 선언된다. YFLiveMessageDecoder.decode(_:) 함수도 async로 변경된다. YFWebSocketClient.handleMessage에서 parseProtobufData 또는 decode 호출 시 await가 추가된다. swift build 통과.",
+    "verification_steps": [
+      {
+        "action": "grep",
+        "command": "grep -n '@concurrent\\|func parseProtobufData\\|func decode' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Core/YFWebSocketClient.swift",
+        "expect": "@concurrent이 parseProtobufData 또는 decode 선언 근처에 포함됨"
+      },
+      {
+        "action": "grep",
+        "command": "grep -n 'func parseProtobufData' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Core/YFWebSocketClient.swift",
+        "expect": "func parseProtobufData 시그니처에 async 포함"
+      },
+      {
+        "action": "grep",
+        "command": "grep -n 'await.*decode\\|await.*parseProtobufData' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Core/YFWebSocketClient.swift",
+        "expect": "handleMessage 함수 내부 또는 decode 호출 체인에서 await 사용"
+      },
+      {
+        "action": "run",
+        "command": "cd /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance && swift build 2>&1 | grep -E '^.*error:' | grep -v '^$' | wc -l | tr -d ' '",
+        "expect": "0"
+      }
+    ],
+    "status": "pending",
+    "reference": "references/swift-concurrency.md",
+    "priority": 5,
+    "scores": null
+  },
+  {
+    "id": "F006",
+    "category": "logic",
+    "description": "URL 빌더 struct 10개(YFChartURLBuilder, YFDomainURLBuilder, YFFundamentalsURLBuilder, YFNewsURLBuilder, YFOptionsURLBuilder, YFQuoteSummaryURLBuilder, YFQuoteURLBuilder, YFScreenerURLBuilder, YFSearchURLBuilder, YFWebSocketURLBuilder)에 타입 수준 nonisolated를 적용한다. 이들은 순수 값 타입 빌더로 어떠한 actor isolation도 가정하지 않아야 한다.",
+    "verification": "YFAPIURLBuilder 자체 또는 10개 내부 중첩 builder struct 선언부에 nonisolated 키워드가 있다. 10개 빌더 파일 각각에서 nonisolated가 확인된다. swift build 통과. nonisolated가 적용된 struct 수가 10개 이상이다.",
+    "verification_steps": [
+      {
+        "action": "grep",
+        "command": "grep -rn 'nonisolated' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Core/APIBuilder/ /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Core/YFAPIURLBuilder.swift",
+        "expect": "10개 빌더 파일(ChartBuilder, DomainBuilder, FundamentalsBuilder, NewsBuilder, OptionsBuilder, QuoteSummaryBuilder, QuoteBuilder, ScreenerBuilder, SearchBuilder, WebSocketBuilder) 각각에서 nonisolated 발견 — 또는 YFAPIURLBuilder 자체에 nonisolated 적용"
+      },
+      {
+        "action": "grep",
+        "command": "grep -rn 'nonisolated.*struct\\|struct.*nonisolated' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Core/APIBuilder/ /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Core/YFAPIURLBuilder.swift | wc -l | tr -d ' '",
+        "expect": "1 이상 (YFAPIURLBuilder 자체에 적용 시 1, 중첩 struct마다 적용 시 10 이상)"
+      },
+      {
+        "action": "run",
+        "command": "cd /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance && swift build 2>&1 | grep -E '^.*error:' | grep -v '^$' | wc -l | tr -d ' '",
+        "expect": "0"
+      }
+    ],
+    "status": "pending",
+    "reference": "references/swift-concurrency.md",
+    "priority": 6,
+    "scores": null
+  },
+  {
+    "id": "F007",
+    "category": "logic",
+    "description": "서비스 struct 10개(YFQuoteService, YFChartService, YFSearchService, YFFundamentalsTimeseriesService, YFNewsService, YFOptionsService, YFScreenerService, YFQuoteSummaryService, YFDomainService, YFCustomScreenerService)에 타입 수준 nonisolated를 적용한다. YFService 프로토콜 자체도 nonisolated 타입 전용으로 제한하거나 적절히 조정한다.",
+    "verification": "10개 서비스 struct 선언부 각각에 nonisolated 키워드가 있다. YFService 프로토콜이 nonisolated 타입과 호환된다(프로토콜에 nonisolated 적용 또는 호환성 근거 주석). swift build 통과.",
+    "verification_steps": [
+      {
+        "action": "grep",
+        "command": "grep -rn 'nonisolated.*struct\\|nonisolated public struct' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Services/",
+        "expect": "YFQuoteService, YFChartService, YFSearchService, YFFundamentalsTimeseriesService, YFNewsService, YFOptionsService, YFScreenerService, YFQuoteSummaryService, YFDomainService, YFCustomScreenerService — 10개 파일 모두에서 nonisolated struct 발견"
+      },
+      {
+        "action": "grep",
+        "command": "grep -n 'protocol YFService\\|nonisolated' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Services/YFService.swift",
+        "expect": "YFService 프로토콜 정의가 nonisolated 타입 채택과 충돌하지 않도록 조정됨 (예: nonisolated protocol YFService 또는 기존 유지 근거 주석)"
+      },
+      {
+        "action": "run",
+        "command": "grep -rn 'nonisolated.*struct' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Services/ | grep -E 'YFQuoteService|YFChartService|YFSearchService|YFFundamentalsTimeseriesService|YFNewsService|YFOptionsService|YFScreenerService|YFQuoteSummaryService|YFDomainService|YFCustomScreenerService' | wc -l | tr -d ' '",
+        "expect": "10 — 정확히 10개 서비스에 nonisolated 적용"
+      },
+      {
+        "action": "run",
+        "command": "cd /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance && swift build 2>&1 | grep -E '^.*error:' | grep -v '^$' | wc -l | tr -d ' '",
+        "expect": "0"
+      }
+    ],
+    "status": "pending",
+    "reference": "references/swift-concurrency.md",
+    "priority": 7,
+    "scores": null
+  },
+  {
+    "id": "F008",
+    "category": "logic",
+    "description": "YFServiceCore, YFRequestPipeline, YFResponseParser, YFChartConverter, YFDateHelper에 타입 수준 nonisolated를 적용한다. 이 타입들은 순수 데이터 처리 및 유틸리티 struct로 actor isolation이 불필요하며, 라이브러리 소비자의 모든 isolation 컨텍스트에서 사용 가능해야 한다.",
+    "verification": "YFServiceCore, YFRequestPipeline, YFResponseParser, YFChartConverter, YFDateHelper — 5개 struct 선언 모두에 nonisolated가 포함된다. swift build 통과.",
+    "verification_steps": [
+      {
+        "action": "grep",
+        "command": "grep -n 'nonisolated.*struct YFServiceCore\\|nonisolated struct YFServiceCore' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Services/YFServiceCore.swift",
+        "expect": "nonisolated struct YFServiceCore 선언 확인"
+      },
+      {
+        "action": "grep",
+        "command": "grep -n 'nonisolated.*struct YFRequestPipeline\\|nonisolated struct YFRequestPipeline' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Services/YFRequestPipeline.swift",
+        "expect": "nonisolated struct YFRequestPipeline 선언 확인"
+      },
+      {
+        "action": "grep",
+        "command": "grep -n 'nonisolated.*struct YFResponseParser\\|nonisolated struct YFResponseParser' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Core/Network/YFResponseParser.swift",
+        "expect": "nonisolated struct YFResponseParser 선언 확인"
+      },
+      {
+        "action": "grep",
+        "command": "grep -n 'nonisolated.*struct YFChartConverter\\|nonisolated struct YFChartConverter' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Helpers/YFChartConverter.swift",
+        "expect": "nonisolated struct YFChartConverter 선언 확인"
+      },
+      {
+        "action": "grep",
+        "command": "grep -n 'nonisolated.*struct YFDateHelper\\|nonisolated struct YFDateHelper' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Helpers/YFDateHelper.swift",
+        "expect": "nonisolated struct YFDateHelper 선언 확인"
+      },
+      {
+        "action": "run",
+        "command": "cd /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance && swift build 2>&1 | grep -E '^.*error:' | grep -v '^$' | wc -l | tr -d ' '",
+        "expect": "0"
+      }
+    ],
+    "status": "pending",
+    "reference": "references/swift-concurrency.md",
+    "priority": 8,
+    "scores": null
+  },
+  {
+    "id": "F009",
+    "category": "logic",
+    "description": "YFClient struct에 nonisolated를 적용하고 기존 Sendable 어노테이션의 중복 여부를 검토한다. Swift 6.2에서 nonisolated struct는 자동으로 Sendable을 충족하는 경우가 많으므로, 명시적 ': Sendable' 선언이 여전히 필요한지 판단하고 불필요하면 제거한다.",
+    "verification": "YFClient.swift에서 struct YFClient 선언이 nonisolated struct YFClient로 변경된다. 명시적 Sendable이 제거된 경우 빌드에서 Sendable 관련 에러가 없어야 한다. 명시적 Sendable을 유지하는 경우 유지 근거가 주석으로 명시되어야 한다. swift build 통과.",
+    "verification_steps": [
+      {
+        "action": "grep",
+        "command": "grep -n 'struct YFClient\\|nonisolated.*YFClient' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Core/YFClient.swift",
+        "expect": "'nonisolated struct YFClient' 형태의 선언 — nonisolated 키워드 포함 필수"
+      },
+      {
+        "action": "grep",
+        "command": "grep -n ': Sendable\\|Sendable' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Core/YFClient.swift",
+        "expect": "Sendable이 제거되었거나, 유지된 경우 근거 주석(// Sendable 유지 이유:)이 같은 파일에 존재"
+      },
+      {
+        "action": "run",
+        "command": "cd /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance && swift build 2>&1 | grep -i 'sendable' | grep -i 'error\\|warning' | head -10",
+        "expect": "YFClient 관련 Sendable error 없음"
+      },
+      {
+        "action": "run",
+        "command": "cd /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance && swift build 2>&1 | grep -E '^.*error:' | grep -v '^$' | wc -l | tr -d ' '",
+        "expect": "0"
+      }
+    ],
+    "status": "pending",
+    "reference": "references/swift-concurrency.md",
+    "priority": 9,
+    "scores": null
+  },
+  {
+    "id": "F010",
+    "category": "logic",
+    "description": "모델 struct군(YFQuote, YFChartModels, YFHistoricalData, YFNews, YFOptions, YFSearchResult, YFLiveStreamMessage, YFTechnicalIndicators 등)의 명시적 Sendable 어노테이션을 점검한다. Swift 6.2에서 nonisolated struct는 Sendable이 자동 추론되므로, 중복된 ': Sendable' 선언을 제거하고 주석을 정리한다.",
+    "verification": "Models/Network/ 디렉토리의 'struct.*: Decodable, Sendable' 패턴이 감소 또는 제거된다(Swift 6.2에서 Decodable struct는 자동 Sendable). swift build 출력에 'redundant conformance' 경고가 없다. swift build 통과.",
+    "verification_steps": [
+      {
+        "action": "run",
+        "command": "cd /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance && swift build 2>&1 | grep -iE 'redundant.*sendable|redundant conformance.*Sendable|unnecessary.*sendable'",
+        "expect": "출력 없음 — redundant Sendable 경고 0건"
+      },
+      {
+        "action": "grep",
+        "command": "grep -rn ': Decodable, Sendable\\|: Sendable, Decodable' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Models/Network/ | wc -l | tr -d ' '",
+        "expect": "F010 작업 전 39건 대비 감소 (0이 이상적이나, 일부 유지 근거 있으면 주석으로 명시)"
+      },
+      {
+        "action": "run",
+        "command": "cd /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance && swift build 2>&1 | grep -E '^.*error:' | grep -v '^$' | wc -l | tr -d ' '",
+        "expect": "0"
+      }
+    ],
+    "status": "pending",
+    "reference": "references/swift-concurrency.md",
+    "priority": 10,
+    "scores": null
+  },
+  {
+    "id": "F011",
+    "category": "logic",
+    "description": "YFBrowserImpersonator(final class: Sendable)의 concurrency 어노테이션을 재검토한다. final class가 nonisolated 타입으로 변경 가능한지 평가하고, 가능하면 적용한다. 불가능하면 기존 Sendable 유지 근거를 주석으로 명시한다.",
+    "verification": "YFBrowserImpersonator 선언이 'nonisolated final class YFBrowserImpersonator'로 변경되거나, 기존 'final class YFBrowserImpersonator: Sendable'을 유지하는 경우 유지 근거 주석이 파일 내에 명시된다. swift build 통과. 어느 경우든 Sendable 관련 컴파일 에러가 없어야 한다.",
+    "verification_steps": [
+      {
+        "action": "grep",
+        "command": "grep -n 'class YFBrowserImpersonator\\|nonisolated\\|// .*nonisolated\\|// .*Sendable' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Sources/SwiftYFinance/Core/Network/YFBrowserImpersonator.swift",
+        "expect": "'nonisolated final class YFBrowserImpersonator' 또는 Sendable 유지 근거 주석 포함"
+      },
+      {
+        "action": "run",
+        "command": "cd /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance && swift build 2>&1 | grep 'YFBrowserImpersonator' | grep -i 'error\\|warning'",
+        "expect": "출력 없음 — YFBrowserImpersonator 관련 컴파일 에러/경고 없음"
+      },
+      {
+        "action": "run",
+        "command": "cd /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance && swift build 2>&1 | grep -E '^.*error:' | grep -v '^$' | wc -l | tr -d ' '",
+        "expect": "0"
+      }
+    ],
+    "status": "pending",
+    "reference": "references/swift-concurrency.md",
+    "priority": 11,
+    "scores": null
+  },
+  {
+    "id": "F012",
+    "category": "test",
+    "description": "Swift 6.2 환경에서 기존 Swift Testing 기반 테스트 전체가 통과하는지 검증한다. @concurrent 적용으로 변경된 async 함수들의 호출부가 올바르게 await를 사용하는지, actor isolation 변경으로 인한 테스트 실패가 없는지 확인한다. 필요 시 TestHelper 및 MockNetworkProvider를 업데이트한다.",
+    "verification": "swift test가 모든 테스트를 통과한다. 실패 테스트 수 0. @concurrent async 함수 호출부에서 await 누락으로 인한 컴파일 에러가 없다. swift test 출력에 'Test Suite' passed 메시지가 포함된다.",
+    "verification_steps": [
+      {
+        "action": "run",
+        "command": "cd /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance && swift build 2>&1 | grep -E '^.*error:' | grep -v '^$' | wc -l | tr -d ' '",
+        "expect": "0 — 테스트 빌드 포함 에러 없음"
+      },
+      {
+        "action": "run",
+        "command": "cd /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance && swift test 2>&1 | tail -20",
+        "expect": "Test run with 0 failures 또는 'All tests passed' 포함"
+      },
+      {
+        "action": "run",
+        "command": "cd /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance && swift test 2>&1 | grep -iE 'failed|error:' | grep -v '^$' | wc -l | tr -d ' '",
+        "expect": "0 — 실패 테스트 및 컴파일 에러 0건"
+      },
+      {
+        "action": "grep",
+        "command": "grep -rn 'await.*parseJSON\\|await.*\\.parse(\\|await.*parseProtobufData\\|await.*decode(' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Tests/",
+        "expect": "@concurrent 함수가 테스트 코드에서도 await로 호출됨 (해당 함수를 테스트에서 직접 호출하는 경우에 한함)"
+      },
+      {
+        "action": "grep",
+        "command": "grep -rn 'MockNetworkProvider\\|@testable import SwiftYFinance' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/Tests/SwiftYFinanceTests/Unit/MockNetworkProvider.swift",
+        "expect": "MockNetworkProvider가 @testable import SwiftYFinance를 사용하며 최신 서명과 호환됨"
+      }
+    ],
+    "status": "pending",
+    "reference": "references/swift-concurrency.md",
+    "priority": 12,
+    "scores": null
+  },
+  {
+    "id": "F013",
+    "category": "config",
+    "description": "CLAUDE.md의 핵심 규칙을 Swift 6.2 기준으로 갱신한다. 'Swift 6.1' → 'Swift 6.2', 'swift-tools-version: 6.1' → '6.2', Approachable Concurrency 정책(nonisolated 타입, @concurrent CPU-bound 함수), defaultIsolation: MainActor 금지 이유를 추가한다.",
+    "verification": "CLAUDE.md에 'Swift 6.2' 문자열이 포함된다. 'nonisolated'와 '@concurrent'에 대한 설명이 포함된다. 'defaultIsolation: MainActor 금지' 또는 동등한 내용이 명시된다. 'swift-tools-version: 6.1'이 더 이상 등장하지 않는다. swift build 통과.",
+    "verification_steps": [
+      {
+        "action": "grep",
+        "command": "grep -n 'Swift 6.2\\|swift-tools-version: 6.2' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/CLAUDE.md",
+        "expect": "Swift 6.2 및/또는 swift-tools-version: 6.2 문자열 존재"
+      },
+      {
+        "action": "grep",
+        "command": "grep -n 'swift-tools-version: 6.1\\|Swift 6.1' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/CLAUDE.md",
+        "expect": "출력 없음 — 구버전 6.1 참조가 CLAUDE.md에 남아 있지 않아야 함"
+      },
+      {
+        "action": "grep",
+        "command": "grep -n 'nonisolated\\|@concurrent' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/CLAUDE.md",
+        "expect": "nonisolated 타입 정책 및 @concurrent CPU-bound 함수 정책 설명 포함"
+      },
+      {
+        "action": "grep",
+        "command": "grep -n 'defaultIsolation\\|MainActor.*금지\\|금지.*MainActor' /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance/CLAUDE.md",
+        "expect": "defaultIsolation: MainActor 금지 이유 또는 관련 정책 명시"
+      },
+      {
+        "action": "run",
+        "command": "cd /Volumes/eyedisk/develop/oozoofrog/SwiftYFinance && swift build 2>&1 | grep -E '^.*error:' | grep -v '^$' | wc -l | tr -d ' '",
+        "expect": "0"
+      }
+    ],
+    "status": "pending",
+    "reference": "references/swift-concurrency.md",
+    "priority": 13,
+    "scores": null
+  }
+]
