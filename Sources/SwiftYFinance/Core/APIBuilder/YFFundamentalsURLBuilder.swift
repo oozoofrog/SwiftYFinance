@@ -5,7 +5,8 @@ import Foundation
 extension YFAPIURLBuilder {
 
     /// Fundamentals API 전용 빌더 (내부 구현 타입)
-    struct FundamentalsBuilder: Sendable {
+    /// nonisolated: 순수 값 타입 빌더 — actor isolation 불필요
+    nonisolated struct FundamentalsBuilder: Sendable {
         private let session: YFSession
         private let baseURL = "https://query1.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries"
         private var symbol: String = ""

@@ -5,7 +5,8 @@ import Foundation
 extension YFAPIURLBuilder {
     
     /// Chart API 전용 빌더 (내부 구현 타입)
-    struct ChartBuilder: Sendable {
+    /// nonisolated: 순수 값 타입 빌더 — actor isolation 불필요
+    nonisolated struct ChartBuilder: Sendable {
         private let session: YFSession
         private let baseURL = "https://query2.finance.yahoo.com/v8/finance/chart"
         private var symbol: String = ""

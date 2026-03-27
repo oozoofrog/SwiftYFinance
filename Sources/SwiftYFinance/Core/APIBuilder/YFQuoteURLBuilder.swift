@@ -5,7 +5,8 @@ import Foundation
 extension YFAPIURLBuilder {
     
     /// Quote API 전용 빌더 (내부 구현 타입)
-    struct QuoteBuilder: Sendable {
+    /// nonisolated: 순수 값 타입 빌더 — actor isolation 불필요
+    nonisolated struct QuoteBuilder: Sendable {
         private let session: YFSession
         private let baseURL = "https://query1.finance.yahoo.com/v7/finance/quote"
         private var parameters: [String: String] = [:]

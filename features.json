@@ -176,7 +176,7 @@
         "expect": "0"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": "references/swift-concurrency.md",
     "priority": 6,
     "scores": null

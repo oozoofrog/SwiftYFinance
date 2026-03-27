@@ -20,7 +20,8 @@ extension YFAPIURLBuilder {
     /// try await client.connect()
     /// try await client.subscribe(["AAPL", "BTC-USD"])
     /// ```
-    struct WebSocketBuilder: Sendable {
+    /// nonisolated: 순수 값 타입 빌더 — actor isolation 불필요
+    nonisolated struct WebSocketBuilder: Sendable {
         private let session: YFSession
         private let baseURL = "wss://streamer.finance.yahoo.com"
         private var parameters: [String: String] = [:]

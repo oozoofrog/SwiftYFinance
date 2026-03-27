@@ -5,7 +5,8 @@ import Foundation
 extension YFAPIURLBuilder {
 
     /// Screener API 전용 빌더 (내부 구현 타입)
-    struct ScreenerBuilder: Sendable {
+    /// nonisolated: 순수 값 타입 빌더 — actor isolation 불필요
+    nonisolated struct ScreenerBuilder: Sendable {
         private let session: YFSession
         private let baseURL = "https://query1.finance.yahoo.com/v1/finance/screener"
         private var parameters: [String: String] = [:]
@@ -115,7 +116,8 @@ extension YFAPIURLBuilder {
     ///     .count(25)
     ///     .build()
     /// ```
-    struct CustomScreenerBuilder: Sendable {
+    /// nonisolated: 순수 값 타입 빌더 — actor isolation 불필요
+    nonisolated struct CustomScreenerBuilder: Sendable {
         private let session: YFSession
         private let baseURL = "https://query1.finance.yahoo.com/v1/finance/screener"
         private var query: YFScreenerQuery?
