@@ -22,7 +22,9 @@ import Foundation
 ///
 /// ### 에러 타입
 /// - ``YFErrorResponse``
-public struct YFResponseParser: Sendable {
+/// nonisolated: 순수 파싱 struct — actor isolation 불필요
+/// parse 함수에 @concurrent 적용으로 CPU-bound JSON 파싱은 concurrent thread pool에서 실행
+public nonisolated struct YFResponseParser: Sendable {
     /// JSON 디코더 인스턴스
     private let decoder: JSONDecoder
     

@@ -4,7 +4,9 @@ import Foundation
 ///
 /// ChartResult를 YFPrice 배열로 변환하는 기능을 제공합니다.
 /// 단일 책임 원칙에 따라 차트 데이터 변환 로직만 담당합니다.
-public struct YFChartConverter: Sendable {
+/// nonisolated: 순수 변환 유틸리티 struct — actor isolation 불필요
+/// 라이브러리 소비자의 모든 isolation 컨텍스트에서 안전하게 사용 가능
+public nonisolated struct YFChartConverter: Sendable {
     
     /// ChartResult를 YFPrice 배열로 변환합니다
     ///

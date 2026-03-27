@@ -4,7 +4,9 @@ import Foundation
 ///
 /// Sendable 프로토콜을 준수하며 @unchecked 없이도 thread-safe합니다.
 /// 모든 서비스 구현체에서 composition으로 사용됩니다.
-struct YFServiceCore: Sendable {
+/// nonisolated: 순수 데이터 처리 struct — actor isolation 불필요
+/// parseJSON에 @concurrent 적용으로 CPU-bound 파싱은 concurrent thread pool에서 실행
+nonisolated struct YFServiceCore: Sendable {
 
     /// YFClient 참조 (struct이므로 값 타입)
     let client: YFClient

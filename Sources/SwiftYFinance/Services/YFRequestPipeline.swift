@@ -10,7 +10,9 @@ import Foundation
 /// let pipeline = YFRequestPipeline(client: client)
 /// let result: YFQuote = try await pipeline.fetch(url: url, type: YFQuote.self, serviceName: "Quote")
 /// ```
-struct YFRequestPipeline: Sendable {
+/// nonisolated: 순수 요청 파이프라인 struct — actor isolation 불필요
+/// 라이브러리 소비자의 모든 isolation 컨텍스트에서 안전하게 사용 가능
+nonisolated struct YFRequestPipeline: Sendable {
 
     /// YFClient 참조
     let client: YFClient
