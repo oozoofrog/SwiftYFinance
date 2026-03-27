@@ -19,26 +19,31 @@ struct QuoteSummaryCommand: AsyncParsableCommand {
     
     @Flag(name: .shortAndLong, help: "Enable debug output")
     var debug = false
-    
+
     @Flag(name: .shortAndLong, help: "Output raw JSON response")
     var json = false
-    
+
+    /// 이모지 없이 ASCII 대체 문자로 출력 (CI/파이프라인 환경)
+    @Flag(name: .customLong("no-emoji"), help: "이모지 없이 ASCII 대체 문자로 출력합니다")
+    var noEmoji = false
+
     func run() async throws {
         let client = YFClient(debugEnabled: debug)
         let ticker = YFTicker(symbol: symbol.uppercased())
-        
+        let style = OutputStyle(noEmoji: noEmoji)
+
         if debug && !json {
-            print("🔍 Debug mode enabled")
-            print("📊 Fetching \(type) quote summary for: \(ticker.symbol)")
+            print("\(style.search) Debug mode enabled")
+            print("\(style.chart) Fetching \(type) quote summary for: \(ticker.symbol)")
         }
-        
+
         do {
             if json {
                 let rawData = try await fetchRawJSON(client: client, ticker: ticker)
                 print(formatJSONOutput(rawData))
             } else {
                 let quoteSummary = try await fetchQuoteSummary(client: client, ticker: ticker)
-                printQuoteSummaryInfo(quoteSummary)
+                printQuoteSummaryInfo(quoteSummary, style: style)
             }
         } catch {
             if json {
@@ -98,42 +103,42 @@ struct QuoteSummaryCommand: AsyncParsableCommand {
         }
     }
     
-    private func printQuoteSummaryInfo(_ quoteSummary: YFQuoteSummary) {
+    private func printQuoteSummaryInfo(_ quoteSummary: YFQuoteSummary, style: OutputStyle) {
         guard let result = quoteSummary.result?.first else {
-            print("❌ No data available for \(symbol)")
+            print("\(style.error) No data available for \(symbol)")
             return
         }
-        
-        // Basic company info
-        let symbol = result.price?.symbol ?? self.symbol.uppercased()
-        let shortName = result.price?.shortName ?? "Unknown Company"
-        
-        print("🏢 \(symbol) - \(shortName)")
-        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        
-        // Show basic price info if available
+
+        // 기본 기업 정보 — YFQuoteResult.price는 YFQuote 타입 (모듈형 구조체)
+        let symbolStr = result.price?.basicInfo.symbol ?? self.symbol.uppercased()
+        let shortName = result.price?.basicInfo.shortName ?? "Unknown Company"
+
+        print("\(style.company) \(symbolStr) - \(shortName)")
+        print(style.separator)
+
+        // 가격 정보 (존재 시)
         if let price = result.price {
-            let currentPrice = price.regularMarketPrice ?? 0
-            let previousClose = price.regularMarketPreviousClose ?? 0
+            let currentPrice = price.marketData.regularMarketPrice ?? 0
+            let previousClose = price.marketData.regularMarketPreviousClose ?? 0
             let change = currentPrice - previousClose
             let changePercent = previousClose > 0 ? (change / previousClose) * 100 : 0
-            let changeSymbol = change >= 0 ? "🟢" : "🔴"
+            let changeSymbol = style.changeIcon(change: change)
             let changeSign = change >= 0 ? "+" : ""
-            
+
             print("Current Price:    $\(formatPrice(currentPrice))")
             print("Change:           \(changeSymbol) \(changeSign)$\(formatPrice(change)) (\(changeSign)\(formatPercent(changePercent))%)")
             print("Previous Close:   $\(formatPrice(previousClose))")
             print("")
-            print("Open:             $\(formatPrice(price.regularMarketOpen ?? 0))")
-            print("High:             $\(formatPrice(price.regularMarketDayHigh ?? 0))")
-            print("Low:              $\(formatPrice(price.regularMarketDayLow ?? 0))")
-            print("Volume:           \(formatVolume(price.regularMarketVolume ?? 0))")
-            print("Market Cap:       $\(formatLargeNumber(Double(price.marketCap ?? 0)))")
+            print("Open:             $\(formatPrice(price.marketData.regularMarketOpen ?? 0))")
+            print("High:             $\(formatPrice(price.marketData.regularMarketDayHigh ?? 0))")
+            print("Low:              $\(formatPrice(price.marketData.regularMarketDayLow ?? 0))")
+            print("Volume:           \(formatVolume(price.volumeInfo.regularMarketVolume ?? 0))")
+            print("Market Cap:       $\(formatLargeNumber(price.volumeInfo.marketCap ?? 0))")
         }
-        
+
         print("")
-        print("📊 Quote Summary Data Type: \(type)")
-        print("🕒 Retrieved at: \(formatTime(Date()))")
+        print("\(style.chart) Quote Summary Data Type: \(type)")
+        print("\(style.clock) Retrieved at: \(formatTime(Date()))")
     }
 }
 

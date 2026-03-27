@@ -16,26 +16,31 @@ struct NewsCommand: AsyncParsableCommand {
     
     @Flag(name: .shortAndLong, help: "Enable debug output")
     var debug = false
-    
+
     @Flag(name: .shortAndLong, help: "Output raw JSON response")
     var json = false
-    
+
+    /// 이모지 없이 ASCII 대체 문자로 출력 (CI/파이프라인 환경)
+    @Flag(name: .customLong("no-emoji"), help: "이모지 없이 ASCII 대체 문자로 출력합니다")
+    var noEmoji = false
+
     func run() async throws {
         let client = YFClient(debugEnabled: debug)
         let ticker = YFTicker(symbol: symbol.uppercased())
-        
+        let style = OutputStyle(noEmoji: noEmoji)
+
         if debug && !json {
-            print("🔍 Debug mode enabled")
-            print("📰 Fetching \(count) news articles for: \(ticker.symbol)")
+            print("\(style.search) Debug mode enabled")
+            print("\(style.news) Fetching \(count) news articles for: \(ticker.symbol)")
         }
-        
+
         do {
             if json {
                 let rawData = try await client.news.fetchRawJSON(ticker: ticker, count: count)
                 print(formatJSONOutput(rawData))
             } else {
                 let news = try await client.news.fetchNews(ticker: ticker, count: count)
-                printNewsInfo(news, for: ticker.symbol)
+                printNewsInfo(news, for: ticker.symbol, style: style)
             }
         } catch {
             if json {
@@ -46,46 +51,46 @@ struct NewsCommand: AsyncParsableCommand {
             throw ExitCode.failure
         }
     }
-    
-    private func printNewsInfo(_ articles: [YFNewsArticle], for symbol: String) {
-        print("📰 Latest News for \(symbol)")
-        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
+    private func printNewsInfo(_ articles: [YFNewsArticle], for symbol: String, style: OutputStyle) {
+        print("\(style.news) Latest News for \(symbol)")
+        print(style.separator)
         print("")
-        
+
         if articles.isEmpty {
             print("No news articles found for \(symbol)")
             return
         }
-        
+
         for (index, article) in articles.enumerated() {
             let title = article.title ?? "Untitled"
             let publisher = article.publisher ?? "Unknown Source"
             let link = article.link ?? ""
-            
+
             print("[\(index + 1)] \(title)")
-            
+
             if let publishTimeStamp = article.providerPublishTime {
                 let date = Date(timeIntervalSince1970: TimeInterval(publishTimeStamp))
-                print("    📅 \(formatNewsDate(date))")
+                print("    \(style.clock) \(formatNewsDate(date))")
             }
-            
-            print("    📰 \(publisher)")
-            
+
+            print("    \(style.news) \(publisher)")
+
             if let summary = article.summary, !summary.isEmpty {
-                print("    📝 \(summary)")
+                print("    \(style.hint) \(summary)")
             }
-            
+
             if !link.isEmpty {
-                print("    🔗 \(link)")
+                print("    \(style.link) \(link)")
             }
-            
+
             if let type = article.type {
-                print("    📋 Type: \(type)")
+                print("    [TYPE] \(type)")
             }
-            
+
             print("")
         }
-        
+
         print("Found \(articles.count) news article\(articles.count == 1 ? "" : "s")")
     }
     

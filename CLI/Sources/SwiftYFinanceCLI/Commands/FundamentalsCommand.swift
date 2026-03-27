@@ -13,26 +13,31 @@ struct FundamentalsCommand: AsyncParsableCommand {
     
     @Flag(name: .shortAndLong, help: "Enable debug output")
     var debug = false
-    
+
     @Flag(name: .shortAndLong, help: "Output raw JSON response")
     var json = false
-    
+
+    /// 이모지 없이 ASCII 대체 문자로 출력 (CI/파이프라인 환경)
+    @Flag(name: .customLong("no-emoji"), help: "이모지 없이 ASCII 대체 문자로 출력합니다")
+    var noEmoji = false
+
     func run() async throws {
         let client = YFClient(debugEnabled: debug)
         let ticker = YFTicker(symbol: symbol.uppercased())
-        
+        let style = OutputStyle(noEmoji: noEmoji)
+
         if debug && !json {
-            print("🔍 Debug mode enabled")
-            print("📊 Fetching fundamentals for: \(ticker.symbol)")
+            print("\(style.search) Debug mode enabled")
+            print("\(style.chart) Fetching fundamentals for: \(ticker.symbol)")
         }
-        
+
         do {
             if json {
                 let rawData = try await client.fundamentalsTimeseries.fetchRawJSON(ticker: ticker)
                 print(formatJSONOutput(rawData))
             } else {
                 let fundamentals = try await client.fundamentalsTimeseries.fetch(ticker: ticker)
-                printFundamentalsInfo(fundamentals, ticker: ticker)
+                printFundamentalsInfo(fundamentals, ticker: ticker, style: style)
             }
         } catch {
             if json {
@@ -43,62 +48,62 @@ struct FundamentalsCommand: AsyncParsableCommand {
             throw ExitCode.failure
         }
     }
-    
-    private func printFundamentalsInfo(_ fundamentals: FundamentalsTimeseriesResponse, ticker: YFTicker) {
-        print("💼 \(ticker.symbol) - Fundamental Data")
-        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        
+
+    private func printFundamentalsInfo(_ fundamentals: FundamentalsTimeseriesResponse, ticker: YFTicker, style: OutputStyle) {
+        print("[FUND] \(ticker.symbol) - Fundamental Data")
+        print(style.separator)
+
         guard let results = fundamentals.timeseries?.result, !results.isEmpty else {
             print("No fundamental data available.")
             return
         }
-        
+
         print("Available Data Metrics:")
         var metricCount = 0
-        
+
         for result in results {
-            // Income Statement metrics
+            // 손익계산서
             if let revenue = result.annualTotalRevenue?.first?.reportedValue?.raw {
-                print("📈 Total Revenue (Annual): $\(formatLargeNumber(revenue))")
+                print("\(style.up) Total Revenue (Annual): $\(formatLargeNumber(revenue))")
                 metricCount += 1
             }
-            
+
             if let netIncome = result.annualNetIncome?.first?.reportedValue?.raw {
-                print("💰 Net Income (Annual): $\(formatLargeNumber(netIncome))")
+                print("[NET] Net Income (Annual): $\(formatLargeNumber(netIncome))")
                 metricCount += 1
             }
-            
-            // Balance Sheet metrics
+
+            // 재무상태표
             if let totalAssets = result.annualTotalAssets?.first?.reportedValue?.raw {
-                print("🏢 Total Assets (Annual): $\(formatLargeNumber(totalAssets))")
+                print("\(style.company) Total Assets (Annual): $\(formatLargeNumber(totalAssets))")
                 metricCount += 1
             }
-            
+
             if let equity = result.annualTotalStockholderEquity?.first?.reportedValue?.raw {
-                print("📊 Stockholder Equity (Annual): $\(formatLargeNumber(equity))")
+                print("\(style.chart) Stockholder Equity (Annual): $\(formatLargeNumber(equity))")
                 metricCount += 1
             }
-            
-            // Cash Flow metrics
+
+            // 현금흐름표
             if let freeCashFlow = result.annualFreeCashFlow?.first?.reportedValue?.raw {
-                print("💵 Free Cash Flow (Annual): $\(formatLargeNumber(freeCashFlow))")
+                print("[FCF] Free Cash Flow (Annual): $\(formatLargeNumber(freeCashFlow))")
                 metricCount += 1
             }
-            
+
             if let operatingCashFlow = result.annualOperatingCashFlow?.first?.reportedValue?.raw {
-                print("🔄 Operating Cash Flow (Annual): $\(formatLargeNumber(operatingCashFlow))")
+                print("[OCF] Operating Cash Flow (Annual): $\(formatLargeNumber(operatingCashFlow))")
                 metricCount += 1
             }
-            
-            break // Only show first result for summary
+
+            break // 첫 번째 결과만 요약 출력
         }
-        
+
         if metricCount == 0 {
             print("No key financial metrics available.")
         } else {
             print("")
-            print("📋 Note: This is a summary view. \(metricCount) key metrics shown.")
-            print("📡 Data from unified fundamentals-timeseries API")
+            print("[NOTE] Note: This is a summary view. \(metricCount) key metrics shown.")
+            print("\(style.signal) Data from unified fundamentals-timeseries API")
         }
     }
 }
