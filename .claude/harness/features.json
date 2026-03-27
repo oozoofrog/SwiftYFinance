@@ -304,7 +304,7 @@
         "expect": "Issue.record와 seed 관련 코드가 존재 (재현 가능성 보장)"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 10,
     "scores": null
