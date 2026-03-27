@@ -500,7 +500,7 @@
         "expect": "0 (실패 없음)"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 13,
     "scores": null

@@ -53,5 +53,14 @@ let package = Package(
                 .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
             ]
         ),
+        // MCP 서버 단위 테스트 — 순수 로직 테스트, 네트워크 호출 없음
+        .testTarget(
+            name: "MCPTests",
+            dependencies: ["SwiftYFinanceMCP"],
+            path: "Tests/MCPTests",
+            swiftSettings: [
+                .swiftLanguageMode(.v6),
+            ]
+        ),
     ]
 )
