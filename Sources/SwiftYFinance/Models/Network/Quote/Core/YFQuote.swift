@@ -37,7 +37,7 @@ import Foundation
  - **모듈화**: 각 정보 그룹의 독립적 관리
  - **하위 호환성**: 기존 YFQuote와 동일한 필드 제공
  */
-public struct YFQuote: Decodable, Sendable {
+public struct YFQuote: Decodable {
     /// 기본 종목 정보
     public let basicInfo: YFQuoteBasicInfo
     

@@ -7,7 +7,7 @@ import Foundation
  
  정규 시장 외 시간대의 거래 정보를 포함합니다.
  */
-public struct YFQuoteExtendedHoursData: Decodable, Sendable {
+public struct YFQuoteExtendedHoursData: Decodable {
     // MARK: - 장전 거래
     
     /// 장전 거래 가격

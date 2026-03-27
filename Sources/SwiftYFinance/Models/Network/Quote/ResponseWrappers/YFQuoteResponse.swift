@@ -3,7 +3,7 @@ import Foundation
 // MARK: - Yahoo Finance Quote Response
 
 /// Yahoo Finance query1 quote API 응답 래퍼
-public struct YFQuoteResponse: Decodable, Sendable {
+public struct YFQuoteResponse: Decodable {
     
     /// Quote 데이터 결과 배열
     public let result: [YFQuote]?

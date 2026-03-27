@@ -5,7 +5,7 @@ import Foundation
 /// 종목의 상세 분석 정보 구조체
 /// 
 /// 재무 비율, 가격 대역, 거래량 분석, 배당 정보 등 투자 분석 지표들을 포함합니다.
-public struct YFQuoteSummaryDetail: Decodable, Sendable {
+public struct YFQuoteSummaryDetail: Decodable {
     
     // MARK: - 호가 정보
     

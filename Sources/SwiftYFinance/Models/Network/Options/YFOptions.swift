@@ -3,18 +3,18 @@ import Foundation
 // MARK: - Yahoo Finance Options Models
 
 /// Yahoo Finance 옵션체인 API 응답 구조
-public struct YFOptionsChainResponse: Decodable, Sendable {
+public struct YFOptionsChainResponse: Decodable {
     public let optionChain: YFOptionChain?
 }
 
 /// Option chain wrapper
-public struct YFOptionChain: Decodable, Sendable {
+public struct YFOptionChain: Decodable {
     public let result: [YFOptionsChainResult]?
     public let error: String?
 }
 
 /// Options chain result - 모든 Yahoo Finance 필드 노출
-public struct YFOptionsChainResult: Decodable, Sendable {
+public struct YFOptionsChainResult: Decodable {
     public let underlyingSymbol: String?
     public let expirationDates: [Int]?
     public let strikes: [Double]?
@@ -24,7 +24,7 @@ public struct YFOptionsChainResult: Decodable, Sendable {
 }
 
 /// Option data container
-public struct YFOptionData: Decodable, Sendable {
+public struct YFOptionData: Decodable {
     public let expirationDate: Int?
     public let hasMiniOptions: Bool?
     public let calls: [YFOption]?
@@ -32,7 +32,7 @@ public struct YFOptionData: Decodable, Sendable {
 }
 
 /// Options quote - 모든 Yahoo Finance 필드 노출
-public struct YFOptionsQuote: Decodable, Sendable {
+public struct YFOptionsQuote: Decodable {
     public let earningsTimestampEnd: Int?
     public let longName: String?
     public let forwardPE: Double?
@@ -118,7 +118,7 @@ public struct YFOptionsQuote: Decodable, Sendable {
 }
 
 /// Individual option contract - 모든 Yahoo Finance 필드 노출
-public struct YFOption: Decodable, Sendable {
+public struct YFOption: Decodable {
     public let contractSymbol: String?
     public let strike: Double?
     public let currency: String?
