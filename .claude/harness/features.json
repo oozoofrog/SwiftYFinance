@@ -305,7 +305,7 @@
         "expect": "1 이상 — 릴리즈 빌드 실행 예시 포함"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 8,
     "scores": null
