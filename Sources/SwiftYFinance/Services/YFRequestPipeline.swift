@@ -70,7 +70,7 @@ struct YFRequestPipeline: Sendable {
         do {
             let (data, _) = try await core.authenticatedRequest(url: url)
             logAPIResponse(data, serviceName: serviceName)
-            return try core.parseJSON(data: data, type: type)
+            return try await core.parseJSON(data: data, type: type)
         } catch {
             YFLogger.service.error("[\(serviceName)] fetch 실패: \(error.localizedDescription)")
             throw error
@@ -152,7 +152,7 @@ struct YFRequestPipeline: Sendable {
         do {
             let (data, _) = try await core.authenticatedPostRequest(url: url, requestBody: requestBody)
             logAPIResponse(data, serviceName: serviceName)
-            return try core.parseJSON(data: data, type: type)
+            return try await core.parseJSON(data: data, type: type)
         } catch {
             YFLogger.service.error("[\(serviceName)] post 실패: \(error.localizedDescription)")
             throw error

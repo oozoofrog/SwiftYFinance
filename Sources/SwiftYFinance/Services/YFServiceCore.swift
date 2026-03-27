@@ -135,12 +135,16 @@ struct YFServiceCore: Sendable {
 
     /// JSON 응답을 파싱합니다
     ///
+    /// CPU-bound JSON 디코딩 작업으로, `@concurrent` 속성에 의해 항상 concurrent thread pool에서 실행됩니다.
+    /// 호출자(예: MainActor)를 블로킹하지 않고 백그라운드에서 안전하게 처리됩니다.
+    ///
     /// - Parameters:
     ///   - data: 파싱할 JSON 데이터
     ///   - type: 디코딩할 타입
     /// - Returns: 디코딩된 객체
     /// - Throws: 파싱 실패 시 YFError.parsingError
-    func parseJSON<T: Decodable>(data: Data, type: T.Type) throws -> T {
+    @concurrent
+    func parseJSON<T: Decodable>(data: Data, type: T.Type) async throws -> T {
         do {
             let decoder = JSONDecoder()
             return try decoder.decode(type, from: data)
