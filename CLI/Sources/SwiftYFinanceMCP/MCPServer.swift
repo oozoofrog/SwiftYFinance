@@ -3,13 +3,14 @@
 /// MCPTransport와 MCPDispatcher를 조합하여 stdin/stdout JSON-RPC 루프를 구동합니다.
 
 import Foundation
-import SwiftYFinance
 
 /// MCP 서버 진입 구조체
-nonisolated struct MCPServer: Sendable {
+public nonisolated struct MCPServer: Sendable {
+
+    public init() {}
 
     /// 서버 실행 — stdin에서 JSON-RPC 요청을 읽고 stdout으로 응답을 씁니다.
-    func run() async {
+    public func run() async {
         let transport = MCPTransport()
         let dispatcher = MCPDispatcher()
 

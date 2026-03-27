@@ -3,7 +3,7 @@ import ArgumentParser
 @main
 struct SwiftYFinanceCLI: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
-        commandName: "swiftyfinance",
+        commandName: "swift-yf-tools",
         abstract: "SwiftYFinance - Yahoo Finance API Client for Swift",
         version: "1.0.0",
         subcommands: [
@@ -17,7 +17,8 @@ struct SwiftYFinanceCLI: AsyncParsableCommand {
             ScreeningCommand.self,
             DomainCommand.self,
             CustomScreenerCommand.self,
-            WebSocketCommand.self
+            WebSocketCommand.self,
+            MCPCommand.self
         ],
         defaultSubcommand: QuoteCommand.self
     )

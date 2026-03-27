@@ -10,12 +10,8 @@ let package = Package(
     ],
     products: [
         .executable(
-            name: "swiftyfinance",
-            targets: ["SwiftYFinanceCLI"]
-        ),
-        .executable(
             name: "swift-yf-tools",
-            targets: ["SwiftYFinanceMCP"]
+            targets: ["SwiftYFinanceCLI"]
         )
     ],
     dependencies: [
@@ -26,7 +22,8 @@ let package = Package(
         .executableTarget(
             name: "SwiftYFinanceCLI",
             dependencies: [
-                .product(name: "SwiftYFinance", package: "SwiftYFinance"),
+                .product(name: "SwiftYFinance", package: "swift-yf-tools"),
+                "SwiftYFinanceMCP",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
             path: "Sources/SwiftYFinanceCLI",
@@ -38,12 +35,11 @@ let package = Package(
                 .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
             ]
         ),
-        // MCP 서버 타겟 — Yahoo Finance 데이터를 JSON-RPC 2.0 stdio 프로토콜로 제공
-        // 외부 MCP SDK 없이 순수 Swift 표준 라이브러리만으로 구현
-        .executableTarget(
+        // MCP 서버 코어 라이브러리 — CLI와 standalone executable이 함께 재사용
+        .target(
             name: "SwiftYFinanceMCP",
             dependencies: [
-                .product(name: "SwiftYFinance", package: "SwiftYFinance")
+                .product(name: "SwiftYFinance", package: "swift-yf-tools")
             ],
             path: "Sources/SwiftYFinanceMCP",
             swiftSettings: [

@@ -610,7 +610,7 @@ class BulkQuoteFetcher {
 import os.log
 
 struct ErrorLogger {
-    private static let subsystem = "com.yourapp.swiftyfinance"
+    private static let subsystem = "com.yourapp.swiftyftools"
     private static let errorLogger = Logger(subsystem: subsystem, category: "errors")
     private static let metricsLogger = Logger(subsystem: subsystem, category: "metrics")
     

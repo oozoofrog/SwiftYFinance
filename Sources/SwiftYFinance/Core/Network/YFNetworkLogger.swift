@@ -60,7 +60,7 @@ public actor YFNetworkLogger {
     // MARK: - Initialization
 
     private init() {
-        self.logger = Logger(subsystem: "com.swiftyfinance", category: "NetworkLogger")
+        self.logger = Logger(subsystem: "com.swiftyftools", category: "NetworkLogger")
     }
 
     // MARK: - Public Methods
