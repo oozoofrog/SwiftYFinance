@@ -157,7 +157,7 @@
         "expect": "0 이상 허용 — 단, 라이브러리 타입명('SwiftYFinance'만) 허용, 'SwiftYFinance CLI'·'SwiftYFinance MCP 서버'는 0건"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 4,
     "scores": null
