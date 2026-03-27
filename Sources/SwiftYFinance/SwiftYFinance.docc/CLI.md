@@ -1,10 +1,10 @@
 # Command Line Interface (CLI)
 
-SwiftYFinance의 강력한 명령줄 인터페이스
+swift-yf-tools의 강력한 명령줄 인터페이스
 
 ## Overview
 
-SwiftYFinance CLI는 11개의 전문화된 명령어를 제공하여 터미널에서 직접 Yahoo Finance 데이터에 접근할 수 있게 해줍니다. 개발자, 트레이더, 데이터 분석가들이 스크립팅, 자동화, 빠른 데이터 조회에 활용할 수 있는 완전한 도구입니다.
+swift-yf-tools CLI는 12개의 전문화된 명령어를 제공하여 터미널에서 직접 Yahoo Finance 데이터에 접근할 수 있게 해줍니다. 개발자, 트레이더, 데이터 분석가들이 스크립팅, 자동화, 빠른 데이터 조회에 활용할 수 있는 완전한 도구입니다.
 
 ## 설치 및 빌드
 
@@ -19,17 +19,17 @@ swift build -c release
 
 # 실행 파일 생성 확인
 ls .build/release/
-# swiftyfinance 실행 파일이 생성됩니다
+# swift-yf-tools 실행 파일이 생성됩니다
 ```
 
 ### 시스템 PATH에 추가 (선택사항)
 
 ```bash
 # 실행 파일을 시스템 PATH에 복사
-sudo cp .build/release/swiftyfinance /usr/local/bin/
+sudo cp .build/release/swift-yf-tools /usr/local/bin/
 
 # 어디서든 사용 가능
-swiftyfinance --help
+swift-yf-tools --help
 ```
 
 ## 기본 사용법
@@ -37,18 +37,18 @@ swiftyfinance --help
 ### 명령어 구조
 
 ```bash
-swiftyfinance <command> <arguments> [options]
+swift-yf-tools <command> <arguments> [options]
 ```
 
 ### 도움말
 
 ```bash
 # 전체 도움말
-swiftyfinance --help
+swift-yf-tools --help
 
 # 특정 명령어 도움말
-swiftyfinance quote --help
-swiftyfinance history --help
+swift-yf-tools quote --help
+swift-yf-tools history --help
 ```
 
 ### 전역 옵션
@@ -65,7 +65,7 @@ swiftyfinance history --help
 
 **기본 사용법:**
 ```bash
-swiftyfinance quote AAPL
+swift-yf-tools quote AAPL
 ```
 
 **출력 예시:**
@@ -77,7 +77,7 @@ Market: NASDAQ | Time: 16:00 EST
 
 **JSON 출력:**
 ```bash
-swiftyfinance quote AAPL --json
+swift-yf-tools quote AAPL --json
 ```
 
 **JSON 출력 예시:**
@@ -97,24 +97,24 @@ swiftyfinance quote AAPL --json
 
 **다중 종목 조회:**
 ```bash
-swiftyfinance quote AAPL GOOGL MSFT
+swift-yf-tools quote AAPL GOOGL MSFT
 ```
 
 **디버그 모드:**
 ```bash
-swiftyfinance quote AAPL --debug
+swift-yf-tools quote AAPL --debug
 ```
 
 ### 2. QuoteSummary Command - 종합 시세 정보
 
 **기본 사용법:**
 ```bash
-swiftyfinance quotesummary AAPL
+swift-yf-tools quotesummary AAPL
 ```
 
 **모듈별 조회:**
 ```bash
-swiftyfinance quotesummary AAPL --modules price,summaryDetail,defaultKeyStatistics
+swift-yf-tools quotesummary AAPL --modules price,summaryDetail,defaultKeyStatistics
 ```
 
 **출력 예시:**
@@ -132,23 +132,23 @@ Beta: 1.25
 
 **기본 사용법:**
 ```bash
-swiftyfinance history AAPL
+swift-yf-tools history AAPL
 ```
 
 **기간 옵션:**
 ```bash
-swiftyfinance history AAPL --period 1mo    # 1개월
-swiftyfinance history AAPL --period 3mo    # 3개월
-swiftyfinance history AAPL --period 1y     # 1년
-swiftyfinance history AAPL --period 5y     # 5년
-swiftyfinance history AAPL --period max    # 전체
+swift-yf-tools history AAPL --period 1mo    # 1개월
+swift-yf-tools history AAPL --period 3mo    # 3개월
+swift-yf-tools history AAPL --period 1y     # 1년
+swift-yf-tools history AAPL --period 5y     # 5년
+swift-yf-tools history AAPL --period max    # 전체
 ```
 
 **간격 옵션:**
 ```bash
-swiftyfinance history AAPL --period 1mo --interval 1d    # 일별
-swiftyfinance history AAPL --period 1d --interval 1m     # 분별
-swiftyfinance history AAPL --period 1d --interval 5m     # 5분별
+swift-yf-tools history AAPL --period 1mo --interval 1d    # 일별
+swift-yf-tools history AAPL --period 1d --interval 1m     # 분별
+swift-yf-tools history AAPL --period 1d --interval 5m     # 5분별
 ```
 
 **출력 예시:**
@@ -164,14 +164,14 @@ Total: 22 data points
 
 **CSV 형식 출력:**
 ```bash
-swiftyfinance history AAPL --format csv
+swift-yf-tools history AAPL --format csv
 ```
 
 ### 4. Search Command - 종목 검색
 
 **기본 사용법:**
 ```bash
-swiftyfinance search Apple
+swift-yf-tools search Apple
 ```
 
 **출력 예시:**
@@ -186,24 +186,24 @@ Found 3 results
 
 **결과 수 제한:**
 ```bash
-swiftyfinance search Apple --limit 5
+swift-yf-tools search Apple --limit 5
 ```
 
 **뉴스 포함 검색:**
 ```bash
-swiftyfinance search Apple --with-news
+swift-yf-tools search Apple --with-news
 ```
 
 **JSON 출력:**
 ```bash
-swiftyfinance search Apple --json
+swift-yf-tools search Apple --json
 ```
 
 ### 5. Fundamentals Command - 재무제표 데이터
 
 **기본 사용법:**
 ```bash
-swiftyfinance fundamentals AAPL
+swift-yf-tools fundamentals AAPL
 ```
 
 **출력 예시:**
@@ -229,19 +229,19 @@ Capital Expenditures: $22.4B
 
 **JSON 출력:**
 ```bash
-swiftyfinance fundamentals AAPL --json
+swift-yf-tools fundamentals AAPL --json
 ```
 
 **특정 메트릭만 조회:**
 ```bash
-swiftyfinance fundamentals AAPL --metrics TotalRevenue,NetIncome,TotalAssets
+swift-yf-tools fundamentals AAPL --metrics TotalRevenue,NetIncome,TotalAssets
 ```
 
 ### 6. News Command - 종목 뉴스
 
 **기본 사용법:**
 ```bash
-swiftyfinance news AAPL
+swift-yf-tools news AAPL
 ```
 
 **출력 예시:**
@@ -263,19 +263,19 @@ AAPL News (Latest 5 articles):
 
 **뉴스 수 제한:**
 ```bash
-swiftyfinance news AAPL --limit 10
+swift-yf-tools news AAPL --limit 10
 ```
 
 **JSON 출력:**
 ```bash
-swiftyfinance news AAPL --json
+swift-yf-tools news AAPL --json
 ```
 
 ### 7. Options Command - 옵션 거래 데이터
 
 **기본 사용법:**
 ```bash
-swiftyfinance options AAPL
+swift-yf-tools options AAPL
 ```
 
 **출력 예시:**
@@ -303,19 +303,19 @@ Strike  Last   Bid   Ask   Volume  Open Interest
 
 **특정 만료일:**
 ```bash
-swiftyfinance options AAPL --expiration 2025-01-17
+swift-yf-tools options AAPL --expiration 2025-01-17
 ```
 
 **JSON 출력:**
 ```bash
-swiftyfinance options AAPL --json
+swift-yf-tools options AAPL --json
 ```
 
 ### 8. Screening Command - 종목 스크리닝
 
 **기본 사용법:**
 ```bash
-swiftyfinance screening --country US --sector Technology
+swift-yf-tools screening --country US --sector Technology
 ```
 
 **출력 예시:**
@@ -336,19 +336,19 @@ Found 50 results (showing top 10)
 
 **고급 필터링:**
 ```bash
-swiftyfinance screening --country US --sector Technology --min-market-cap 1000000000 --max-pe-ratio 30
+swift-yf-tools screening --country US --sector Technology --min-market-cap 1000000000 --max-pe-ratio 30
 ```
 
 **JSON 출력:**
 ```bash
-swiftyfinance screening --country US --sector Technology --json
+swift-yf-tools screening --country US --sector Technology --json
 ```
 
 ### 9. Domain Command - 섹터/산업 정보
 
 **섹터 목록:**
 ```bash
-swiftyfinance domain sectors
+swift-yf-tools domain sectors
 ```
 
 **출력 예시:**
@@ -369,19 +369,19 @@ Available Sectors:
 
 **특정 섹터의 산업 목록:**
 ```bash
-swiftyfinance domain industries --sector Technology
+swift-yf-tools domain industries --sector Technology
 ```
 
 **JSON 출력:**
 ```bash
-swiftyfinance domain sectors --json
+swift-yf-tools domain sectors --json
 ```
 
 ### 10. CustomScreener Command - 커스텀 스크리너
 
 **기본 사용법:**
 ```bash
-swiftyfinance customscreener --market-cap-min 10000000000 --pe-ratio-max 25
+swift-yf-tools customscreener --market-cap-min 10000000000 --pe-ratio-max 25
 ```
 
 **출력 예시:**
@@ -403,7 +403,7 @@ Found 25 matching stocks
 
 **복잡한 조건:**
 ```bash
-swiftyfinance customscreener \
+swift-yf-tools customscreener \
   --market-cap-min 1000000000 \
   --market-cap-max 100000000000 \
   --pe-ratio-max 20 \
@@ -415,7 +415,7 @@ swiftyfinance customscreener \
 
 **기본 사용법:**
 ```bash
-swiftyfinance websocket AAPL GOOGL MSFT
+swift-yf-tools websocket AAPL GOOGL MSFT
 ```
 
 **출력 예시:**
@@ -432,12 +432,12 @@ Press Ctrl+C to stop
 
 **JSON 스트림:**
 ```bash
-swiftyfinance websocket AAPL --json
+swift-yf-tools websocket AAPL --json
 ```
 
 **출력을 파일로 저장:**
 ```bash
-swiftyfinance websocket AAPL GOOGL > realtime_data.log
+swift-yf-tools websocket AAPL GOOGL > realtime_data.log
 ```
 
 ## JSON 샘플 파일 활용
@@ -465,19 +465,19 @@ ls json-samples/
 **오프라인 모드 (개발용):**
 ```bash
 # 실제 API 대신 샘플 데이터 사용
-swiftyfinance quote AAPL --offline --sample json-samples/quote-aapl.json
+swift-yf-tools quote AAPL --offline --sample json-samples/quote-aapl.json
 ```
 
 **샘플 데이터 검증:**
 ```bash
 # 샘플 파일의 구조 확인
-swiftyfinance validate-sample json-samples/quote-aapl.json
+swift-yf-tools validate-sample json-samples/quote-aapl.json
 ```
 
 **샘플에서 스키마 생성:**
 ```bash
 # JSON 스키마 추출 (개발자용)
-swiftyfinance extract-schema json-samples/quote-aapl.json
+swift-yf-tools extract-schema json-samples/quote-aapl.json
 ```
 
 ## 고급 사용법
@@ -495,7 +495,7 @@ echo "Portfolio Status - $(date)"
 echo "================================"
 
 for symbol in "${SYMBOLS[@]}"; do
-    result=$(swiftyfinance quote $symbol --json)
+    result=$(swift-yf-tools quote $symbol --json)
     price=$(echo $result | jq -r '.regularMarketPrice')
     change=$(echo $result | jq -r '.regularMarketChangePercent')
     
@@ -511,7 +511,7 @@ import json
 
 def get_quote(symbol):
     result = subprocess.run(
-        ['swiftyfinance', 'quote', symbol, '--json'],
+        ['swift-yf-tools', 'quote', symbol, '--json'],
         capture_output=True, text=True
     )
     return json.loads(result.stdout)
@@ -526,17 +526,17 @@ print(f"AAPL: ${quote['regularMarketPrice']}")
 **Cron 작업 예제:**
 ```bash
 # 매일 오전 9시에 포트폴리오 리포트 생성
-0 9 * * * /usr/local/bin/swiftyfinance quote AAPL GOOGL MSFT --json > /tmp/daily_portfolio.json
+0 9 * * * /usr/local/bin/swift-yf-tools quote AAPL GOOGL MSFT --json > /tmp/daily_portfolio.json
 
 # 매분 실시간 데이터 수집
-* * * * * /usr/local/bin/swiftyfinance quote AAPL >> /var/log/aapl_prices.log
+* * * * * /usr/local/bin/swift-yf-tools quote AAPL >> /var/log/aapl_prices.log
 ```
 
 **시스템 모니터링:**
 ```bash
 # 특정 가격 조건 모니터링
 while true; do
-    price=$(swiftyfinance quote AAPL --json | jq -r '.regularMarketPrice')
+    price=$(swift-yf-tools quote AAPL --json | jq -r '.regularMarketPrice')
     if (( $(echo "$price > 160" | bc -l) )); then
         echo "AAPL hit $160! Current: $price" | mail -s "Price Alert" user@example.com
     fi
@@ -569,7 +569,7 @@ jobs:
         
     - name: Collect Market Data
       run: |
-        ./CLI/.build/release/swiftyfinance quote AAPL GOOGL MSFT --json > data/market_$(date +%Y%m%d_%H%M).json
+        ./CLI/.build/release/swift-yf-tools quote AAPL GOOGL MSFT --json > data/market_$(date +%Y%m%d_%H%M).json
         
     - name: Commit Data
       run: |
@@ -585,13 +585,13 @@ jobs:
 **대량 종목 조회:**
 ```bash
 # 100개 종목을 10개씩 배치 처리
-cat symbols_list.txt | xargs -n 10 swiftyfinance quote --json
+cat symbols_list.txt | xargs -n 10 swift-yf-tools quote --json
 ```
 
 **병렬 처리:**
 ```bash
 # GNU parallel 사용
-parallel -j 4 swiftyfinance quote {} --json ::: AAPL GOOGL MSFT AMZN TSLA NVDA
+parallel -j 4 swift-yf-tools quote {} --json ::: AAPL GOOGL MSFT AMZN TSLA NVDA
 ```
 
 ### 캐싱 전략
@@ -599,13 +599,13 @@ parallel -j 4 swiftyfinance quote {} --json ::: AAPL GOOGL MSFT AMZN TSLA NVDA
 **임시 캐시 디렉토리:**
 ```bash
 # 결과를 임시 파일로 캐싱
-CACHE_DIR=/tmp/swiftyfinance_cache
+CACHE_DIR=/tmp/swift-yf-tools_cache
 mkdir -p $CACHE_DIR
 
 if [ -f "$CACHE_DIR/AAPL_$(date +%Y%m%d_%H).json" ]; then
     cat "$CACHE_DIR/AAPL_$(date +%Y%m%d_%H).json"
 else
-    swiftyfinance quote AAPL --json | tee "$CACHE_DIR/AAPL_$(date +%Y%m%d_%H).json"
+    swift-yf-tools quote AAPL --json | tee "$CACHE_DIR/AAPL_$(date +%Y%m%d_%H).json"
 fi
 ```
 
@@ -627,7 +627,7 @@ swift build
 **2. 네트워크 에러:**
 ```bash
 # 디버그 모드로 상세 정보 확인
-swiftyfinance quote AAPL --debug
+swift-yf-tools quote AAPL --debug
 
 # 네트워크 연결 테스트
 curl -I https://finance.yahoo.com
@@ -637,7 +637,7 @@ curl -I https://finance.yahoo.com
 ```bash
 # 요청 간격 조정
 for symbol in AAPL GOOGL MSFT; do
-    swiftyfinance quote $symbol
+    swift-yf-tools quote $symbol
     sleep 1  # 1초 대기
 done
 ```
@@ -645,26 +645,25 @@ done
 **4. JSON 파싱 에러:**
 ```bash
 # JSON 출력을 jq로 검증
-swiftyfinance quote AAPL --json | jq '.'
+swift-yf-tools quote AAPL --json | jq '.'
 
 # 파일로 저장 후 검증
-swiftyfinance quote AAPL --json > quote.json
+swift-yf-tools quote AAPL --json > quote.json
 jq '.' quote.json
 ```
 
 ### 로그 및 디버깅
 
-**로그 레벨 설정:**
+**디버그 모드 실행:**
 ```bash
-# 환경 변수로 로그 레벨 조정
-export SWIFTYFINANCE_LOG_LEVEL=DEBUG
-swiftyfinance quote AAPL
+# --debug 플래그로 상세 정보 출력
+swift-yf-tools quote AAPL --debug
 ```
 
 **네트워크 요청 추적:**
 ```bash
 # HTTP 요청/응답 상세 정보
-swiftyfinance quote AAPL --debug --verbose
+swift-yf-tools quote AAPL --debug --verbose
 ```
 
 ## 확장 및 커스터마이징

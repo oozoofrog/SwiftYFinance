@@ -342,7 +342,7 @@
         "expect": "헤더(# 또는 첫 단락)에 'SwiftYFinance CLI' 미포함"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 9,
     "scores": null
