@@ -6,7 +6,8 @@ import Foundation
 /// Protocol + Struct 아키텍처를 따르는 Screener API 전용 서비스입니다.
 /// YFServiceCore를 통한 composition 패턴을 사용하여 공통 기능을 활용합니다.
 /// Sendable 프로토콜을 준수하여 완전한 thread-safety를 보장합니다.
-public struct YFScreenerService: YFService {
+/// nonisolated: 순수 데이터 서비스 — actor isolation 불필요, 라이브러리 소비자의 모든 컨텍스트에서 안전
+public nonisolated struct YFScreenerService: YFService {
     
     /// YFClient 참조
     public let client: YFClient

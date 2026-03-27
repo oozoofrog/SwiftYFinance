@@ -6,7 +6,8 @@ import Foundation
 /// 단일 책임 원칙에 따라 시세 조회 관련 로직만 담당합니다.
 /// Sendable 프로토콜을 준수하여 concurrent 환경에서 안전하게 사용할 수 있습니다.
 /// Protocol + Struct 설계로 @unchecked 없이도 완전한 thread safety를 보장합니다.
-public struct YFQuoteService: YFService {
+/// nonisolated: 순수 데이터 서비스 — actor isolation 불필요, 라이브러리 소비자의 모든 컨텍스트에서 안전
+public nonisolated struct YFQuoteService: YFService {
     
     /// YFClient 참조
     public let client: YFClient
