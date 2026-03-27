@@ -273,7 +273,7 @@
         "expect": "0 — 모든 이전 이름 제거"
       }
     ],
-    "status": "pending",
+    "status": "built",
     "reference": null,
     "priority": 7,
     "scores": null
