@@ -21,10 +21,16 @@
         "expect": "Build complete! 포함, error: 없음"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": "references/swift-concurrency.md",
     "priority": 1,
-    "scores": null
+    "scores": {
+      "functionality": 8,
+      "codeQuality": 9,
+      "designQuality": 9,
+      "interactionQuality": 9,
+      "weightedAverage": 8.75
+    }
   },
   {
     "id": "F002",
@@ -53,10 +59,16 @@
         "expect": "0 — 빌드 에러 없음"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": "references/swift-concurrency.md",
     "priority": 2,
-    "scores": null
+    "scores": {
+      "functionality": 7,
+      "codeQuality": 8,
+      "designQuality": 8,
+      "interactionQuality": 8,
+      "weightedAverage": 7.75
+    }
   },
   {
     "id": "F003",
@@ -85,10 +97,16 @@
         "expect": "0"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": "references/swift-concurrency.md",
     "priority": 3,
-    "scores": null
+    "scores": {
+      "functionality": 9,
+      "codeQuality": 8,
+      "designQuality": 9,
+      "interactionQuality": 9,
+      "weightedAverage": 8.75
+    }
   },
   {
     "id": "F004",
@@ -120,7 +138,13 @@
     "status": "built",
     "reference": "references/swift-concurrency.md",
     "priority": 4,
-    "scores": null
+    "scores": {
+      "functionality": 4,
+      "codeQuality": 3,
+      "designQuality": 5,
+      "interactionQuality": 3,
+      "weightedAverage": 3.75
+    }
   },
   {
     "id": "F005",
@@ -149,10 +173,16 @@
         "expect": "0"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": "references/swift-concurrency.md",
     "priority": 5,
-    "scores": null
+    "scores": {
+      "functionality": 9,
+      "codeQuality": 8,
+      "designQuality": 9,
+      "interactionQuality": 9,
+      "weightedAverage": 8.75
+    }
   },
   {
     "id": "F006",
@@ -176,10 +206,16 @@
         "expect": "0"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": "references/swift-concurrency.md",
     "priority": 6,
-    "scores": null
+    "scores": {
+      "functionality": 9,
+      "codeQuality": 9,
+      "designQuality": 9,
+      "interactionQuality": 9,
+      "weightedAverage": 9.0
+    }
   },
   {
     "id": "F007",
@@ -208,10 +244,16 @@
         "expect": "0"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": "references/swift-concurrency.md",
     "priority": 7,
-    "scores": null
+    "scores": {
+      "functionality": 10,
+      "codeQuality": 9,
+      "designQuality": 9,
+      "interactionQuality": 9,
+      "weightedAverage": 9.25
+    }
   },
   {
     "id": "F008",
@@ -250,10 +292,16 @@
         "expect": "0"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": "references/swift-concurrency.md",
     "priority": 8,
-    "scores": null
+    "scores": {
+      "functionality": 10,
+      "codeQuality": 9,
+      "designQuality": 9,
+      "interactionQuality": 9,
+      "weightedAverage": 9.25
+    }
   },
   {
     "id": "F009",
@@ -282,10 +330,16 @@
         "expect": "0"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": "references/swift-concurrency.md",
     "priority": 9,
-    "scores": null
+    "scores": {
+      "functionality": 9,
+      "codeQuality": 8,
+      "designQuality": 9,
+      "interactionQuality": 9,
+      "weightedAverage": 8.75
+    }
   },
   {
     "id": "F010",
@@ -309,10 +363,16 @@
         "expect": "0"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": "references/swift-concurrency.md",
     "priority": 10,
-    "scores": null
+    "scores": {
+      "functionality": 7,
+      "codeQuality": 7,
+      "designQuality": 7,
+      "interactionQuality": 8,
+      "weightedAverage": 7.25
+    }
   },
   {
     "id": "F011",
@@ -336,10 +396,16 @@
         "expect": "0"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": "references/swift-concurrency.md",
     "priority": 11,
-    "scores": null
+    "scores": {
+      "functionality": 9,
+      "codeQuality": 9,
+      "designQuality": 9,
+      "interactionQuality": 9,
+      "weightedAverage": 9.0
+    }
   },
   {
     "id": "F012",
@@ -376,7 +442,13 @@
     "status": "built",
     "reference": "references/swift-concurrency.md",
     "priority": 12,
-    "scores": null
+    "scores": {
+      "functionality": 7,
+      "codeQuality": 7,
+      "designQuality": 6,
+      "interactionQuality": 7,
+      "weightedAverage": 6.85
+    }
   },
   {
     "id": "F013",
@@ -410,9 +482,15 @@
         "expect": "0"
       }
     ],
-    "status": "built",
+    "status": "verified",
     "reference": "references/swift-concurrency.md",
     "priority": 13,
-    "scores": null
+    "scores": {
+      "functionality": 10,
+      "codeQuality": 9,
+      "designQuality": 9,
+      "interactionQuality": 9,
+      "weightedAverage": 9.25
+    }
   }
 ]

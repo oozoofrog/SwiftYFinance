@@ -1,21 +1,23 @@
 import Foundation
 
 // MARK: - Fundamentals Timeseries API Response Models
+// Sendable 유지 근거: withTaskGroup 등 Sendable 컨텍스트에서 cross-task 전달이 필요하며,
+// 테스트 코드 및 라이브러리 소비자가 concurrent 환경에서 직접 사용하므로 명시가 필요합니다.
 
 /// Fundamentals Timeseries API 응답 구조
-public struct FundamentalsTimeseriesResponse: Decodable {
+public struct FundamentalsTimeseriesResponse: Decodable, Sendable {
     public let timeseries: TimeseriesData?
     public let error: String?
 }
 
 /// Timeseries 데이터 컨테이너
-public struct TimeseriesData: Decodable {
+public struct TimeseriesData: Decodable, Sendable {
     public let result: [TimeseriesResult]?
     public let error: String?
 }
 
 /// 개별 Timeseries 결과
-public struct TimeseriesResult: Decodable {
+public struct TimeseriesResult: Decodable, Sendable {
     public let meta: TimeseriesMeta?
     public let timestamp: [Int]?
     
@@ -74,13 +76,13 @@ public struct TimeseriesResult: Decodable {
 }
 
 /// Timeseries 메타데이터
-public struct TimeseriesMeta: Decodable {
+public struct TimeseriesMeta: Decodable, Sendable {
     public let symbol: [String]?
     public let type: [String]?
 }
 
 /// Timeseries 값 구조
-public struct TimeseriesValue: Decodable {
+public struct TimeseriesValue: Decodable, Sendable {
     public let dataId: Int?
     public let asOfDate: String?
     public let periodType: String?
@@ -89,7 +91,7 @@ public struct TimeseriesValue: Decodable {
 }
 
 /// 보고된 값 구조
-public struct ReportedValue: Decodable {
+public struct ReportedValue: Decodable, Sendable {
     public let raw: Double?
     public let fmt: String?
 }
