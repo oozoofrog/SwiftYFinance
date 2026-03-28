@@ -1,0 +1,80 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: macos-15
+            arch: arm64
+            artifact: swift-yf-tools-macos-arm64
+          - os: macos-15
+            arch: x86_64
+            artifact: swift-yf-tools-macos-x86_64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Swift
+        uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: '6.0'
+
+      - name: Build release binary
+        env:
+          TARGET_ARCH: ${{ matrix.arch }}
+        run: |
+          cd CLI
+          if [ "$TARGET_ARCH" = "x86_64" ]; then
+            swift build -c release --arch x86_64
+          else
+            swift build -c release
+          fi
+
+      - name: Package binary
+        env:
+          TARGET_ARCH: ${{ matrix.arch }}
+          ARTIFACT_NAME: ${{ matrix.artifact }}
+        run: |
+          cd CLI
+          if [ "$TARGET_ARCH" = "x86_64" ]; then
+            BINARY_PATH=".build/x86_64-apple-macosx/release/swift-yf-tools"
+          else
+            BINARY_PATH=".build/release/swift-yf-tools"
+          fi
+          mkdir -p dist
+          cp "$BINARY_PATH" dist/swift-yf-tools
+          cd dist
+          tar czf "${ARTIFACT_NAME}.tar.gz" swift-yf-tools
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: CLI/dist/${{ matrix.artifact }}.tar.gz
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*.tar.gz
+          generate_release_notes: true
